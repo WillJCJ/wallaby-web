@@ -18,6 +18,12 @@ resource "aws_lambda_function" "wallaby_lambda" {
   layers           = [aws_lambda_layer_version.requirements_layer.arn]
 
   timeout = 10
+
+  environment {
+    variables = {
+      STATIC_ROOT = "https://static.wallabyfest.co.uk"
+    }
+  }
 }
 
 resource "aws_iam_role" "lambda_exec" {

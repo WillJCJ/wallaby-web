@@ -1,19 +1,19 @@
 import logging
 import json
-import sys
+import os
 
 from jinja2 import Environment, FileSystemLoader
 
 
-env = Environment(loader=FileSystemLoader("templates"))
+jinja_env = Environment(loader=FileSystemLoader(os.getenv("TEMPLATE_ROOT", "templates")))
 
 logger = logging.getLogger()
 
-static_root = "https://static.wallabyfest.co.uk"
+static_root = os.getenv("STATIC_ROOT", "static")
 
 
 def render_template(template_name, **context):
-    template = env.get_template(template_name)
+    template = jinja_env.get_template(template_name)
     return template.render({
             "static_root": static_root,
         } | context)
@@ -22,6 +22,7 @@ def render_template(template_name, **context):
 def lambda_handler(event={}, context={}):
     logger.debug(json.dumps(event))
     path = event.get("requestContext", {}).get("http", {}).get("path")
+    print(path)
     if path == "/":
         html = render_template("home.html")
         return {
@@ -30,17 +31,10 @@ def lambda_handler(event={}, context={}):
             "body": html,
         }
     if path == "/about":
-        html = render_template("about.html")
+        html = render_template("home.html")
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "text/html"},
             "body": html,
         }
     return {"statusCode": 404, "body": "Not Found"}
-
-
-if __name__ == "__main__":
-    # Usage: python app.py [path]
-    path = sys.argv[1] if len(sys.argv) > 1 else "/"
-
-    print(lambda_handler({"requestContext": {"http": {"path": path}}})["body"])
