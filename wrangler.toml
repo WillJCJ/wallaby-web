@@ -1,6 +1,10 @@
-name = "wallabyfest"
+name = "wallaby-web"
 main = "worker/index.js"
 compatibility_date = "2024-01-01"
+
+[[routes]]
+pattern = "wallabyfest.co.uk"
+custom_domain = true
 
 [assets]
 directory = "./public"
