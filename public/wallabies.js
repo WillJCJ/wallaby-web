@@ -3,7 +3,7 @@ const wallabies = {
     name: "Andrew",
     alias: "",
     img: "/images/wallabies/andrew-feature.jpg",
-    desc: "Unwitting star of The Yorkshire Vet, Andrew first came to The Firs as 'Kathleen' along with Kevin (†) in 2020.\
+    desc: "Unwitting star of The Yorkshire Vet, Andrew first came to The Firs as 'Kathleen' along with Kevin<sup>†</sup> in 2020.\
     His brief stint as Kathleen ended on a hot summers day when it was discovered he had a big pair of balls to match his fieldmate.\
     These balls became a problem though after he fathered 3 joeys in two years.\
     So, in October 2025, the vet came round with a dart gun and poor Andrew woke up missing the aforementioned balls.\
@@ -73,7 +73,7 @@ function openModal(id) {
   const alias = document.getElementById("modal-alias");
   alias.textContent = w.alias;
   alias.style.display = w.alias ? "block" : "none";
-  document.getElementById("modal-desc").textContent = w.desc;
+  document.getElementById("modal-desc").innerHTML = w.desc;
   document.getElementById("modal-stats").innerHTML = Object.entries(w.stats)
     .map(
       ([k, v]) => `
