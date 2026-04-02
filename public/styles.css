@@ -1,0 +1,196 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #1a1a2e;
+  --bg-surface: #111827;
+  --bg-card: #1f2937;
+  --border: #2d2d3a;
+  --text: #e8e6df;
+  --text-muted: #9ca3af;
+  --text-faint: #6b7280;
+  --accent: #f5c842;
+  --radius: 10px;
+}
+
+html {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+
+header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-left: 1.5rem;
+  font-size: 0.9rem;
+  transition: color 0.15s;
+}
+
+nav a:hover {
+  color: var(--accent);
+}
+
+/* ── Hero ── */
+
+.hero {
+  text-align: center;
+  padding: 5rem 2rem 4rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero .eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.hero h2 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+}
+
+.hero .cta {
+  display: inline-block;
+  background: var(--accent);
+  color: #111827;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: opacity 0.15s;
+}
+
+.hero .cta:hover {
+  opacity: 0.9;
+}
+
+/* ── Cards ── */
+
+.cards {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Main content ── */
+
+main {
+  flex: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 3rem 2rem;
+}
+
+section {
+  margin-bottom: 3rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+p {
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* ── Footer ── */
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 0.8rem;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  nav a:first-child {
+    margin-left: 0;
+  }
+
+  .hero {
+    padding: 3rem 1.5rem;
+  }
+}

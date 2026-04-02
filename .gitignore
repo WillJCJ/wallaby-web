@@ -232,3 +232,4 @@ terraform.rc
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,node,macos,terraform
 
 *.env
+.wrangler

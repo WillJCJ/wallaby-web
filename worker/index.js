@@ -1,7 +1,12 @@
 export default {
   async fetch(request, env, ctx) {
-    return new Response("Hello from wallabyfest.co.uk!", {
-      headers: { "Content-Type": "text/plain" },
-    });
+    const url = new URL(request.url);
+
+    // Protected routes go here later, e.g.:
+    // if (url.pathname.startsWith('/rsvp')) {
+    //   return handleAuth(request, env);
+    // }
+
+    return env.ASSETS.fetch(request);
   },
 };

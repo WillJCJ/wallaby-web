@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meet the Wallabies — WallabyFest</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/wallabies.css" />
+</head>
+<body>
+  <header>
+    <h1>🦘 WallabyFest</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/wallabies.html">Meet the wallabies</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-intro">
+      <h2>Meet the wallabies</h2>
+      <p>Click a card to learn more.</p>
+    </div>
+
+    <div class="wallaby-grid">
+
+      <div class="wallaby-card" onclick="openModal('andrew')">
+        <div class="wallaby-headshot">
+          <img src="/images/wallabies/andrew.png" alt="Andrew" />
+        </div>
+        <div class="wallaby-card-info">
+          <h3>Andrew</h3>
+          <p>The OG</p>
+          <span class="expand-hint">Tap to read more →</span>
+        </div>
+      </div>
+
+      <div class="wallaby-card" onclick="openModal('annie')">
+        <div class="wallaby-headshot">
+          <img src="/images/wallabies/annie.png" alt="Annie" />
+        </div>
+        <div class="wallaby-card-info">
+          <h3>Annie</h3>
+          <p>Mary-Anne to her mum</p>
+          <span class="expand-hint">Tap to read more →</span>
+        </div>
+      </div>
+
+      <div class="wallaby-card" onclick="openModal('kathleen')">
+        <div class="wallaby-headshot">
+          <img src="/images/wallabies/kathleen.png" alt="Kathleen" />
+        </div>
+        <div class="wallaby-card-info">
+          <h3>Kathleen</h3>
+          <p>Smol</p>
+          <span class="expand-hint">Tap to read more →</span>
+        </div>
+      </div>
+
+      <div class="wallaby-card" onclick="openModal('pinky')">
+        <div class="wallaby-headshot">
+          <img src="/images/wallabies/pinky.png" alt="Pinky" />
+        </div>
+        <div class="wallaby-card-info">
+          <h3>Pinky</h3>
+          <p>Super rare albino baby</p>
+          <span class="expand-hint">Tap to read more →</span>
+        </div>
+      </div>
+
+      <div class="wallaby-card" onclick="openModal('joey')">
+        <div class="wallaby-headshot">
+          <img src="/images/wallabies/joey.png" alt="Joey" />
+        </div>
+        <div class="wallaby-card-info">
+          <h3>Joey</h3>
+          <p>Name TBC. Maybe a naming competition at Wallaby Fest??</p>
+          <span class="expand-hint">Tap to read more →</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal overlay -->
+  <div class="modal-overlay" id="overlay" onclick="closeModal(event)">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-headshot">
+        <img id="modal-img" src="" alt="" />
+      </div>
+      <div class="modal-body">
+        <h3 id="modal-name"></h3>
+        <p class="modal-alias" id="modal-alias"></p>
+        <p class="modal-desc" id="modal-desc"></p>
+        <div class="modal-stats" id="modal-stats"></div>
+        <button class="close-btn" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 WallabyFest</p>
+  </footer>
+
+  <script src="/wallabies.js"></script>
+</body>
+</html>
