@@ -1,14 +1,27 @@
 import CleanCSS from 'clean-css';
-import { minify } from 'html-minifier';
+import { minify } from 'html-minifier-next';
 
 export default function (eleventyConfig) {
   eleventyConfig.setTemplateFormats([
+    'md',
     'html',
     'liquid'
   ]);
   eleventyConfig.addPassthroughCopy('images/**');
-  eleventyConfig.addPassthroughCopy('site/**/scripts/**');
-  eleventyConfig.addPassthroughCopy('site/**/styles/**');
+  eleventyConfig.addPassthroughCopy('site/styles/**');
+  eleventyConfig.addPassthroughCopy('_headers');
+
+  eleventyConfig.addFilter('age', function (dobString) {
+    if (!dobString || dobString === 'TBC') return 'TBC';
+    const birthDate = new Date(dobString);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  });
 
   eleventyConfig.addTransform('htmlMinify', function (content, outputPath) {
     if (!outputPath.endsWith('.html')) {

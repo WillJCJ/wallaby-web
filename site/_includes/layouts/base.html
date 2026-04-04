@@ -2,27 +2,31 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-  <title>{{ title }}</title>
+    <title>{{ title }}</title>
 
-  <link rel="icon" href="/images/favicon.ico">
-  <link rel="stylesheet" href="/styles/main.css" type="text/css">
-  {% for style in extraStyles %}
-  <link rel="stylesheet" href="{{ style }}" type="text/css">
-  {% endfor %}
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="stylesheet" href="/styles/main.css" type="text/css">
 </head>
 
 <body>
-  {% render './header.html' %}
-  <main>
-    {{ content }}
-  </main>
-  {% render './footer.html' %}
-  {% for script in extraScripts %}
-  <script src="{{ script }}"></script>
-  {% endfor %}
+    <header>
+        <a href="/">
+            <h1>🦘 Wallaby Fest</h1>
+        </a>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/wallabies/">Meet the Wallabies</a>
+        </nav>
+    </header>
+    <main>
+        {{ content }}
+    </main>
+    <footer>
+        <p>&copy; 2026 Wallaby Fest - None of the content is AI generated, I just have a shit sense of humour.</p>
+    </footer>
 </body>
 
 </html>

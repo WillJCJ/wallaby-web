@@ -1,10 +1,6 @@
 ---
 layout: layouts/base.html
 title: Meet the Wallabies — WallabyFest
-extraStyles:
-  - /styles/wallabies.css
-extraScripts:
-  - /scripts/wallabies.js
 ---
 <div class="page-intro">
   <h2>Meet the Wallabies</h2>
@@ -12,76 +8,29 @@ extraScripts:
 </div>
 
 <div class="wallaby-grid">
-
-  <div class="wallaby-card" onclick="openModal('andrew')">
-    <div class="wallaby-headshot">
-      <img src="/images/wallabies/andrew.png" alt="Andrew" />
+  {% for wallaby in wallabies %}
+  <div class="wallaby-card">
+    <div class="wallaby-card-headshot">
+      <img src="{{ wallaby.img }}" alt="{{ wallaby.name }}" />
     </div>
-    <div class="wallaby-card-info">
-      <h3>Andrew</h3>
-      <p>The OG</p>
-      <span class="expand-hint">Tap to read more →</span>
-    </div>
-  </div>
-
-  <div class="wallaby-card" onclick="openModal('annie')">
-    <div class="wallaby-headshot">
-      <img src="/images/wallabies/annie.png" alt="Annie" />
-    </div>
-    <div class="wallaby-card-info">
-      <h3>Annie</h3>
-      <p>Mary-Anne to her mum</p>
-      <span class="expand-hint">Tap to read more →</span>
-    </div>
-  </div>
-
-  <div class="wallaby-card" onclick="openModal('kathleen')">
-    <div class="wallaby-headshot">
-      <img src="/images/wallabies/kathleen.png" alt="Kathleen" />
-    </div>
-    <div class="wallaby-card-info">
-      <h3>Kathleen</h3>
-      <p>Smol</p>
-      <span class="expand-hint">Tap to read more →</span>
+    <div class="wallaby-card-body">
+      <h3>{{ wallaby.name }}</h3>
+      {% if wallaby.alias != "" %}<p class="wallaby-alias">{{ wallaby.alias }}</p>{% endif %}
+      <p class="wallaby-desc">{{ wallaby.desc }}</p>
+      <div class="wallaby-stats">
+        {% for stat in wallaby.stats %}
+        <div class="stat">
+          {% if stat[0] == "DoB" %}
+          <div class="stat-label">Age</div>
+          <div class="stat-value">{{ stat[1] | age }}</div>
+          {% else %}
+          <div class="stat-label">{{ stat[0] }}</div>
+          <div class="stat-value">{{ stat[1] }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
     </div>
   </div>
-
-  <div class="wallaby-card" onclick="openModal('pinky')">
-    <div class="wallaby-headshot">
-      <img src="/images/wallabies/pinky.png" alt="Pinky" />
-    </div>
-    <div class="wallaby-card-info">
-      <h3>Pinky</h3>
-      <p>Super rare albino baby</p>
-      <span class="expand-hint">Tap to read more →</span>
-    </div>
-  </div>
-
-  <div class="wallaby-card" onclick="openModal('joey')">
-    <div class="wallaby-headshot">
-      <img src="/images/wallabies/joey.png" alt="Joey" />
-    </div>
-    <div class="wallaby-card-info">
-      <h3>Joey</h3>
-      <p>Name TBC. Maybe a naming competition at Wallaby Fest??</p>
-      <span class="expand-hint">Tap to read more →</span>
-    </div>
-  </div>
-
-</div>
-
-<!-- Modal overlay -->
-<div class="modal-overlay" id="overlay" onclick="closeModal(event)">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-headshot">
-      <img id="modal-img" src="" alt="" />
-    </div>
-    <div class="modal-body">
-      <h3 id="modal-name"></h3>
-      <p class="modal-alias" id="modal-alias"></p>
-      <p class="modal-desc" id="modal-desc"></p>
-      <div class="modal-stats" id="modal-stats"></div>
-      <button class="close-btn" onclick="closeModal()">Close</button>
-    </div>
-  </div>
+  {% endfor %}
 </div>
