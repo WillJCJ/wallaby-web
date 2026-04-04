@@ -1,0 +1,16 @@
+{
+  "name": "wallaby-web",
+  "type": "module",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0-beta.1",
+    "clean-css": "^5.3.1",
+    "html-minifier": "^4.0.0",
+    "wrangler": "^3.73.0"
+  },
+  "scripts": {
+    "build:clean": "rm -rf dist",
+    "build:html": "eleventy --config eleventy.js --input=site --output=dist",
+    "build": "npm run build:clean && npm run build:html && cp _headers dist/_headers",
+    "dev": "eleventy --config eleventy.js --input=site --output=dist --serve"
+  }
+}

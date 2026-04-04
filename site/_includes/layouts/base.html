@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>{{ title }}</title>
+
+  <link rel="icon" href="/images/favicon.ico">
+  <link rel="stylesheet" href="/styles/main.css" type="text/css">
+  {% for style in extraStyles %}
+  <link rel="stylesheet" href="{{ style }}" type="text/css">
+  {% endfor %}
+</head>
+
+<body>
+  {% render './header.html' %}
+  <main>
+    {{ content }}
+  </main>
+  {% render './footer.html' %}
+  {% for script in extraScripts %}
+  <script src="{{ script }}"></script>
+  {% endfor %}
+</body>
+
+</html>
