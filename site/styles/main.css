@@ -177,6 +177,25 @@ footer {
   font-size: 0.8rem;
 }
 
+/* ── Map ── */
+
+.map-section {
+  margin-top: 2rem;
+}
+
+.map-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #b2f0e8;
+}
+
+.site-map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* ── Wallaby page ── */
 
 .page-intro {
