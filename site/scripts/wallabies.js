@@ -29,6 +29,7 @@
 
   cards.forEach((card) => {
     const toggle = card.querySelector('.wallaby-card-toggle');
+    const details = card.querySelector('.wallaby-card-details');
 
     toggle.addEventListener('click', () => {
       if (card.classList.contains('is-open')) {
@@ -37,6 +38,12 @@
       }
 
       openCard(card);
+    });
+
+    details.addEventListener('click', () => {
+      if (card.classList.contains('is-open')) {
+        closeCard(card);
+      }
     });
   });
 
