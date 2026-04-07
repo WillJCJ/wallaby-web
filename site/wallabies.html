@@ -1,0 +1,47 @@
+---
+layout: layouts/base.html
+title: Meet the Wallabies — WallabyFest
+---
+<div class="page-intro">
+  <h2>Meet the Wallabies</h2>
+  <p>Our current roster. Click a card to learn more.</p>
+</div>
+
+<div class="wallaby-grid">
+  {% for wallaby in wallabies %}
+  <div class="wallaby-card">
+    <button
+      class="wallaby-card-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="wallaby-details-{{ loop.index }}"
+    >
+      <div class="wallaby-card-headshot">
+        <img src="{{ wallaby.img }}" alt="{{ wallaby.name }}" />
+      </div>
+      <div class="wallaby-card-summary">
+        <h3>{{ wallaby.name }}</h3>
+        {% if wallaby.alias != "" %}<p class="wallaby-alias">{{ wallaby.alias }}</p>{% endif %}
+      </div>
+    </button>
+    <div id="wallaby-details-{{ loop.index }}" class="wallaby-card-details">
+      <p class="wallaby-desc">{{ wallaby.desc }}</p>
+      <div class="wallaby-stats">
+        {% for stat in wallaby.stats %}
+        <div class="stat">
+          {% if stat[0] == "DoB" %}
+          <div class="stat-label">Age</div>
+          <div class="stat-value">{{ stat[1] | age }}</div>
+          {% else %}
+          <div class="stat-label">{{ stat[0] }}</div>
+          <div class="stat-value">{{ stat[1] }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script src="/scripts/wallabies.js" defer></script>
