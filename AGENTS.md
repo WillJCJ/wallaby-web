@@ -82,6 +82,11 @@ Rules:
 - Prefer minimal, targeted changes over broad rewrites.
 - If uncertain, document assumptions in the PR description.
 
+## Writing Style
+- Use direct present-tense wording when describing behavior.
+- Avoid temporal framing like "now includes", "new feature", or "recently added".
+- Apply the same tone in README text, PR descriptions, comments, and user-facing copy.
+
 ## Optional Nice-to-Haves
 Teams often also define:
 - Review SLA (for example: first review within 1 business day)

@@ -8,7 +8,7 @@ https://wallabyfest.co.uk
 
 ## Private details (Cloudflare Access)
 
-This project now includes a private endpoint at `/api/private/details` served by `worker.js`.
+This project includes a private endpoint at `/api/private/details` served by `worker.js`.
 The endpoint only returns data when Cloudflare Access has authenticated the request.
 
 ### Store private values as Worker secrets
