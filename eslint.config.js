@@ -3,10 +3,12 @@ import pluginJs from '@eslint/js';
 import html from 'eslint-plugin-html';
 
 export default [
+    {
+        ignores: ['dist/**', '.wrangler/**']
+    },
     { languageOptions: { globals: globals.browser } },
     pluginJs.configs.recommended,
     {
-        ignores: ['dist/**'],
         plugins: {
             html
         },
