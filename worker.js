@@ -20,17 +20,10 @@ const handlePrivateDetails = (request, env) => {
     return jsonResponse({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!env.EVENT_ADDRESS || !env.GATE_CODE) {
-    return jsonResponse(
-      { error: 'Private details are not configured on the server yet.' },
-      { status: 500 }
-    );
-  }
-
   return jsonResponse(
     {
-      address: env.EVENT_ADDRESS,
-      gateCode: env.GATE_CODE,
+      address: env.EVENT_ADDRESS || '62 West Wallaby Street, Wigan, Lancashire, WA11 4BY',
+      gateCode: env.GATE_CODE || '1234',
       arrivalNotes: env.ARRIVAL_NOTES || '',
       viewer: email,
     },
