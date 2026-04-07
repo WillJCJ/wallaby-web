@@ -437,10 +437,6 @@ footer {
   display: block;
 }
 
-.wallaby-bouncer:hover {
-  opacity: 0.8;
-}
-
 /* ── Responsive ── */
 
 @media (max-width: 640px) {

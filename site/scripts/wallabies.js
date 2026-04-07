@@ -73,6 +73,8 @@
   const SPIN_SPEED_DEG_PER_SEC = 240;
   const HOVER_PUSH_IMPULSE = 0.1;
   const MAX_SPEED = 100;
+  const WALLABY_IDLE_OPACITY = 0.35;
+  const WALLABY_ACTIVE_OPACITY = 0.8;
 
   const layer = document.createElement('div');
   layer.className = 'wallaby-bouncer-layer';
@@ -253,23 +255,75 @@
       hoverPushDirection: Math.random() < 0.5 ? -1 : 1,
       rotation: Math.random() * 360,
       isSpinning: false,
+      activeTouchPointerId: null,
       el,
       img,
       getYBounds,
     };
 
-    el.addEventListener('mouseenter', (event) => {
+    el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
+
+    el.addEventListener('pointerenter', (event) => {
+      if (event.pointerType !== 'mouse') {
+        return;
+      }
+
       state.isSpinning = true;
+      el.style.opacity = `${WALLABY_ACTIVE_OPACITY}`;
       applyHoverPush(state, event);
     });
 
-    el.addEventListener('mousemove', (event) => {
-      applyHoverPush(state, event);
+    el.addEventListener('pointermove', (event) => {
+      if (event.pointerType === 'mouse') {
+        if (state.isSpinning) {
+          applyHoverPush(state, event);
+        }
+
+        return;
+      }
+
+      if (state.activeTouchPointerId === event.pointerId) {
+        applyHoverPush(state, event);
+      }
     });
 
-    el.addEventListener('mouseleave', () => {
+    el.addEventListener('pointerleave', (event) => {
+      if (event.pointerType !== 'mouse') {
+        return;
+      }
+
       state.isSpinning = false;
+      el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
     });
+
+    el.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') {
+        return;
+      }
+
+      state.activeTouchPointerId = event.pointerId;
+      state.isSpinning = true;
+      el.style.opacity = `${WALLABY_ACTIVE_OPACITY}`;
+      applyHoverPush(state, event);
+      el.setPointerCapture(event.pointerId);
+    });
+
+    const stopTouchInteraction = (event) => {
+      if (event.pointerType === 'mouse') {
+        return;
+      }
+
+      if (state.activeTouchPointerId !== event.pointerId) {
+        return;
+      }
+
+      state.activeTouchPointerId = null;
+      state.isSpinning = false;
+      el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
+    };
+
+    el.addEventListener('pointerup', stopTouchInteraction);
+    el.addEventListener('pointercancel', stopTouchInteraction);
 
     layer.appendChild(el);
     return state;
