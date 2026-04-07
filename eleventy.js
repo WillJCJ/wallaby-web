@@ -9,6 +9,7 @@ export default function (eleventyConfig) {
   ]);
   eleventyConfig.addPassthroughCopy('images/**');
   eleventyConfig.addPassthroughCopy('site/styles/**');
+  eleventyConfig.addPassthroughCopy('site/scripts/**');
   eleventyConfig.addPassthroughCopy('_headers');
 
   eleventyConfig.addFilter('age', function (dobString) {
