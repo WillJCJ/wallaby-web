@@ -88,12 +88,23 @@
     const baseSpeed = 1 + Math.random() * 1.5;
     const angle = Math.random() * 2 * Math.PI;
 
+    const getYBounds = () => {
+      const header = document.querySelector('header');
+      const footer = document.querySelector('footer');
+      const yMin = header ? header.getBoundingClientRect().bottom : 0;
+      const yMax = (footer ? footer.getBoundingClientRect().top : window.innerHeight) - SIZE;
+      return { yMin, yMax };
+    };
+
+    const { yMin, yMax } = getYBounds();
+
     const state = {
       x: Math.random() * (window.innerWidth - SIZE),
-      y: Math.random() * (window.innerHeight - SIZE),
+      y: yMin + Math.random() * Math.max(0, yMax - yMin),
       vx: Math.cos(angle) * baseSpeed,
       vy: Math.sin(angle) * baseSpeed,
       el,
+      getYBounds,
     };
 
     el.addEventListener('mouseenter', () => {
@@ -113,16 +124,17 @@
     lastTime = now;
 
     const w = window.innerWidth;
-    const h = window.innerHeight;
 
     wallabies.forEach((s) => {
       s.x += s.vx * (dt / BASE_FRAME_MS);
       s.y += s.vy * (dt / BASE_FRAME_MS);
 
+      const { yMin, yMax } = s.getYBounds();
+
       if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
       if (s.x >= w - SIZE) { s.x = w - SIZE; s.vx = -Math.abs(s.vx); }
-      if (s.y <= 0) { s.y = 0; s.vy = Math.abs(s.vy); }
-      if (s.y >= h - SIZE) { s.y = h - SIZE; s.vy = -Math.abs(s.vy); }
+      if (s.y <= yMin) { s.y = yMin; s.vy = Math.abs(s.vy); }
+      if (s.y >= yMax) { s.y = yMax; s.vy = -Math.abs(s.vy); }
 
       s.el.style.transform = `translate(${s.x}px,${s.y}px)`;
     });
