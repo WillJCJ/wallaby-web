@@ -218,6 +218,9 @@ footer {
   margin: 0 auto;
   padding: 1rem 2rem 4rem;
   overflow: visible;
+  position: relative;
+  z-index: 15; /* In front of bouncing wallabies, but behind expanded cards */
+  pointer-events: none;
 }
 
 .wallaby-card {
@@ -227,6 +230,7 @@ footer {
   border-radius: 12px;
   overflow: hidden;
   transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  pointer-events: auto;
 }
 
 .wallaby-card:hover {
@@ -298,7 +302,7 @@ footer {
 }
 
 .js .wallaby-card.is-open {
-  z-index: 20;
+  z-index: 20; /* In front of other cards */
   border-color: var(--accent);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 }
@@ -401,6 +405,40 @@ footer {
   margin: 0;
   color: #fff;
   word-break: break-word;
+}
+
+/* ── Bouncing wallabies ── */
+
+.wallaby-bouncer-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 10; /* Behind all content, but in front of the background */
+  overflow: hidden;
+}
+
+.wallaby-bouncer {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  pointer-events: auto;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+  user-select: none;
+  will-change: transform;
+}
+
+.wallaby-bouncer img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.wallaby-bouncer:hover {
+  opacity: 0.8;
 }
 
 /* ── Responsive ── */
