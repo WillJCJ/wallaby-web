@@ -4,6 +4,9 @@ compatibility_date = "2026-04-01"
 
 workers_dev = true
 
+[build]
+command = "npm run build"
+
 [[routes]]
 pattern = "wallabyfest.co.uk"
 custom_domain = true
