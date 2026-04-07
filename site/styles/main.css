@@ -351,6 +351,58 @@ footer {
   color: #fff;
 }
 
+/* ── Private details pages ── */
+
+.login-panel,
+.private-details {
+  max-width: 720px;
+  margin: 0 auto 3rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 1.5rem;
+}
+
+.login-button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.7rem 1.1rem;
+  background: var(--accent);
+  color: #111827;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.private-status {
+  margin-bottom: 1rem;
+}
+
+.private-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.private-item {
+  background: var(--bg-surface);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+
+.private-item dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin-bottom: 0.35rem;
+}
+
+.private-item dd {
+  margin: 0;
+  color: #fff;
+  word-break: break-word;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {
