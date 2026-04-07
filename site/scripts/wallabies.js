@@ -65,7 +65,7 @@
 })();
 
 (() => {
-  const WALLABY_IMG = 'https://github.com/user-attachments/assets/4d191e60-5744-4cd7-af95-f12129ebd291';
+  const WALLABY_IMG = '/images/wallaby-bounce.svg';
   const COUNT = 10;
   const SIZE = 60;
   const BASE_FRAME_MS = 16;
