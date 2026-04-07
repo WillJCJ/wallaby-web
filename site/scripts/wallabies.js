@@ -70,10 +70,22 @@
   const SIZE = 60;
   const BASE_FRAME_MS = 16;
   const MAX_FRAME_MS = 50;
+  const SPIN_SPEED_DEG_PER_SEC = 240;
+  const HOVER_ACCELERATION_PER_SEC = 0.9;
 
   const layer = document.createElement('div');
   layer.className = 'wallaby-bouncer-layer';
   document.body.appendChild(layer);
+
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
+
+  const syncLayerHeight = () => {
+    layer.style.height = `${document.documentElement.scrollHeight}px`;
+  };
+
+  syncLayerHeight();
+  window.addEventListener('resize', syncLayerHeight);
 
   const wallabies = Array.from({ length: COUNT }, () => {
     const el = document.createElement('div');
@@ -89,10 +101,9 @@
     const angle = Math.random() * 2 * Math.PI;
 
     const getYBounds = () => {
-      const header = document.querySelector('header');
-      const footer = document.querySelector('footer');
-      const yMin = header ? header.getBoundingClientRect().bottom : 0;
-      const yMax = (footer ? footer.getBoundingClientRect().top : window.innerHeight) - SIZE;
+      const yMin = header ? header.offsetTop + header.offsetHeight : 0;
+      const pageBottom = document.documentElement.scrollHeight;
+      const yMax = (footer ? footer.offsetTop : pageBottom) - SIZE;
       return { yMin, yMax };
     };
 
@@ -103,14 +114,20 @@
       y: yMin + Math.random() * Math.max(0, yMax - yMin),
       vx: Math.cos(angle) * baseSpeed,
       vy: Math.sin(angle) * baseSpeed,
+      rotation: Math.random() * 360,
+      isSpinning: false,
+      speedMultiplier: 1,
       el,
+      img,
       getYBounds,
     };
 
     el.addEventListener('mouseenter', () => {
-      if (el.classList.contains('is-spinning')) return;
-      el.classList.add('is-spinning');
-      el.addEventListener('animationend', () => el.classList.remove('is-spinning'), { once: true });
+      state.isSpinning = true;
+    });
+
+    el.addEventListener('mouseleave', () => {
+      state.isSpinning = false;
     });
 
     layer.appendChild(el);
@@ -126,17 +143,27 @@
     const w = window.innerWidth;
 
     wallabies.forEach((s) => {
-      s.x += s.vx * (dt / BASE_FRAME_MS);
-      s.y += s.vy * (dt / BASE_FRAME_MS);
+      if (s.isSpinning) {
+        s.speedMultiplier += HOVER_ACCELERATION_PER_SEC * (dt / 1000);
+      }
+
+      s.x += s.vx * s.speedMultiplier * (dt / BASE_FRAME_MS);
+      s.y += s.vy * s.speedMultiplier * (dt / BASE_FRAME_MS);
+
+      if (s.isSpinning) {
+        s.rotation = (s.rotation + SPIN_SPEED_DEG_PER_SEC * (dt / 1000)) % 360;
+      }
 
       const { yMin, yMax } = s.getYBounds();
+      const boundedYMax = Math.max(yMin, yMax);
 
       if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
       if (s.x >= w - SIZE) { s.x = w - SIZE; s.vx = -Math.abs(s.vx); }
       if (s.y <= yMin) { s.y = yMin; s.vy = Math.abs(s.vy); }
-      if (s.y >= yMax) { s.y = yMax; s.vy = -Math.abs(s.vy); }
+      if (s.y >= boundedYMax) { s.y = boundedYMax; s.vy = -Math.abs(s.vy); }
 
       s.el.style.transform = `translate(${s.x}px,${s.y}px)`;
+      s.img.style.transform = `rotate(${s.rotation}deg)`;
     });
 
     requestAnimationFrame(tick);
