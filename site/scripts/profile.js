@@ -14,6 +14,7 @@
   const formDietaryRequirements = document.getElementById('guest-profile-dietary');
   const formRsvpMessage = document.getElementById('guest-profile-rsvp-message');
   const saveButton = form.querySelector('button[type="submit"]');
+  const logoutLink = document.getElementById('profile-logout');
 
   let isSaving = false;
   let initialFormData = '';
@@ -168,6 +169,16 @@
   });
 
   window.addEventListener('beforeunload', handleBeforeUnload);
+
+  if (logoutLink) {
+    logoutLink.addEventListener('click', () => {
+      try {
+        window.localStorage.removeItem(AUTH_EMAIL_STORAGE_KEY);
+      } catch {
+        // Ignore storage access failures.
+      }
+    });
+  }
 
   fetchGuest()
     .then((guest) => {

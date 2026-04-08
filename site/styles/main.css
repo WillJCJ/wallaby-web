@@ -241,6 +241,14 @@ footer {
   margin-bottom: 0.5rem;
 }
 
+.page-intro-actions {
+  margin-top: 0.75rem;
+}
+
+.profile-logout {
+  margin-top: 0;
+}
+
 .wallaby-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
