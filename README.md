@@ -49,6 +49,78 @@ Once policies are in place, the flow is:
 - After authentication, Access injects the `CF-Access-Authenticated-User-Email` header.
 - `/api/private/details` endpoint checks this header and returns secrets.
 
+## Guest Management (Cloudflare D1)
+
+Guest attendee records are stored in Cloudflare D1.
+
+Fields:
+- name
+- email
+- rsvp (`pending`, `yes`, `no`)
+- additional guests
+- dietary requirements
+- rsvp message
+
+### 1) Create the D1 database
+
+```bash
+wrangler d1 create wallabyfest-guests
+```
+
+Copy the returned database id and add a D1 binding to `wrangler.toml`:
+
+```toml
+[[d1_databases]]
+binding = "GUESTS_DB"
+database_name = "wallabyfest-guests"
+database_id = "<your-database-id>"
+```
+
+### 2) Run the migration
+
+```bash
+wrangler d1 execute wallabyfest-guests --remote --file migrations/0001_create_guests.sql
+```
+
+### 3) Set admin emails
+
+Only admin emails can use the guest management endpoints.
+
+```bash
+wrangler secret put ADMIN_EMAILS
+```
+
+Use a comma-separated value, for example:
+
+```text
+you@example.com,friend@example.com
+```
+
+### 4) Private API endpoints
+
+All endpoints require Cloudflare Access auth and admin email match:
+
+- `GET /api/private/guests` list guests
+- `POST /api/private/guests` create guest
+- `GET /api/private/guests/:id` get guest
+- `PUT /api/private/guests/:id` update guest
+- `DELETE /api/private/guests/:id` delete guest
+
+Example payload:
+
+```json
+{
+   "name": "Alex Example",
+   "email": "alex@example.com",
+   "rsvp": "yes",
+   "additionalGuests": 1,
+   "dietaryRequirements": "Vegetarian",
+   "rsvpMessage": "Can bring brownies and arrive around 3pm."
+}
+```
+
+For now this is admin-managed only. A guest self-service endpoint can be added later so attendees can update only their own RSVP-related fields.
+
 ### Notes
 
 - Do not commit private values to `site/_data` or any static files.
