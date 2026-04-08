@@ -20,4 +20,4 @@ Useful commands:
 
 ## Cloudflare Setup
 
-All Cloudflare setup instructions are in [docs/cloudflare.md](docs/cloudflare.md).
+All Cloudflare setup instructions are in [docs/cloudflare/README.md](docs/cloudflare/README.md).
