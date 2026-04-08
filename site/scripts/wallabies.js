@@ -72,7 +72,10 @@
   const MAX_FRAME_MS = 50;
   const SPIN_SPEED_DEG_PER_SEC = 240;
   const HOVER_PUSH_IMPULSE = 0.1;
-  const MAX_SPEED = 100;
+  const MAX_SPEED = 15;
+  const SHADOW_MIN_SPEED = 8;
+  const SHADOW_MAX_RADIUS = 40;
+  const SHADOW_COLOR = 'rgba(253, 26, 120, 0.7)';
   const WALLABY_IDLE_OPACITY = 0.35;
   const WALLABY_ACTIVE_OPACITY = 0.8;
 
@@ -361,6 +364,13 @@
 
       s.el.style.transform = `translate(${s.x}px,${s.y}px)`;
       s.img.style.transform = `rotate(${s.rotation}deg)`;
+
+      const speed = Math.hypot(s.vx, s.vy);
+      const shadowProgress = Math.max(0, Math.min(1, (speed - SHADOW_MIN_SPEED) / (MAX_SPEED - SHADOW_MIN_SPEED)));
+      const shadowRadius = SHADOW_MAX_RADIUS * shadowProgress;
+      const dropShadowValue = `drop-shadow(0px 0px ${shadowRadius}px ${SHADOW_COLOR})`;
+
+      s.img.style.filter = dropShadowValue;
     });
 
     requestAnimationFrame(tick);
