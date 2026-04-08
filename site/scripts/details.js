@@ -1,4 +1,5 @@
 (() => {
+  const AUTH_EMAIL_STORAGE_KEY = 'wallabyfest-auth-email';
   const status = document.getElementById('private-status');
   const list = document.getElementById('private-list');
   const address = document.getElementById('private-address');
@@ -28,6 +29,14 @@
     .then((data) => {
       address.textContent = data.address || 'Not configured';
       gateCode.textContent = data.gateCode || 'Not configured';
+
+      try {
+        if (data.viewer) {
+          window.localStorage.setItem(AUTH_EMAIL_STORAGE_KEY, data.viewer);
+        }
+      } catch {
+        // Ignore storage access failures.
+      }
 
       list.hidden = false;
       status.textContent = 'Authenticated. Private details loaded.';
