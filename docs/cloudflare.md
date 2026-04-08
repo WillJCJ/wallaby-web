@@ -35,6 +35,7 @@ Access policies are managed in the Cloudflare Zero Trust console.
    - **Rule**: Require specific emails or your allowed domain
 6. Save the application.
 7. In **Policies**, protect:
+   - `/profile/*`
    - `/details/*`
    - `/api/private/*`
 8. Unauthenticated users are redirected to Cloudflare Access login.
@@ -42,9 +43,9 @@ Access policies are managed in the Cloudflare Zero Trust console.
 ### Auth Flow
 
 - User visits `/login/`.
-- User clicks sign-in and is redirected to `/details/`.
+- User clicks sign-in and is redirected to `/profile/`.
 - After authentication, Access injects `CF-Access-Authenticated-User-Email`.
-- `/api/private/details` verifies that header before returning data.
+- `/api/private/guests/me` and `/api/private/details` verify that header before returning data.
 
 ## Guest Management (Cloudflare D1)
 

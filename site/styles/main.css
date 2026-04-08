@@ -84,7 +84,7 @@ nav a:hover {
   border-radius: 999px;
   background: rgba(245, 200, 66, 0.08);
   vertical-align: middle;
-  cursor: default;
+  cursor: pointer;
 }
 
 #nav-account-link.is-authenticated::after {

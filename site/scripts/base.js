@@ -36,12 +36,12 @@ const setSignedOutNav = (detailsLink, accountLink) => {
 
 const setSignedInNav = (detailsLink, accountLink, email) => {
 	detailsLink.hidden = false;
-	accountLink.removeAttribute('href');
+	accountLink.href = '/profile/';
 	accountLink.classList.add('is-authenticated');
 	accountLink.setAttribute('data-tooltip', `Signed in as ${email}`);
 	accountLink.title = '';
 	accountLink.setAttribute('aria-label', `Signed in as ${email}`);
-	accountLink.innerHTML = '<span class="nav-profile-avatar" aria-hidden="true"></span><span class="sr-only">Signed in account status</span>';
+	accountLink.innerHTML = '<span class="nav-profile-avatar" aria-hidden="true"></span><span class="sr-only">Profile</span>';
 };
 
 const fetchAuthEmail = async () => {
@@ -73,7 +73,7 @@ const initializeAuthNav = async () => {
 		return;
 	}
 
-	 const storedEmail = getStoredAuthEmail();
+	const storedEmail = getStoredAuthEmail();
 
 	if (storedEmail) {
 		setSignedInNav(detailsLink, accountLink, storedEmail);
