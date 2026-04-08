@@ -1,5 +1,7 @@
 (() => {
-  const AUTH_EMAIL_STORAGE_KEY = 'wallabyfest-auth-email';
+  const auth = window.WallabyAuth;
+  const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
+  const buildLogoutUrl = auth?.buildLogoutUrl || (() => '/cdn-cgi/access/logout');
   const status = document.getElementById('guest-profile-status');
   const list = document.getElementById('guest-profile-list');
   const form = document.getElementById('guest-profile-form');
@@ -171,12 +173,9 @@
   window.addEventListener('beforeunload', handleBeforeUnload);
 
   if (logoutLink) {
+    logoutLink.href = buildLogoutUrl();
     logoutLink.addEventListener('click', () => {
-      try {
-        window.localStorage.removeItem(AUTH_EMAIL_STORAGE_KEY);
-      } catch {
-        // Ignore storage access failures.
-      }
+      setStoredAuthEmail(null);
     });
   }
 
@@ -185,12 +184,8 @@
       renderGuest(guest);
       fillForm(guest);
 
-      try {
-        if (guest.email) {
-          window.localStorage.setItem(AUTH_EMAIL_STORAGE_KEY, guest.email);
-        }
-      } catch {
-        // Ignore storage access failures.
+      if (guest.email) {
+        setStoredAuthEmail(guest.email);
       }
 
       list.hidden = false;

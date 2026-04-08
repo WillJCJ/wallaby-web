@@ -1,28 +1,12 @@
 document.documentElement.classList.remove('no-js');
 document.documentElement.classList.add('js');
 
-const AUTH_EMAIL_STORAGE_KEY = 'wallabyfest-auth-email';
+const auth = window.WallabyAuth;
 
-const getStoredAuthEmail = () => {
-	try {
-		return window.localStorage.getItem(AUTH_EMAIL_STORAGE_KEY);
-	} catch {
-		return null;
-	}
-};
-
-const setStoredAuthEmail = (email) => {
-	try {
-		if (email) {
-			window.localStorage.setItem(AUTH_EMAIL_STORAGE_KEY, email);
-			return;
-		}
-
-		window.localStorage.removeItem(AUTH_EMAIL_STORAGE_KEY);
-	} catch {
-		// Ignore storage access failures.
-	}
-};
+const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
+const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
+const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
+const buildLogoutUrl = auth?.buildLogoutUrl || (() => '/cdn-cgi/access/logout');
 
 const setSignedOutNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	detailsLink.hidden = true;
@@ -36,27 +20,6 @@ const setSignedInNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	profileLink.hidden = false;
 	logoutLink.hidden = false;
 	loginLink.hidden = true;
-};
-
-const fetchAuthEmail = async () => {
-	try {
-		const response = await fetch('/cdn-cgi/access/get-identity', {
-			credentials: 'same-origin',
-			headers: {
-				accept: 'application/json',
-			},
-		});
-
-		if (!response.ok) {
-			return null;
-		}
-
-		const data = await response.json().catch(() => null);
-		const email = data?.email || data?.user_email || data?.identity?.email || null;
-		return typeof email === 'string' && email ? email : null;
-	} catch {
-		return null;
-	}
 };
 
 const fetchGuestEmail = async () => {
@@ -91,6 +54,7 @@ const initializeAuthNav = async () => {
 	const storedEmail = getStoredAuthEmail();
 
 	if (logoutLink) {
+		logoutLink.href = buildLogoutUrl();
 		logoutLink.addEventListener('click', () => {
 			setStoredAuthEmail(null);
 		});
