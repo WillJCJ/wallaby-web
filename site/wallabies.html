@@ -35,7 +35,12 @@ title: Meet the Wallabies — WallabyFest
       </div>
       <div class="wallaby-card-summary">
         <h3>{{ wallaby.name }}</h3>
-        {% if wallaby.alias != "" %}<p class="wallaby-alias">{{ wallaby.alias }}</p>{% endif %}
+        {% if wallaby.alias %}
+        <div class="wallaby-alias-wrapper">
+          <div class="wallaby-alias-label">Alias</div>
+          <p class="wallaby-alias">{{ wallaby.alias }}</p>
+        </div>
+        {% endif %}
       </div>
     </button>
     <div id="wallaby-details-{{ loop.index }}" class="wallaby-card-details">
@@ -58,4 +63,5 @@ title: Meet the Wallabies — WallabyFest
   {% endfor %}
 </div>
 
-<script src="/scripts/wallabies.js" defer></script>
+<script type="module" src="/scripts/card-interactions.js" defer></script>
+<script type="module" src="/scripts/bouncing-wallabies.js" defer></script>

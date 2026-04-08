@@ -2,7 +2,7 @@
   {
     "id": "andrew",
     "name": "Andrew",
-    "alias": "",
+    "alias": "Andy",
     "tagline": "The OG",
     "thumbnail": "/images/wallabies/andrew-thumbnail.webp",
     "thumbnailYOffset": "-20%",
@@ -18,7 +18,7 @@
   {
     "id": "annie",
     "name": "Mary-Anne",
-    "alias": "Known as Annie",
+    "alias": "Annie",
     "tagline": "Mary-Anne to her mum",
     "thumbnail": "/images/wallabies/annie-thumbnail.webp",
     "thumbnailYOffset": "-10%",
@@ -34,7 +34,6 @@
   {
     "id": "kathleen",
     "name": "Kathleen",
-    "alias": "",
     "tagline": "Smol",
     "thumbnail": "/images/wallabies/kathleen-thumbnail.webp",
     "thumbnailYOffset": "25%",
@@ -51,13 +50,12 @@
   {
     "id": "pinky",
     "name": "Pinky",
-    "alias": "",
     "tagline": "Super rare albino baby",
     "thumbnail": "/images/wallabies/pinky-thumbnail.webp",
     "img": "/images/wallabies/pinky-feature.webp",
     "desc": "A genetic freak of nautre, Pinky hopes for a warm summer or it might get a bit chilly in that white coat!<br>Pinky may look like they've just smoked a fat doob but they insist that's just how their eyes look.<br>Pinky is slightly unnerved by all the talk of wallaby balls in the other bios.",
     "stats": {
-      "DoB": "2026-02-01",
+      "DoB": "2026-01-01",
       "Weight": "3 tins of beans",
       "Personality": "Lazy"
     }
@@ -65,7 +63,7 @@
   {
     "id": "joey",
     "name": "TBC",
-    "alias": "Joey",
+    "alias": "Perky",
     "tagline": "Name TBC. Maybe a naming competition at Wallaby Fest??",
     "thumbnail": "/images/wallabies/joey-thumbnail.webp",
     "thumbnailYOffset": "-10%",
@@ -73,7 +71,7 @@
     "imgYOffset": "-10%",
     "desc": "The as-yet-unnamed baby of Kathleen, we'll call them Joey for now.<br>Joey asks that you don't look too closely at their family tree or you will see Andrew appear twice.<br>Joey hopes that they turn out to be a girl wallaby so their balls don't suffer the same fate as Andrew's",
     "stats": {
-      "DoB": "2026-02-15",
+      "DoB": "2026-02-01",
       "Weight": "2 Victoria sponge cakes",
       "Personality": "TBC"
     }

@@ -1,127 +1,53 @@
-(() => {
-  const cards = Array.from(document.querySelectorAll('.wallaby-card'));
+import { WALLABY_CONFIG } from './config.js';
 
-  if (cards.length === 0) {
+/**
+ * Calculate the velocity magnitude (speed) of a wallaby
+ * @param {number} vx - Horizontal velocity
+ * @param {number} vy - Vertical velocity
+ * @returns {number} Speed magnitude
+ */
+const getSpeed = (vx, vy) => Math.hypot(vx, vy);
+
+/**
+ * Calculate drop-shadow filter value based on wallaby speed
+ * @param {number} speed - Current speed of the wallaby
+ * @returns {string} CSS filter value
+ */
+const calculateShadowFilter = (speed) => {
+  const { SHADOW_MIN_SPEED, SHADOW_MAX_RADIUS, MAX_SPEED, SHADOW_COLOR } = WALLABY_CONFIG;
+  const shadowProgress = Math.max(
+    0,
+    Math.min(1, (speed - SHADOW_MIN_SPEED) / (MAX_SPEED - SHADOW_MIN_SPEED))
+  );
+  const shadowRadius = SHADOW_MAX_RADIUS * shadowProgress;
+  return `drop-shadow(0px 0px ${shadowRadius}px ${SHADOW_COLOR})`;
+};
+
+/**
+ * Clamp velocity to maximum speed
+ * @param {object} state - Wallaby state object
+ */
+const clampVelocity = (state) => {
+  const speed = getSpeed(state.vx, state.vy);
+
+  if (speed <= WALLABY_CONFIG.MAX_SPEED) {
     return;
   }
 
-  const closeCard = (card) => {
-    const toggle = card.querySelector('.wallaby-card-toggle');
+  const scale = WALLABY_CONFIG.MAX_SPEED / speed;
+  state.vx *= scale;
+  state.vy *= scale;
+};
 
-    card.classList.remove('is-open');
-    toggle.setAttribute('aria-expanded', 'false');
-  };
-
-  const openCard = (card) => {
-    const toggle = card.querySelector('.wallaby-card-toggle');
-
-    cards.forEach((otherCard) => {
-      if (otherCard !== card) {
-        closeCard(otherCard);
-      }
-    });
-
-    card.classList.add('is-open');
-    toggle.setAttribute('aria-expanded', 'true');
-  };
-
-  cards.forEach(closeCard);
-
-  cards.forEach((card) => {
-    const toggle = card.querySelector('.wallaby-card-toggle');
-    const details = card.querySelector('.wallaby-card-details');
-
-    toggle.addEventListener('click', () => {
-      if (card.classList.contains('is-open')) {
-        closeCard(card);
-        return;
-      }
-
-      openCard(card);
-    });
-
-    details.addEventListener('click', () => {
-      if (card.classList.contains('is-open')) {
-        closeCard(card);
-      }
-    });
-  });
-
-  document.addEventListener('click', (event) => {
-    if (cards.some((card) => card.contains(event.target))) {
-      return;
-    }
-
-    cards.forEach(closeCard);
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') {
-      return;
-    }
-
-    cards.forEach(closeCard);
-  });
-})();
-
-(() => {
-  const WALLABY_IMG = '/images/wallaby-bounce.png';
-  const COUNT = 10;
-  const SIZE = 60;
-  const BASE_FRAME_MS = 16;
-  const MAX_FRAME_MS = 50;
-  const SPIN_SPEED_DEG_PER_SEC = 240;
-  const HOVER_PUSH_IMPULSE = 0.1;
-  const MAX_SPEED = 15;
-  const SHADOW_MIN_SPEED = 8;
-  const SHADOW_MAX_RADIUS = 40;
-  const SHADOW_COLOR = 'rgba(253, 26, 120, 0.7)';
-  const WALLABY_IDLE_OPACITY = 0.35;
-  const WALLABY_ACTIVE_OPACITY = 0.8;
-
-  const layer = document.createElement('div');
-  layer.className = 'wallaby-bouncer-layer';
-  document.body.appendChild(layer);
-
+/**
+ * Get bounding rectangles for all wallaby cards on the page
+ * Coordinates are in scroll-aware document space
+ * @returns {Array} Array of bound objects with left, right, top, bottom
+ */
+const getCardBounds = () => {
   const cardElements = Array.from(document.querySelectorAll('.wallaby-card'));
-  const header = document.querySelector('header');
-  const footer = document.querySelector('footer');
-
-  const syncLayerHeight = () => {
-    layer.style.height = `${document.documentElement.scrollHeight}px`;
-  };
-
-  syncLayerHeight();
-  window.addEventListener('resize', syncLayerHeight);
-
-  const clampVelocity = (state) => {
-    const speed = Math.hypot(state.vx, state.vy);
-
-    if (speed <= MAX_SPEED) {
-      return;
-    }
-
-    const scale = MAX_SPEED / speed;
-    state.vx *= scale;
-    state.vy *= scale;
-  };
-
-  const applyHoverPush = (state, event) => {
-    const pointerX = event.pageX ?? (event.clientX + window.scrollX);
-    const pointerY = event.pageY ?? (event.clientY + window.scrollY);
-    const centerX = state.x + SIZE / 2;
-    const centerY = state.y + SIZE / 2;
-    const offsetX = (pointerX - centerX) / (SIZE / 2 || 1);
-    const offsetY = (pointerY - centerY) / (SIZE / 2 || 1);
-
-    state.vx += state.hoverPushDirection * offsetX * HOVER_PUSH_IMPULSE;
-    state.vy += state.hoverPushDirection * offsetY * HOVER_PUSH_IMPULSE;
-    clampVelocity(state);
-  };
-
-  const getCardBounds = () => cardElements.map((card) => {
+  return cardElements.map((card) => {
     const rect = card.getBoundingClientRect();
-
     return {
       left: rect.left + window.scrollX,
       right: rect.right + window.scrollX,
@@ -129,22 +55,93 @@
       bottom: rect.bottom + window.scrollY,
     };
   });
+};
 
-  const intersectsAnyCard = (x, y, cardBounds) => cardBounds.some((bounds) => (
-    x < bounds.right &&
-    x + SIZE > bounds.left &&
-    y < bounds.bottom &&
-    y + SIZE > bounds.top
-  ));
+/**
+ * Check if a wallaby at position (x, y) intersects any card
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {Array} cardBounds - Array of card bounds
+ * @returns {boolean} True if intersection detected
+ */
+const intersectsAnyCard = (x, y, cardBounds) => {
+  const { SIZE } = WALLABY_CONFIG;
+  return cardBounds.some(
+    (bounds) =>
+      x < bounds.right && x + SIZE > bounds.left && y < bounds.bottom && y + SIZE > bounds.top
+  );
+};
 
+/**
+ * Apply hover/push force from pointer to wallaby state
+ * @param {object} state - Wallaby state object
+ * @param {PointerEvent} event - Pointer event
+ */
+const applyHoverPush = (state, event) => {
+  const { SIZE, HOVER_PUSH_IMPULSE } = WALLABY_CONFIG;
+  const pointerX = event.pageX ?? event.clientX + window.scrollX;
+  const pointerY = event.pageY ?? event.clientY + window.scrollY;
+  const centerX = state.x + SIZE / 2;
+  const centerY = state.y + SIZE / 2;
+  const offsetX = (pointerX - centerX) / (SIZE / 2 || 1);
+  const offsetY = (pointerY - centerY) / (SIZE / 2 || 1);
+
+  state.vx += state.hoverPushDirection * offsetX * HOVER_PUSH_IMPULSE;
+  state.vy += state.hoverPushDirection * offsetY * HOVER_PUSH_IMPULSE;
+  clampVelocity(state);
+};
+
+/**
+ * Initialize bouncing wallaby animation
+ * Creates a layer of bouncing wallabies with physics simulation,
+ * collision detection, and pointer interaction
+ */
+
+const initializeBouncingWallabies = () => {
+  const {
+    WALLABY_IMG,
+    COUNT,
+    SIZE,
+    BASE_FRAME_MS,
+    MAX_FRAME_MS,
+    SPIN_SPEED_DEG_PER_SEC,
+    WALLABY_IDLE_OPACITY,
+    WALLABY_ACTIVE_OPACITY,
+  } = WALLABY_CONFIG;
+
+  const layer = document.createElement('div');
+  layer.className = 'wallaby-bouncer-layer';
+  document.body.appendChild(layer);
+
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
+
+  /**
+   * Sync the animation layer height to document height
+   * Called on resize and initialization
+   */
+  const syncLayerHeight = () => {
+    layer.style.height = `${document.documentElement.scrollHeight}px`;
+  };
+
+  syncLayerHeight();
+  window.addEventListener('resize', syncLayerHeight);
+
+  /**
+   * Resolve collision between wallaby and all cards
+   * Updates wallaby position and velocity to bounce off cards
+   * @param {object} state - Wallaby state
+   * @param {number} prevX - Previous X position
+   * @param {number} prevY - Previous Y position
+   * @param {Array} cardBounds - Array of card bounds
+   */
   const resolveCardCollisions = (state, prevX, prevY, cardBounds) => {
     cardBounds.forEach((bounds) => {
-      const overlaps = (
+      const overlaps =
         state.x < bounds.right &&
         state.x + SIZE > bounds.left &&
         state.y < bounds.bottom &&
-        state.y + SIZE > bounds.top
-      );
+        state.y + SIZE > bounds.top;
 
       if (!overlaps) {
         return;
@@ -155,6 +152,7 @@
       const prevTop = prevY;
       const prevBottom = prevY + SIZE;
 
+      // Determine collision side and bounce accordingly
       if (prevRight <= bounds.left) {
         state.x = bounds.left - SIZE;
         state.vx = -Math.abs(state.vx);
@@ -179,6 +177,7 @@
         return;
       }
 
+      // If previous position doesn't help, use minimum overlap
       const overlapLeft = state.x + SIZE - bounds.left;
       const overlapRight = bounds.right - state.x;
       const overlapTop = state.y + SIZE - bounds.top;
@@ -208,6 +207,12 @@
     });
   };
 
+  /**
+   * Find a valid spawn position for a new wallaby
+   * Tries 40 random positions before falling back to top of viewport
+   * @param {Function} getYBounds - Function to get Y bounds
+   * @returns {object} Position {x, y}
+   */
   const getSpawnPosition = (getYBounds) => {
     const cardBounds = getCardBounds();
     const { yMin, yMax } = getYBounds();
@@ -228,7 +233,11 @@
     };
   };
 
-  const wallabies = Array.from({ length: COUNT }, () => {
+  /**
+   * Create a wallaby state object with physics and interaction
+   * @returns {object} Wallaby state
+   */
+  const createWallaby = () => {
     const el = document.createElement('div');
     el.className = 'wallaby-bouncer';
 
@@ -266,6 +275,7 @@
 
     el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
 
+    // Pointer events: mouse hover
     el.addEventListener('pointerenter', (event) => {
       if (event.pointerType !== 'mouse') {
         return;
@@ -285,6 +295,7 @@
         return;
       }
 
+      // Touch movement
       if (state.activeTouchPointerId === event.pointerId) {
         applyHoverPush(state, event);
       }
@@ -299,6 +310,7 @@
       el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
     });
 
+    // Touch events
     el.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'mouse') {
         return;
@@ -330,8 +342,12 @@
 
     layer.appendChild(el);
     return state;
-  });
+  };
 
+  // Create all wallabies
+  const wallabies = Array.from({ length: COUNT }, createWallaby);
+
+  // Animation loop
   let lastTime = null;
 
   const tick = (now) => {
@@ -345,36 +361,51 @@
       const prevX = s.x;
       const prevY = s.y;
 
+      // Update position
       s.x += s.vx * (dt / BASE_FRAME_MS);
       s.y += s.vy * (dt / BASE_FRAME_MS);
 
+      // Update rotation
       if (s.isSpinning) {
         s.rotation = (s.rotation + SPIN_SPEED_DEG_PER_SEC * (dt / 1000)) % 360;
       }
 
+      // Boundary clamping
       const { yMin, yMax } = s.getYBounds();
       const boundedYMax = Math.max(yMin, yMax);
 
-      if (s.x <= 0) { s.x = 0; s.vx = Math.abs(s.vx); }
-      if (s.x >= w - SIZE) { s.x = w - SIZE; s.vx = -Math.abs(s.vx); }
-      if (s.y <= yMin) { s.y = yMin; s.vy = Math.abs(s.vy); }
-      if (s.y >= boundedYMax) { s.y = boundedYMax; s.vy = -Math.abs(s.vy); }
+      if (s.x <= 0) {
+        s.x = 0;
+        s.vx = Math.abs(s.vx);
+      }
+      if (s.x >= w - SIZE) {
+        s.x = w - SIZE;
+        s.vx = -Math.abs(s.vx);
+      }
+      if (s.y <= yMin) {
+        s.y = yMin;
+        s.vy = Math.abs(s.vy);
+      }
+      if (s.y >= boundedYMax) {
+        s.y = boundedYMax;
+        s.vy = -Math.abs(s.vy);
+      }
 
+      // Collision resolution
       resolveCardCollisions(s, prevX, prevY, cardBounds);
 
+      // Apply transforms and effects
       s.el.style.transform = `translate(${s.x}px,${s.y}px)`;
       s.img.style.transform = `rotate(${s.rotation}deg)`;
 
-      const speed = Math.hypot(s.vx, s.vy);
-      const shadowProgress = Math.max(0, Math.min(1, (speed - SHADOW_MIN_SPEED) / (MAX_SPEED - SHADOW_MIN_SPEED)));
-      const shadowRadius = SHADOW_MAX_RADIUS * shadowProgress;
-      const dropShadowValue = `drop-shadow(0px 0px ${shadowRadius}px ${SHADOW_COLOR})`;
-
-      s.img.style.filter = dropShadowValue;
+      const speed = getSpeed(s.vx, s.vy);
+      s.img.style.filter = calculateShadowFilter(speed);
     });
 
     requestAnimationFrame(tick);
   };
 
   requestAnimationFrame(tick);
-})();
+};
+
+initializeBouncingWallabies();
