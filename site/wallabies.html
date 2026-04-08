@@ -9,15 +9,29 @@ title: Meet the Wallabies — WallabyFest
 
 <div class="wallaby-grid">
   {% for wallaby in wallabies %}
-  <div class="wallaby-card">
+  {% assign thumbnailYOffset = wallaby.thumbnailYOffset | default: '0px' %}
+  {% assign imgYOffset = wallaby.imgYOffset | default: '0px' %}
+  <div class="wallaby-card" style="--wallaby-thumbnail-offset-y: {{ thumbnailYOffset }}; --wallaby-image-offset-y: {{ imgYOffset }};">
     <button
       class="wallaby-card-toggle"
       type="button"
       aria-expanded="false"
       aria-controls="wallaby-details-{{ loop.index }}"
     >
-      <div class="wallaby-card-headshot">
-        <img src="{{ wallaby.img }}" alt="{{ wallaby.name }}" />
+      <div class="wallaby-card-photo">
+        <div class="wallaby-card-image-frame">
+          <img
+            class="wallaby-card-image wallaby-card-image-thumb"
+            src="{{ wallaby.thumbnail }}"
+            alt="{{ wallaby.name }}"
+          />
+          <img
+            class="wallaby-card-image wallaby-card-image-full"
+            src="{{ wallaby.img }}"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
       </div>
       <div class="wallaby-card-summary">
         <h3>{{ wallaby.name }}</h3>

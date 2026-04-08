@@ -224,6 +224,8 @@ footer {
 }
 
 .wallaby-card {
+  --wallaby-thumbnail-offset-y: 0px;
+  --wallaby-image-offset-y: 0px;
   position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -237,19 +239,43 @@ footer {
   border-color: var(--accent);
 }
 
-.wallaby-card-headshot {
+.wallaby-card-photo {
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #374151;
-  overflow: hidden;
+  padding: 0.65rem;
   border-radius: 11px 11px 0 0;
+  transition: padding 0.18s ease;
 }
 
-.wallaby-card-headshot img {
+.wallaby-card-image-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: border-radius 0.18s ease;
+}
+
+.wallaby-card-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 11px 11px 0 0;
+  object-position: 50% 50%;
+  display: block;
+  transition: opacity 0.18s ease, object-position 0.18s ease;
+}
+
+.wallaby-card-image-thumb {
+  opacity: 1;
+  object-position: 50% calc(50% + var(--wallaby-thumbnail-offset-y));
+}
+
+.wallaby-card-image-full {
+  opacity: 0;
+  object-position: 50% calc(50% + var(--wallaby-image-offset-y));
 }
 
 .wallaby-card-toggle {
@@ -305,6 +331,22 @@ footer {
   z-index: 20; /* In front of other cards */
   border-color: var(--accent);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.js .wallaby-card.is-open .wallaby-card-photo {
+  padding: 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-frame {
+  border-radius: 11px 11px 0 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-thumb {
+  opacity: 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-full {
+  opacity: 1;
 }
 
 .js .wallaby-card-details {
