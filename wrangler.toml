@@ -17,6 +17,6 @@ directory = "dist"
 not_found_handling = "404-page"
 
 [[d1_databases]]
-binding = "wallabyfest_guests"
+binding = "GUESTS_DB"
 database_name = "wallabyfest-guests"
 database_id = "fc8fca57-d92e-40c7-85a6-0459263f4fef"
