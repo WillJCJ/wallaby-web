@@ -3,9 +3,8 @@
   const list = document.getElementById('private-list');
   const address = document.getElementById('private-address');
   const gateCode = document.getElementById('private-gate-code');
-  const notes = document.getElementById('private-notes');
 
-  if (!status || !list || !address || !gateCode || !notes) {
+  if (!status || !list || !address || !gateCode) {
     return;
   }
 
@@ -29,7 +28,6 @@
     .then((data) => {
       address.textContent = data.address || 'Not configured';
       gateCode.textContent = data.gateCode || 'Not configured';
-      notes.textContent = data.arrivalNotes || 'No extra notes.';
 
       list.hidden = false;
       status.textContent = 'Authenticated. Private details loaded.';
