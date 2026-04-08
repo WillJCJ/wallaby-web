@@ -13,6 +13,10 @@
   const formAdditionalGuests = document.getElementById('guest-profile-additional-guests');
   const formDietaryRequirements = document.getElementById('guest-profile-dietary');
   const formRsvpMessage = document.getElementById('guest-profile-rsvp-message');
+  const saveButton = form.querySelector('button[type="submit"]');
+
+  let isSaving = false;
+  let initialFormData = '';
 
   if (
     !status ||
@@ -27,10 +31,35 @@
     !formRsvp ||
     !formAdditionalGuests ||
     !formDietaryRequirements ||
-    !formRsvpMessage
+    !formRsvpMessage ||
+    !saveButton
   ) {
     return;
   }
+
+  const getFormDataSnapshot = () => JSON.stringify({
+    rsvp: formRsvp.value,
+    additionalGuests: Number.parseInt(formAdditionalGuests.value, 10) || 0,
+    dietaryRequirements: formDietaryRequirements.value,
+    rsvpMessage: formRsvpMessage.value,
+  });
+
+  const hasUnsavedChanges = () => initialFormData !== '' && getFormDataSnapshot() !== initialFormData;
+
+  const handleBeforeUnload = (event) => {
+    if (!hasUnsavedChanges()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+  };
+
+  const setSaveButtonState = (saving) => {
+    isSaving = saving;
+    saveButton.disabled = saving;
+    saveButton.textContent = saving ? 'Saving...' : 'Save RSVP';
+  };
 
   const renderGuest = (guest) => {
     guestName.textContent = guest.name || 'Not set';
@@ -46,6 +75,7 @@
     formAdditionalGuests.value = String(guest.additionalGuests ?? 0);
     formDietaryRequirements.value = guest.dietaryRequirements || '';
     formRsvpMessage.value = guest.rsvpMessage || '';
+    initialFormData = getFormDataSnapshot();
   };
 
   const showError = (message) => {
@@ -107,7 +137,13 @@
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+
+    if (isSaving) {
+      return;
+    }
+
     status.textContent = 'Saving profile...';
+    setSaveButtonState(true);
 
     try {
       const guest = await saveGuest();
@@ -116,8 +152,22 @@
       status.textContent = 'Profile updated.';
     } catch (error) {
       status.textContent = error.message;
+    } finally {
+      setSaveButtonState(false);
     }
   });
+
+  form.addEventListener('input', () => {
+    if (isSaving) {
+      return;
+    }
+
+    if (hasUnsavedChanges()) {
+      status.textContent = 'You have unsaved changes.';
+    }
+  });
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
 
   fetchGuest()
     .then((guest) => {
@@ -134,6 +184,7 @@
 
       list.hidden = false;
       form.hidden = false;
+      setSaveButtonState(false);
       status.textContent = 'Authenticated. Profile loaded.';
     })
     .catch((error) => {
