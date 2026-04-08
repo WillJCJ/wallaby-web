@@ -1,0 +1,31 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #1a1a2e;
+  --bg-surface: #111827;
+  --bg-card: #1f2937;
+  --border: #2d2d3a;
+  --text: #e8e6df;
+  --text-muted: #9ca3af;
+  --text-faint: #6b7280;
+  --accent: #f5c842;
+  --radius: 10px;
+}
+
+html {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
