@@ -14,6 +14,11 @@ custom_domain = true
 directory = "dist"
 not_found_handling = "404-page"
 
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
+
 [env.production]
 
 [[env.production.d1_databases]]
