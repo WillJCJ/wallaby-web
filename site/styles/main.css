@@ -76,6 +76,7 @@ nav a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   width: 2rem;
   height: 2rem;
   padding: 0;
@@ -83,6 +84,30 @@ nav a:hover {
   border-radius: 999px;
   background: rgba(245, 200, 66, 0.08);
   vertical-align: middle;
+  cursor: default;
+}
+
+#nav-account-link.is-authenticated::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.4rem);
+  transform: translateX(-50%);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  color: var(--text);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#nav-account-link.is-authenticated:hover::after,
+#nav-account-link.is-authenticated:focus-visible::after {
+  opacity: 1;
 }
 
 .nav-profile-avatar {
