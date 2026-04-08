@@ -6,7 +6,7 @@
   Referrer-Policy: same-origin
   Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(),payment=(), usb=()
   Server: wallaby-web
-  Content-Security-Policy: default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; font-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; manifest-src 'self';
+  Content-Security-Policy: default-src 'none'; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.cloudflareaccess.com; font-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; manifest-src 'self';
   Cache-Control: private, max-age=3600
 
 /*.webp

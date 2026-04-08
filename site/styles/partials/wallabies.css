@@ -1,0 +1,219 @@
+.page-intro {
+  text-align: center;
+  padding: 3rem 2rem 2rem;
+}
+
+.page-intro h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.page-intro-actions {
+  margin-top: 0.75rem;
+}
+
+.profile-logout {
+  margin-top: 0;
+}
+
+.wallaby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 2rem 4rem;
+  overflow: visible;
+  position: relative;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.wallaby-card {
+  --wallaby-thumbnail-offset-y: 0px;
+  --wallaby-image-offset-y: 0px;
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  pointer-events: auto;
+}
+
+.wallaby-card:hover {
+  border-color: var(--accent);
+}
+
+.wallaby-card-photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #374151;
+  padding: 0.65rem;
+  border-radius: 11px 11px 0 0;
+  transition: padding 0.18s ease;
+}
+
+.wallaby-card-image-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: border-radius 0.18s ease;
+}
+
+.wallaby-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  display: block;
+  transition: opacity 0.18s ease, object-position 0.18s ease;
+}
+
+.wallaby-card-image-thumb {
+  opacity: 1;
+  object-position: 50% calc(50% + var(--wallaby-thumbnail-offset-y));
+}
+
+.wallaby-card-image-full {
+  opacity: 0;
+  object-position: 50% calc(50% + var(--wallaby-image-offset-y));
+}
+
+.wallaby-card-toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: default;
+  border-radius: 11px;
+}
+
+.wallaby-card-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.wallaby-card-summary {
+  padding: 1.25rem;
+}
+
+.wallaby-card-summary h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.wallaby-alias {
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.wallaby-alias-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.wallaby-alias-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.wallaby-card-details {
+  position: static;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 12px 12px;
+  padding: 1.25rem;
+  box-shadow: none;
+}
+
+.js .wallaby-card {
+  overflow: visible;
+}
+
+.js .wallaby-card-toggle {
+  cursor: pointer;
+}
+
+.js .wallaby-card.is-open {
+  z-index: 20;
+  border-color: var(--accent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.js .wallaby-card.is-open .wallaby-card-photo {
+  padding: 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-frame {
+  border-radius: 11px 11px 0 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-thumb {
+  opacity: 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-full {
+  opacity: 1;
+}
+
+.js .wallaby-card-details {
+  display: none;
+  position: absolute;
+  top: calc(100% - 0.6rem);
+  left: -1px;
+  right: -1px;
+  border: 1px solid var(--accent);
+  border-top: 0;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
+}
+
+.js .wallaby-card.is-open .wallaby-card-details {
+  display: block;
+}
+
+.wallaby-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.wallaby-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.stat {
+  background: var(--bg-surface);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #fff;
+}

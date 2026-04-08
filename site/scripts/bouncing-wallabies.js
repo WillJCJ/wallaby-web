@@ -78,16 +78,45 @@ const intersectsAnyCard = (x, y, cardBounds) => {
  * @param {PointerEvent} event - Pointer event
  */
 const applyHoverPush = (state, event) => {
-  const { SIZE, HOVER_PUSH_IMPULSE } = WALLABY_CONFIG;
+  const { SIZE, HOVER_PUSH_IMPULSE, HOVER_PUSH_RADIUS } = WALLABY_CONFIG;
   const pointerX = event.pageX ?? event.clientX + window.scrollX;
   const pointerY = event.pageY ?? event.clientY + window.scrollY;
   const centerX = state.x + SIZE / 2;
   const centerY = state.y + SIZE / 2;
-  const offsetX = (pointerX - centerX) / (SIZE / 2 || 1);
-  const offsetY = (pointerY - centerY) / (SIZE / 2 || 1);
+  let offsetX = centerX - pointerX;
+  let offsetY = centerY - pointerY;
+  let distance = Math.hypot(offsetX, offsetY);
 
-  state.vx += state.hoverPushDirection * offsetX * HOVER_PUSH_IMPULSE;
-  state.vy += state.hoverPushDirection * offsetY * HOVER_PUSH_IMPULSE;
+  if (distance >= HOVER_PUSH_RADIUS) {
+    return;
+  }
+
+  if (distance < 1) {
+    offsetX = 0;
+    offsetY = -1;
+    distance = 1;
+  }
+
+  const distanceFalloff = 1 - distance / HOVER_PUSH_RADIUS;
+  const pushStrength = HOVER_PUSH_IMPULSE * distanceFalloff * distanceFalloff;
+  const normalizedX = offsetX / distance;
+  const normalizedY = offsetY / distance;
+
+  state.vx += normalizedX * pushStrength;
+  state.vy += normalizedY * pushStrength;
+  clampVelocity(state);
+};
+
+/**
+ * Apply a random directional impulse to a wallaby state.
+ * @param {object} state - Wallaby state object
+ */
+const applyRandomTapImpulse = (state) => {
+  const { CLICK_IMPULSE } = WALLABY_CONFIG;
+  const angle = Math.random() * Math.PI * 2;
+
+  state.vx += Math.cos(angle) * CLICK_IMPULSE;
+  state.vy += Math.sin(angle) * CLICK_IMPULSE;
   clampVelocity(state);
 };
 
@@ -208,6 +237,77 @@ const initializeBouncingWallabies = () => {
   };
 
   /**
+   * Resolve pairwise wallaby collisions.
+   * Treat wallabies as equal-mass circles for stable bounce behavior.
+   * @param {Array} states - Array of wallaby state objects
+   */
+  const resolveWallabyCollisions = (states) => {
+    const radius = SIZE / 2;
+    const minDistance = radius * 2;
+    const minDistanceSq = minDistance * minDistance;
+
+    for (let i = 0; i < states.length; i += 1) {
+      const a = states[i];
+
+      for (let j = i + 1; j < states.length; j += 1) {
+        const b = states[j];
+
+        const ax = a.x + radius;
+        const ay = a.y + radius;
+        const bx = b.x + radius;
+        const by = b.y + radius;
+        let dx = bx - ax;
+        let dy = by - ay;
+        let distanceSq = dx * dx + dy * dy;
+
+        if (distanceSq > minDistanceSq) {
+          continue;
+        }
+
+        // Avoid division by zero if two wallabies are exactly on top of each other.
+        if (distanceSq < 0.0001) {
+          const randomAngle = Math.random() * Math.PI * 2;
+          dx = Math.cos(randomAngle);
+          dy = Math.sin(randomAngle);
+          distanceSq = 1;
+        }
+
+        const distance = Math.sqrt(distanceSq);
+        const nx = dx / distance;
+        const ny = dy / distance;
+
+        // Separate overlapping wallabies so they cannot stick together.
+        const overlap = minDistance - distance;
+        if (overlap > 0) {
+          const separation = overlap / 2;
+          a.x -= nx * separation;
+          a.y -= ny * separation;
+          b.x += nx * separation;
+          b.y += ny * separation;
+        }
+
+        const relativeVelocityX = b.vx - a.vx;
+        const relativeVelocityY = b.vy - a.vy;
+        const velocityAlongNormal = relativeVelocityX * nx + relativeVelocityY * ny;
+
+        if (velocityAlongNormal >= 0) {
+          continue;
+        }
+
+        // Equal-mass elastic collision along the collision normal.
+        const impulse = -velocityAlongNormal;
+        a.vx -= impulse * nx;
+        a.vy -= impulse * ny;
+        b.vx += impulse * nx;
+        b.vy += impulse * ny;
+
+        clampVelocity(a);
+        clampVelocity(b);
+      }
+    }
+  };
+
+  /**
    * Find a valid spawn position for a new wallaby
    * Tries 40 random positions before falling back to top of viewport
    * @param {Function} getYBounds - Function to get Y bounds
@@ -264,7 +364,6 @@ const initializeBouncingWallabies = () => {
       y: spawnPosition.y,
       vx: Math.cos(angle) * baseSpeed,
       vy: Math.sin(angle) * baseSpeed,
-      hoverPushDirection: Math.random() < 0.5 ? -1 : 1,
       rotation: Math.random() * 360,
       isSpinning: false,
       activeTouchPointerId: null,
@@ -312,6 +411,8 @@ const initializeBouncingWallabies = () => {
 
     // Touch events
     el.addEventListener('pointerdown', (event) => {
+      applyRandomTapImpulse(state);
+
       if (event.pointerType === 'mouse') {
         return;
       }
@@ -319,7 +420,6 @@ const initializeBouncingWallabies = () => {
       state.activeTouchPointerId = event.pointerId;
       state.isSpinning = true;
       el.style.opacity = `${WALLABY_ACTIVE_OPACITY}`;
-      applyHoverPush(state, event);
       el.setPointerCapture(event.pointerId);
     });
 
@@ -393,6 +493,28 @@ const initializeBouncingWallabies = () => {
 
       // Collision resolution
       resolveCardCollisions(s, prevX, prevY, cardBounds);
+
+      // Keep wallabies within horizontal bounds after collision corrections.
+      if (s.x <= 0) {
+        s.x = 0;
+      }
+      if (s.x >= w - SIZE) {
+        s.x = w - SIZE;
+      }
+    });
+
+    resolveWallabyCollisions(wallabies);
+
+    wallabies.forEach((s) => {
+      const { yMin, yMax } = s.getYBounds();
+      const boundedYMax = Math.max(yMin, yMax);
+
+      if (s.y <= yMin) {
+        s.y = yMin;
+      }
+      if (s.y >= boundedYMax) {
+        s.y = boundedYMax;
+      }
 
       // Apply transforms and effects
       s.el.style.transform = `translate(${s.x}px,${s.y}px)`;

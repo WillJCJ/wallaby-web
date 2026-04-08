@@ -1,0 +1,79 @@
+@media (max-width: 640px) {
+  header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  nav a:first-child {
+    margin-left: 0;
+  }
+
+  .wallaby-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .js .wallaby-card-details {
+    top: calc(100% - 0.4rem);
+  }
+}
+
+@media (hover: none) {
+  a:hover {
+    background: none;
+    animation: none;
+    -webkit-text-fill-color: initial;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+  }
+
+  ::view-transition-old(root) {
+    animation: none;
+  }
+
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: fade-out 0.25s ease-out forwards;
+  }
+
+  ::view-transition-new(root) {
+    animation: fade-in 0.25s ease-in forwards;
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}

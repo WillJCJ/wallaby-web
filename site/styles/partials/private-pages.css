@@ -1,0 +1,121 @@
+.login-panel,
+.private-details {
+  max-width: 720px;
+  margin: 0 auto 3rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 1.5rem;
+}
+
+.login-button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.7rem 1.1rem;
+  background: var(--accent);
+  color: #111827;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.private-status {
+  margin-bottom: 1rem;
+}
+
+.private-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.private-item {
+  background: var(--bg-surface);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+
+.private-item dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin-bottom: 0.35rem;
+}
+
+.private-item dd {
+  margin: 0;
+  color: #fff;
+  word-break: break-word;
+}
+
+.guest-profile-form {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.guest-profile-form h3 {
+  font-size: 1rem;
+  color: #fff;
+}
+
+.guest-profile-form label {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.guest-profile-form input,
+.guest-profile-form select,
+.guest-profile-form textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text);
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+}
+
+.guest-profile-form textarea {
+  resize: vertical;
+}
+
+.guest-profile-form .login-button {
+  margin-top: 0.5rem;
+  justify-self: start;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-guests-list {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.admin-guest-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+
+.admin-guest-card h3 {
+  margin: 0 0 0.35rem;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.admin-guest-meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.admin-guest-empty {
+  color: var(--text-muted);
+}

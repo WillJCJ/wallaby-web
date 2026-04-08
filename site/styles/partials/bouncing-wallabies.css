@@ -1,0 +1,27 @@
+.wallaby-bouncer-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.wallaby-bouncer {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  pointer-events: auto;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+  user-select: none;
+  will-change: transform;
+}
+
+.wallaby-bouncer img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}

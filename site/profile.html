@@ -1,0 +1,66 @@
+---
+layout: layouts/base.html
+title: Your Profile - WallabyFest
+---
+<div class="page-intro">
+  <h2>Your Profile</h2>
+  <p>Your guest details are loaded from your authenticated account.</p>
+  <div class="page-intro-actions">
+    <a class="login-button profile-logout" id="profile-logout" href="/cdn-cgi/access/logout?redirect_url=%2Flogin%2F">Log out</a>
+  </div>
+</div>
+
+<section class="private-details" id="guest-profile" aria-live="polite">
+  <p class="private-status" id="guest-profile-status">Loading your profile...</p>
+
+  <dl class="private-list" id="guest-profile-list" hidden>
+    <div class="private-item">
+      <dt>Name</dt>
+      <dd id="guest-name"></dd>
+    </div>
+    <div class="private-item">
+      <dt>Email</dt>
+      <dd id="guest-email"></dd>
+    </div>
+    <div class="private-item">
+      <dt>RSVP</dt>
+      <dd id="guest-rsvp"></dd>
+    </div>
+    <div class="private-item">
+      <dt>Additional guests</dt>
+      <dd id="guest-additional-guests"></dd>
+    </div>
+    <div class="private-item">
+      <dt>Dietary requirements</dt>
+      <dd id="guest-dietary-requirements"></dd>
+    </div>
+    <div class="private-item">
+      <dt>RSVP message</dt>
+      <dd id="guest-rsvp-message"></dd>
+    </div>
+  </dl>
+
+  <form class="guest-profile-form" id="guest-profile-form" hidden>
+    <h3>Update RSVP</h3>
+
+    <label for="guest-profile-rsvp">RSVP</label>
+    <select id="guest-profile-rsvp" name="rsvp" required>
+      <option value="pending">Pending</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="guest-profile-additional-guests">Additional guests</label>
+    <input id="guest-profile-additional-guests" name="additionalGuests" type="number" min="0" step="1" />
+
+    <label for="guest-profile-dietary">Dietary requirements</label>
+    <textarea id="guest-profile-dietary" name="dietaryRequirements" rows="3" maxlength="600"></textarea>
+
+    <label for="guest-profile-rsvp-message">RSVP message</label>
+    <textarea id="guest-profile-rsvp-message" name="rsvpMessage" rows="4" maxlength="1000"></textarea>
+
+    <button type="submit" class="login-button">Save RSVP</button>
+  </form>
+</section>
+
+<script src="/scripts/profile.js" defer></script>
