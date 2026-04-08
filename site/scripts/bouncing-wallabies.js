@@ -83,11 +83,11 @@ const applyHoverPush = (state, event) => {
   const pointerY = event.pageY ?? event.clientY + window.scrollY;
   const centerX = state.x + SIZE / 2;
   const centerY = state.y + SIZE / 2;
-  const offsetX = (pointerX - centerX) / (SIZE / 2 || 1);
-  const offsetY = (pointerY - centerY) / (SIZE / 2 || 1);
+  const offsetX = (centerX - pointerX) / (SIZE / 2 || 1);
+  const offsetY = (centerY - pointerY) / (SIZE / 2 || 1);
 
-  state.vx += state.hoverPushDirection * offsetX * HOVER_PUSH_IMPULSE;
-  state.vy += state.hoverPushDirection * offsetY * HOVER_PUSH_IMPULSE;
+  state.vx += offsetX * HOVER_PUSH_IMPULSE;
+  state.vy += offsetY * HOVER_PUSH_IMPULSE;
   clampVelocity(state);
 };
 
@@ -335,7 +335,6 @@ const initializeBouncingWallabies = () => {
       y: spawnPosition.y,
       vx: Math.cos(angle) * baseSpeed,
       vy: Math.sin(angle) * baseSpeed,
-      hoverPushDirection: Math.random() < 0.5 ? -1 : 1,
       rotation: Math.random() * 360,
       isSpinning: false,
       activeTouchPointerId: null,
