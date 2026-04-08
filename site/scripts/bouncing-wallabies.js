@@ -78,16 +78,45 @@ const intersectsAnyCard = (x, y, cardBounds) => {
  * @param {PointerEvent} event - Pointer event
  */
 const applyHoverPush = (state, event) => {
-  const { SIZE, HOVER_PUSH_IMPULSE } = WALLABY_CONFIG;
+  const { SIZE, HOVER_PUSH_IMPULSE, HOVER_PUSH_RADIUS } = WALLABY_CONFIG;
   const pointerX = event.pageX ?? event.clientX + window.scrollX;
   const pointerY = event.pageY ?? event.clientY + window.scrollY;
   const centerX = state.x + SIZE / 2;
   const centerY = state.y + SIZE / 2;
-  const offsetX = (centerX - pointerX) / (SIZE / 2 || 1);
-  const offsetY = (centerY - pointerY) / (SIZE / 2 || 1);
+  let offsetX = centerX - pointerX;
+  let offsetY = centerY - pointerY;
+  let distance = Math.hypot(offsetX, offsetY);
 
-  state.vx += offsetX * HOVER_PUSH_IMPULSE;
-  state.vy += offsetY * HOVER_PUSH_IMPULSE;
+  if (distance >= HOVER_PUSH_RADIUS) {
+    return;
+  }
+
+  if (distance < 1) {
+    offsetX = 0;
+    offsetY = -1;
+    distance = 1;
+  }
+
+  const distanceFalloff = 1 - distance / HOVER_PUSH_RADIUS;
+  const pushStrength = HOVER_PUSH_IMPULSE * distanceFalloff * distanceFalloff;
+  const normalizedX = offsetX / distance;
+  const normalizedY = offsetY / distance;
+
+  state.vx += normalizedX * pushStrength;
+  state.vy += normalizedY * pushStrength;
+  clampVelocity(state);
+};
+
+/**
+ * Apply a random directional impulse to a wallaby state.
+ * @param {object} state - Wallaby state object
+ */
+const applyRandomTapImpulse = (state) => {
+  const { CLICK_IMPULSE } = WALLABY_CONFIG;
+  const angle = Math.random() * Math.PI * 2;
+
+  state.vx += Math.cos(angle) * CLICK_IMPULSE;
+  state.vy += Math.sin(angle) * CLICK_IMPULSE;
   clampVelocity(state);
 };
 
@@ -382,6 +411,8 @@ const initializeBouncingWallabies = () => {
 
     // Touch events
     el.addEventListener('pointerdown', (event) => {
+      applyRandomTapImpulse(state);
+
       if (event.pointerType === 'mouse') {
         return;
       }
@@ -389,7 +420,6 @@ const initializeBouncingWallabies = () => {
       state.activeTouchPointerId = event.pointerId;
       state.isSpinning = true;
       el.style.opacity = `${WALLABY_ACTIVE_OPACITY}`;
-      applyHoverPush(state, event);
       el.setPointerCapture(event.pointerId);
     });
 
