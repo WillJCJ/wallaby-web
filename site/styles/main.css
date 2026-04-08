@@ -493,6 +493,49 @@ footer {
   word-break: break-word;
 }
 
+.guest-profile-form {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.guest-profile-form h3 {
+  font-size: 1rem;
+  color: #fff;
+}
+
+.guest-profile-form label {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.guest-profile-form input,
+.guest-profile-form select,
+.guest-profile-form textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text);
+  padding: 0.6rem 0.7rem;
+  font: inherit;
+}
+
+.guest-profile-form textarea {
+  resize: vertical;
+}
+
+.guest-profile-form .login-button {
+  margin-top: 0.5rem;
+  justify-self: start;
+  border: none;
+  cursor: pointer;
+}
+
 /* ── Bouncing wallabies ── */
 
 .wallaby-bouncer-layer {

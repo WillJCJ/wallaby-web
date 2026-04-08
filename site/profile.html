@@ -36,6 +36,28 @@ title: Your Profile - WallabyFest
       <dd id="guest-rsvp-message"></dd>
     </div>
   </dl>
+
+  <form class="guest-profile-form" id="guest-profile-form" hidden>
+    <h3>Update RSVP</h3>
+
+    <label for="guest-profile-rsvp">RSVP</label>
+    <select id="guest-profile-rsvp" name="rsvp" required>
+      <option value="pending">Pending</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="guest-profile-additional-guests">Additional guests</label>
+    <input id="guest-profile-additional-guests" name="additionalGuests" type="number" min="0" step="1" />
+
+    <label for="guest-profile-dietary">Dietary requirements</label>
+    <textarea id="guest-profile-dietary" name="dietaryRequirements" rows="3" maxlength="600"></textarea>
+
+    <label for="guest-profile-rsvp-message">RSVP message</label>
+    <textarea id="guest-profile-rsvp-message" name="rsvpMessage" rows="4" maxlength="1000"></textarea>
+
+    <button type="submit" class="login-button">Save RSVP</button>
+  </form>
 </section>
 
 <script src="/scripts/profile.js" defer></script>
