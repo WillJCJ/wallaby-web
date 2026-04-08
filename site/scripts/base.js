@@ -35,7 +35,7 @@ const setSignedOutNav = (detailsLink, accountLink) => {
 
 const setSignedInNav = (detailsLink, accountLink, email) => {
 	detailsLink.hidden = false;
-	accountLink.href = '/details/';
+	// accountLink.href = '/details/'; // Doesn't need to go anywhere?
 	accountLink.classList.add('is-authenticated');
 	accountLink.title = `Signed in as ${email}`;
 	accountLink.setAttribute('aria-label', `Signed in as ${email}`);
