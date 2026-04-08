@@ -59,6 +59,25 @@ const fetchAuthEmail = async () => {
 	}
 };
 
+const fetchGuestEmail = async () => {
+	try {
+		const response = await fetch('/api/private/guests/me', {
+			method: 'GET',
+			credentials: 'same-origin',
+		});
+
+		if (!response.ok) {
+			return null;
+		}
+
+		const data = await response.json().catch(() => null);
+		const email = data?.guest?.email || null;
+		return typeof email === 'string' && email ? email : null;
+	} catch {
+		return null;
+	}
+};
+
 const initializeAuthNav = async () => {
 	const detailsLink = document.getElementById('nav-details-link');
 	const profileLink = document.getElementById('nav-profile-link');
@@ -71,16 +90,35 @@ const initializeAuthNav = async () => {
 
 	const storedEmail = getStoredAuthEmail();
 
+	if (logoutLink) {
+		logoutLink.addEventListener('click', () => {
+			setStoredAuthEmail(null);
+		});
+	}
+
 	if (storedEmail) {
 		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
 	} else {
 		setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
 	}
 
-	const email = await fetchAuthEmail();
+	const identityEmail = await fetchAuthEmail();
 
-	if (email) {
-		setStoredAuthEmail(email);
+	if (identityEmail) {
+		setStoredAuthEmail(identityEmail);
+		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		return;
+	}
+
+	const guestEmail = await fetchGuestEmail();
+
+	if (guestEmail) {
+		setStoredAuthEmail(guestEmail);
+		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		return;
+	}
+
+	if (storedEmail) {
 		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
 		return;
 	}
