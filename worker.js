@@ -80,6 +80,8 @@ const normalizeRsvp = (value) => {
   return RSVP_VALUES.has(rsvp) ? rsvp : null;
 };
 
+const normalizeAuthenticatedEmail = (email) => String(email || '').trim().toLowerCase();
+
 const formatGuest = (row) => ({
   id: row.id,
   name: row.name,
@@ -156,6 +158,123 @@ const validateGuestPayload = (payload) => {
       rsvpMessage,
     },
   };
+};
+
+const validateGuestSelfPayload = (payload, existingGuest) => {
+  const hasRsvp = Object.prototype.hasOwnProperty.call(payload, 'rsvp');
+  const hasAdditionalGuests = Object.prototype.hasOwnProperty.call(payload, 'additionalGuests');
+  const hasDietaryRequirements = Object.prototype.hasOwnProperty.call(payload, 'dietaryRequirements');
+  const hasRsvpMessage = Object.prototype.hasOwnProperty.call(payload, 'rsvpMessage');
+
+  const rsvp = hasRsvp ? normalizeRsvp(payload.rsvp) : existingGuest.rsvp;
+
+  if (!rsvp) {
+    return { error: 'rsvp must be one of: pending, yes, no' };
+  }
+
+  let additionalGuests = existingGuest.additional_guests;
+
+  if (hasAdditionalGuests) {
+    const parsed = Number.parseInt(payload.additionalGuests, 10);
+
+    if (!Number.isInteger(parsed) || parsed < 0) {
+      return { error: 'additionalGuests must be 0 or greater' };
+    }
+
+    additionalGuests = parsed;
+  }
+
+  const dietaryRequirements = hasDietaryRequirements
+    ? String(payload.dietaryRequirements ?? '').trim()
+    : existingGuest.dietary_requirements;
+
+  const rsvpMessage = hasRsvpMessage
+    ? String(payload.rsvpMessage ?? '').trim()
+    : existingGuest.rsvp_message;
+
+  return {
+    value: {
+      rsvp,
+      additionalGuests,
+      dietaryRequirements,
+      rsvpMessage,
+    },
+  };
+};
+
+const handleGuestSelf = async (request, env, authenticatedEmail) => {
+  const email = normalizeAuthenticatedEmail(authenticatedEmail);
+
+  if (request.method === 'GET' || request.method === 'PUT') {
+    const existingGuest = await env.GUESTS_DB
+      .prepare(
+        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
+         FROM guests
+         WHERE LOWER(email) = ?`
+      )
+      .bind(email)
+      .first();
+
+    if (!existingGuest) {
+      return jsonResponse({ error: 'Guest not found' }, { status: 404 });
+    }
+
+    if (request.method === 'GET') {
+      return jsonResponse({ guest: formatGuest(existingGuest) });
+    }
+
+    const body = await parseJsonBody(request);
+
+    if (!body) {
+      return jsonResponse({ error: 'Invalid JSON body' }, { status: BAD_REQUEST });
+    }
+
+    const validated = validateGuestSelfPayload(body, existingGuest);
+
+    if (validated.error) {
+      return jsonResponse({ error: validated.error }, { status: BAD_REQUEST });
+    }
+
+    const input = validated.value;
+
+    const update = await env.GUESTS_DB
+      .prepare(
+        `UPDATE guests
+         SET rsvp = ?,
+             additional_guests = ?,
+             dietary_requirements = ?,
+             rsvp_message = ?,
+             updated_by = ?,
+             updated_at = datetime('now')
+         WHERE LOWER(email) = ?`
+      )
+      .bind(
+        input.rsvp,
+        input.additionalGuests,
+        input.dietaryRequirements,
+        input.rsvpMessage,
+        email,
+        email
+      )
+      .run();
+
+    if (!update.success) {
+      return jsonResponse({ error: 'Unable to update guest' }, { status: INTERNAL_SERVER_ERROR });
+    }
+
+    const row = await env.GUESTS_DB
+      .prepare(
+        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
+         FROM guests
+         WHERE LOWER(email) = ?`
+      )
+      .bind(email)
+      .first();
+
+    return jsonResponse({ guest: formatGuest(row) });
+  }
+
+  return jsonResponse({ error: 'Method Not Allowed' }, { status: METHOD_NOT_ALLOWED });
 };
 
 const handleGuestsCollection = async (request, env, adminEmail) => {
@@ -332,12 +451,6 @@ const handleGuestsApi = async (request, env, pathname) => {
     return authResult.error;
   }
 
-  const adminError = requireAdmin(authResult.email, env);
-
-  if (adminError) {
-    return adminError;
-  }
-
   const dbError = requireGuestsDb(env);
 
   if (dbError) {
@@ -345,6 +458,16 @@ const handleGuestsApi = async (request, env, pathname) => {
   }
 
   const parts = pathname.split('/').filter(Boolean);
+
+  if (parts.length === 4 && parts[3] === 'me') {
+    return handleGuestSelf(request, env, authResult.email);
+  }
+
+  const adminError = requireAdmin(authResult.email, env);
+
+  if (adminError) {
+    return adminError;
+  }
 
   if (parts.length === 3) {
     return handleGuestsCollection(request, env, authResult.email);

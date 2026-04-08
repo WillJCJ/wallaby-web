@@ -95,7 +95,19 @@ you@example.com,friend@example.com
 
 ### 4) Private guest API endpoints
 
-All guest endpoints require Cloudflare Access auth and admin email allowlist match.
+Self-service endpoint (authenticated guest, scoped by Access email):
+
+- `GET /api/private/guests/me`
+- `PUT /api/private/guests/me`
+
+`PUT /api/private/guests/me` can update only these fields:
+
+- `rsvp`
+- `additionalGuests`
+- `dietaryRequirements`
+- `rsvpMessage`
+
+Admin endpoints (require Cloudflare Access auth and `ADMIN_EMAILS` allowlist match):
 
 - `GET /api/private/guests`
 - `POST /api/private/guests`
