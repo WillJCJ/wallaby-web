@@ -28,6 +28,7 @@ const setSignedOutNav = (detailsLink, accountLink) => {
 	detailsLink.hidden = true;
 	accountLink.href = '/login/';
 	accountLink.classList.remove('is-authenticated');
+	accountLink.removeAttribute('data-tooltip');
 	accountLink.title = '';
 	accountLink.setAttribute('aria-label', 'Login');
 	accountLink.textContent = 'Login';
@@ -35,11 +36,12 @@ const setSignedOutNav = (detailsLink, accountLink) => {
 
 const setSignedInNav = (detailsLink, accountLink, email) => {
 	detailsLink.hidden = false;
-	// accountLink.href = '/details/'; // Doesn't need to go anywhere?
+	accountLink.removeAttribute('href');
 	accountLink.classList.add('is-authenticated');
-	accountLink.title = `Signed in as ${email}`;
+	accountLink.setAttribute('data-tooltip', `Signed in as ${email}`);
+	accountLink.title = '';
 	accountLink.setAttribute('aria-label', `Signed in as ${email}`);
-	accountLink.innerHTML = '<span class="nav-profile-avatar" aria-hidden="true"></span><span class="sr-only">Account</span>';
+	accountLink.innerHTML = '<span class="nav-profile-avatar" aria-hidden="true"></span><span class="sr-only">Signed in account status</span>';
 };
 
 const fetchAuthEmail = async () => {
