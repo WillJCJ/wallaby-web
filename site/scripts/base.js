@@ -24,24 +24,18 @@ const setStoredAuthEmail = (email) => {
 	}
 };
 
-const setSignedOutNav = (detailsLink, accountLink) => {
+const setSignedOutNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	detailsLink.hidden = true;
-	accountLink.href = '/login/';
-	accountLink.classList.remove('is-authenticated');
-	accountLink.removeAttribute('data-tooltip');
-	accountLink.title = '';
-	accountLink.setAttribute('aria-label', 'Login');
-	accountLink.textContent = 'Login';
+	profileLink.hidden = true;
+	logoutLink.hidden = true;
+	loginLink.hidden = false;
 };
 
-const setSignedInNav = (detailsLink, accountLink, email) => {
+const setSignedInNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	detailsLink.hidden = false;
-	accountLink.href = '/profile/';
-	accountLink.classList.add('is-authenticated');
-	accountLink.setAttribute('data-tooltip', `Signed in as ${email}`);
-	accountLink.title = '';
-	accountLink.setAttribute('aria-label', `Signed in as ${email}`);
-	accountLink.innerHTML = '<span class="nav-profile-avatar" aria-hidden="true"></span><span class="sr-only">Profile</span>';
+	profileLink.hidden = false;
+	logoutLink.hidden = false;
+	loginLink.hidden = true;
 };
 
 const fetchAuthEmail = async () => {
@@ -67,30 +61,32 @@ const fetchAuthEmail = async () => {
 
 const initializeAuthNav = async () => {
 	const detailsLink = document.getElementById('nav-details-link');
-	const accountLink = document.getElementById('nav-account-link');
+	const profileLink = document.getElementById('nav-profile-link');
+	const logoutLink = document.getElementById('nav-logout-link');
+	const loginLink = document.getElementById('nav-login-link');
 
-	if (!detailsLink || !accountLink) {
+	if (!detailsLink || !profileLink || !logoutLink || !loginLink) {
 		return;
 	}
 
 	const storedEmail = getStoredAuthEmail();
 
 	if (storedEmail) {
-		setSignedInNav(detailsLink, accountLink, storedEmail);
+		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
 	} else {
-		setSignedOutNav(detailsLink, accountLink);
+		setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
 	}
 
 	const email = await fetchAuthEmail();
 
 	if (email) {
 		setStoredAuthEmail(email);
-		setSignedInNav(detailsLink, accountLink, email);
+		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
 		return;
 	}
 
 	setStoredAuthEmail(null);
-	setSignedOutNav(detailsLink, accountLink);
+	setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
 };
 
 if (document.readyState === 'loading') {
