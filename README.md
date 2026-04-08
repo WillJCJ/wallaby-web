@@ -18,7 +18,6 @@ Run these commands once per environment:
 ```bash
 wrangler secret put EVENT_ADDRESS
 wrangler secret put GATE_CODE
-wrangler secret put ARRIVAL_NOTES
 ```
 
 ### Protect routes with Access

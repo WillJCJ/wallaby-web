@@ -60,53 +60,59 @@ nav a:hover {
   color: var(--accent);
 }
 
-/* ── Hero ── */
-
-.hero {
-  text-align: center;
-  padding: 5rem 2rem 4rem;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.hero .eyebrow {
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1rem;
+#nav-account-link.is-authenticated {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(245, 200, 66, 0.08);
+  vertical-align: middle;
 }
 
-.hero h2 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  margin-bottom: 1rem;
+.nav-profile-avatar {
+  position: relative;
+  display: block;
+  width: 1rem;
+  height: 1rem;
 }
 
-.hero p {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  max-width: 480px;
-  margin: 0 auto 2rem;
+.nav-profile-avatar::before,
+.nav-profile-avatar::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: currentColor;
 }
 
-.hero .cta {
-  display: inline-block;
-  background: var(--accent);
-  color: #111827;
-  font-weight: 600;
-  padding: 0.75rem 2rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: opacity 0.15s;
+.nav-profile-avatar::before {
+  top: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
 }
 
-.hero .cta:hover {
-  opacity: 0.9;
+.nav-profile-avatar::after {
+  bottom: 0;
+  width: 0.9rem;
+  height: 0.5rem;
+  border-radius: 999px 999px 0.35rem 0.35rem;
 }
 
 /* ── Cards ── */
@@ -224,6 +230,8 @@ footer {
 }
 
 .wallaby-card {
+  --wallaby-thumbnail-offset-y: 0px;
+  --wallaby-image-offset-y: 0px;
   position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -237,19 +245,43 @@ footer {
   border-color: var(--accent);
 }
 
-.wallaby-card-headshot {
+.wallaby-card-photo {
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #374151;
-  overflow: hidden;
+  padding: 0.65rem;
   border-radius: 11px 11px 0 0;
+  transition: padding 0.18s ease;
 }
 
-.wallaby-card-headshot img {
+.wallaby-card-image-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  transition: border-radius 0.18s ease;
+}
+
+.wallaby-card-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 11px 11px 0 0;
+  object-position: 50% 50%;
+  display: block;
+  transition: opacity 0.18s ease, object-position 0.18s ease;
+}
+
+.wallaby-card-image-thumb {
+  opacity: 1;
+  object-position: 50% calc(50% + var(--wallaby-thumbnail-offset-y));
+}
+
+.wallaby-card-image-full {
+  opacity: 0;
+  object-position: 50% calc(50% + var(--wallaby-image-offset-y));
 }
 
 .wallaby-card-toggle {
@@ -284,6 +316,19 @@ footer {
   color: var(--accent);
 }
 
+.wallaby-alias-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.wallaby-alias-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
 .wallaby-card-details {
   position: static;
   background: var(--bg-card);
@@ -305,6 +350,22 @@ footer {
   z-index: 20; /* In front of other cards */
   border-color: var(--accent);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.js .wallaby-card.is-open .wallaby-card-photo {
+  padding: 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-frame {
+  border-radius: 11px 11px 0 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-thumb {
+  opacity: 0;
+}
+
+.js .wallaby-card.is-open .wallaby-card-image-full {
+  opacity: 1;
 }
 
 .js .wallaby-card-details {
@@ -437,10 +498,6 @@ footer {
   display: block;
 }
 
-.wallaby-bouncer:hover {
-  opacity: 0.8;
-}
-
 /* ── Responsive ── */
 
 @media (max-width: 640px) {
@@ -452,10 +509,6 @@ footer {
 
   nav a:first-child {
     margin-left: 0;
-  }
-
-  .hero {
-    padding: 3rem 1.5rem;
   }
 
   .wallaby-grid {

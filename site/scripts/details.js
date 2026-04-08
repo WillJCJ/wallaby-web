@@ -1,11 +1,11 @@
 (() => {
+  const AUTH_EMAIL_STORAGE_KEY = 'wallabyfest-auth-email';
   const status = document.getElementById('private-status');
   const list = document.getElementById('private-list');
   const address = document.getElementById('private-address');
   const gateCode = document.getElementById('private-gate-code');
-  const notes = document.getElementById('private-notes');
 
-  if (!status || !list || !address || !gateCode || !notes) {
+  if (!status || !list || !address || !gateCode) {
     return;
   }
 
@@ -29,7 +29,14 @@
     .then((data) => {
       address.textContent = data.address || 'Not configured';
       gateCode.textContent = data.gateCode || 'Not configured';
-      notes.textContent = data.arrivalNotes || 'No extra notes.';
+
+      try {
+        if (data.viewer) {
+          window.localStorage.setItem(AUTH_EMAIL_STORAGE_KEY, data.viewer);
+        }
+      } catch {
+        // Ignore storage access failures.
+      }
 
       list.hidden = false;
       status.textContent = 'Authenticated. Private details loaded.';

@@ -5,23 +5,44 @@ title: Meet the Wallabies — WallabyFest
 <div class="page-intro">
   <h2>Meet the Wallabies</h2>
   <p>Our current roster. Click a card to learn more.</p>
+  <p>Why does Jackie have five wallabies hopping around her home? Well if you ask her she'd say "Well we used to have wallabies 20 years ago so..."</p>
+  <p>So that obviously doesn't explain it but we're all glad they're here!</p>
 </div>
 
 <div class="wallaby-grid">
   {% for wallaby in wallabies %}
-  <div class="wallaby-card">
+  {% assign thumbnailYOffset = wallaby.thumbnailYOffset | default: '0px' %}
+  {% assign imgYOffset = wallaby.imgYOffset | default: '0px' %}
+  <div class="wallaby-card" style="--wallaby-thumbnail-offset-y: {{ thumbnailYOffset }}; --wallaby-image-offset-y: {{ imgYOffset }};">
     <button
       class="wallaby-card-toggle"
       type="button"
       aria-expanded="false"
       aria-controls="wallaby-details-{{ loop.index }}"
     >
-      <div class="wallaby-card-headshot">
-        <img src="{{ wallaby.img }}" alt="{{ wallaby.name }}" />
+      <div class="wallaby-card-photo">
+        <div class="wallaby-card-image-frame">
+          <img
+            class="wallaby-card-image wallaby-card-image-thumb"
+            src="{{ wallaby.thumbnail }}"
+            alt="{{ wallaby.name }}"
+          />
+          <img
+            class="wallaby-card-image wallaby-card-image-full"
+            src="{{ wallaby.img }}"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
       </div>
       <div class="wallaby-card-summary">
         <h3>{{ wallaby.name }}</h3>
-        {% if wallaby.alias != "" %}<p class="wallaby-alias">{{ wallaby.alias }}</p>{% endif %}
+        {% if wallaby.alias %}
+        <div class="wallaby-alias-wrapper">
+          <div class="wallaby-alias-label">Alias</div>
+          <p class="wallaby-alias">{{ wallaby.alias }}</p>
+        </div>
+        {% endif %}
       </div>
     </button>
     <div id="wallaby-details-{{ loop.index }}" class="wallaby-card-details">
@@ -44,4 +65,5 @@ title: Meet the Wallabies — WallabyFest
   {% endfor %}
 </div>
 
-<script src="/scripts/wallabies.js" defer></script>
+<script type="module" src="/scripts/card-interactions.js" defer></script>
+<script type="module" src="/scripts/bouncing-wallabies.js" defer></script>

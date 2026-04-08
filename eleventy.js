@@ -21,7 +21,13 @@ export default function (eleventyConfig) {
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    return age;
+    // If less than 1 year old, show age in months
+    if (age < 1) {
+      const months = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
+      return `${months} month${months !== 1 ? 's' : ''}`;
+    }
+
+    return `${age} year${age !== 1 ? 's' : ''}`;
   });
 
   eleventyConfig.addTransform('htmlMinify', function (content, outputPath) {

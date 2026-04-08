@@ -24,7 +24,6 @@ const handlePrivateDetails = (request, env) => {
     {
       address: env.EVENT_ADDRESS || '62 West Wallaby Street, Wigan, Lancashire, WA11 4BY',
       gateCode: env.GATE_CODE || '1234',
-      arrivalNotes: env.ARRIVAL_NOTES || '',
       viewer: email,
     },
     {
