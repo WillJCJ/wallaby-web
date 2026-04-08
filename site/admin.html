@@ -1,0 +1,44 @@
+---
+layout: layouts/base.html
+title: Guest Admin - WallabyFest
+---
+<div class="page-intro">
+  <h2>Guest Admin</h2>
+  <p>View and add guest records. Admin users only.</p>
+</div>
+
+<section class="private-details" id="guest-admin" aria-live="polite">
+  <p class="private-status" id="guest-admin-status">Loading guests...</p>
+
+  <form class="guest-profile-form" id="guest-admin-form" hidden>
+    <h3>Add Guest</h3>
+
+    <label for="admin-guest-name">Name</label>
+    <input id="admin-guest-name" name="name" type="text" required maxlength="120" />
+
+    <label for="admin-guest-email">Email</label>
+    <input id="admin-guest-email" name="email" type="email" required maxlength="320" />
+
+    <label for="admin-guest-rsvp">RSVP</label>
+    <select id="admin-guest-rsvp" name="rsvp" required>
+      <option value="pending">Pending</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="admin-guest-additional-guests">Additional guests</label>
+    <input id="admin-guest-additional-guests" name="additionalGuests" type="number" min="0" step="1" value="0" />
+
+    <label for="admin-guest-dietary">Dietary requirements</label>
+    <textarea id="admin-guest-dietary" name="dietaryRequirements" rows="3" maxlength="600"></textarea>
+
+    <label for="admin-guest-rsvp-message">RSVP message</label>
+    <textarea id="admin-guest-rsvp-message" name="rsvpMessage" rows="4" maxlength="1000"></textarea>
+
+    <button type="submit" class="login-button" id="guest-admin-submit">Add guest</button>
+  </form>
+
+  <div class="admin-guests-list" id="admin-guests-list" hidden></div>
+</section>
+
+<script src="/scripts/admin.js" defer></script>

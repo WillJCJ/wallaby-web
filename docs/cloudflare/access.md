@@ -6,6 +6,7 @@ Access policies are managed in the Cloudflare Zero Trust console.
 
 Protect these routes with authentication:
 
+- `/admin/*`
 - `/profile/*`
 - `/details/*`
 - `/api/private/*`

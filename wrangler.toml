@@ -27,4 +27,4 @@ workers_dev = true
 [[env.preview.d1_databases]]
 binding = "GUESTS_DB"
 database_name = "wallabyfest-guests-preview"
-database_id = "REPLACE_WITH_PREVIEW_DATABASE_ID"
+database_id = "e051dc73-8940-4dcc-b670-572c94d0bd07"
