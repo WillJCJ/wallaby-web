@@ -5,6 +5,19 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    if (url.pathname === '/api/env') {
+      return new Response(
+        JSON.stringify({
+          deploymentId: env.CF_DEPLOYMENT_ID || null,
+        }),
+        {
+          headers: {
+            'content-type': 'application/json',
+          },
+        }
+      );
+    }
+
     if (url.pathname === '/api/private/details') {
       return handlePrivateDetails(request, env);
     }
