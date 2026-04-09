@@ -28,11 +28,13 @@ const showDeploymentVersion = () => {
 			return response.json();
 		})
 		.then((data) => {
-			if (!data?.deploymentId || typeof data.deploymentId !== 'string') {
+			const deploymentId = data?.versionId || data?.deploymentId;
+
+			if (!deploymentId || typeof deploymentId !== 'string') {
 				return;
 			}
 
-			versionLabel.textContent = `v${data.deploymentId.slice(0, 8)}`;
+			versionLabel.textContent = `v${deploymentId.slice(0, 8)}`;
 			versionLabel.hidden = false;
 		})
 		.catch(() => {

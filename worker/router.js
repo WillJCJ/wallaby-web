@@ -6,13 +6,18 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/api/env') {
+      const versionMetadata = env.CF_VERSION_METADATA || null;
       return new Response(
         JSON.stringify({
-          deploymentId: env.CF_DEPLOYMENT_ID || null,
+          deploymentId: versionMetadata?.id || null,
+          versionId: versionMetadata?.id || null,
+          versionTag: versionMetadata?.tag || null,
+          versionTimestamp: versionMetadata?.timestamp || null,
         }),
         {
           headers: {
             'content-type': 'application/json',
+            'cache-control': 'no-store',
           },
         }
       );
