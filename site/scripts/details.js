@@ -18,6 +18,7 @@
   fetch('/api/private/details', {
     method: 'GET',
     credentials: 'same-origin',
+    cache: 'no-store',
   })
     .then(async (response) => {
       if (!response.ok) {

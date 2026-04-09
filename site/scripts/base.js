@@ -64,6 +64,7 @@ const setupLogout = (logoutLink) => {
 			const response = await fetch(logoutUrl, {
 				method: 'GET',
 				credentials: 'same-origin',
+				cache: 'no-store',
 			});
 
 			if (response.status === 200) {

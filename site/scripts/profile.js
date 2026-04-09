@@ -89,6 +89,7 @@
     const response = await fetch('/api/private/guests/me', {
       method: 'GET',
       credentials: 'same-origin',
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -110,6 +111,7 @@
     const response = await fetch('/api/private/guests/me', {
       method: 'PUT',
       credentials: 'same-origin',
+      cache: 'no-store',
       headers: {
         'content-type': 'application/json',
       },
