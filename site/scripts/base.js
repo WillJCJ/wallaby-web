@@ -6,7 +6,36 @@ const auth = window.WallabyAuth;
 const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
 const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
-const buildLogoutUrl = auth?.buildLogoutUrl || (() => '/cdn-cgi/access/logout');
+const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
+
+const showFlashCard = (message, type) => {
+	const card = document.createElement('div');
+	card.className = `flash-card flash-card--${type}`;
+	card.textContent = message;
+	card.setAttribute('role', 'status');
+	card.setAttribute('aria-live', 'polite');
+	document.body.appendChild(card);
+
+	window.setTimeout(() => {
+		card.remove();
+	}, 5000);
+};
+
+const showStoredFlashMessage = () => {
+	try {
+		const flashMessage = window.sessionStorage.getItem(FLASH_STORAGE_KEY);
+		if (!flashMessage) {
+			return;
+		}
+
+		window.sessionStorage.removeItem(FLASH_STORAGE_KEY);
+		if (flashMessage === 'logout-success') {
+			showFlashCard('Logout successful', 'success');
+		}
+	} catch {
+		// Ignore sessionStorage access failures.
+	}
+};
 
 const setSignedOutNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	detailsLink.hidden = true;
@@ -22,6 +51,39 @@ const setSignedInNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	loginLink.hidden = true;
 };
 
+const setupLogout = (logoutLink) => {
+	if (!logoutLink) {
+		return;
+	}
+
+	logoutLink.addEventListener('click', async (event) => {
+		event.preventDefault();
+
+		try {
+			const logoutUrl = `${window.location.origin}/cdn-cgi/access/logout`;
+			const response = await fetch(logoutUrl, {
+				method: 'GET',
+				credentials: 'same-origin',
+			});
+
+			if (response.status === 200) {
+				setStoredAuthEmail(null);
+				try {
+					window.sessionStorage.setItem(FLASH_STORAGE_KEY, 'logout-success');
+				} catch {
+					// Ignore sessionStorage access failures.
+				}
+				window.location.assign('/');
+				return;
+			}
+
+			showFlashCard('Logout failed', 'error');
+		} catch {
+			showFlashCard('Logout failed', 'error');
+		}
+	});
+};
+
 const initializeAuthNav = async () => {
 	const detailsLink = document.getElementById('nav-details-link');
 	const profileLink = document.getElementById('nav-profile-link');
@@ -32,14 +94,9 @@ const initializeAuthNav = async () => {
 		return;
 	}
 
-	const storedEmail = getStoredAuthEmail();
+	setupLogout(logoutLink);
 
-	if (logoutLink) {
-		logoutLink.href = buildLogoutUrl();
-		logoutLink.addEventListener('click', () => {
-			setStoredAuthEmail(null);
-		});
-	}
+	const storedEmail = getStoredAuthEmail();
 
 	if (storedEmail) {
 		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
@@ -66,8 +123,10 @@ const initializeAuthNav = async () => {
 
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', () => {
+		showStoredFlashMessage();
 		initializeAuthNav();
 	});
 } else {
+	showStoredFlashMessage();
 	initializeAuthNav();
 }

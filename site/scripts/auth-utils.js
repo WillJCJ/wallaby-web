@@ -43,20 +43,10 @@
     }
   };
 
-  const buildLogoutUrl = () => {
-    try {
-      const redirectTarget = `${window.location.origin}/`;
-      return `/cdn-cgi/access/logout?redirect_url=${encodeURIComponent(redirectTarget)}`;
-    } catch {
-      return '/cdn-cgi/access/logout';
-    }
-  };
-
   window.WallabyAuth = {
     AUTH_EMAIL_STORAGE_KEY,
     getStoredAuthEmail,
     setStoredAuthEmail,
     fetchAuthEmail,
-    buildLogoutUrl,
   };
 })();
