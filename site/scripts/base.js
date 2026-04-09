@@ -8,6 +8,38 @@ const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
 
+const showDeploymentVersion = () => {
+	const versionLabel = document.getElementById('footer-version');
+
+	if (!versionLabel) {
+		return;
+	}
+
+	fetch('/api/env', {
+		method: 'GET',
+		cache: 'no-store',
+		credentials: 'same-origin',
+	})
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error('Unable to load environment info');
+			}
+
+			return response.json();
+		})
+		.then((data) => {
+			if (!data?.deploymentId || typeof data.deploymentId !== 'string') {
+				return;
+			}
+
+			versionLabel.textContent = `v${data.deploymentId.slice(0, 8)}`;
+			versionLabel.hidden = false;
+		})
+		.catch(() => {
+			// Ignore env info failures to keep footer unobtrusive.
+		});
+};
+
 const showFlashCard = (message, type) => {
 	const card = document.createElement('div');
 	card.className = `flash-card flash-card--${type}`;
@@ -124,10 +156,12 @@ const initializeAuthNav = async () => {
 
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', () => {
+		showDeploymentVersion();
 		showStoredFlashMessage();
 		initializeAuthNav();
 	});
 } else {
+	showDeploymentVersion();
 	showStoredFlashMessage();
 	initializeAuthNav();
 }
