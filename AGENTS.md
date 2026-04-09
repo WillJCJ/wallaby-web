@@ -86,6 +86,10 @@ Rules:
 - Use direct present-tense wording when describing behavior.
 - Avoid temporal framing like "now includes", "new feature", or "recently added".
 - Apply the same tone in README text, PR descriptions, comments, and user-facing copy.
+- Use British English spelling and grammar in all written content.
+- Use 24-hour time format (for example, 17:30, not 5:30 PM).
+- Never use month-first date formats.
+- Prefer unambiguous date formats such as YYYY-MM-DD or DD/MM/YYYY.
 
 ## Optional Nice-to-Haves
 Teams often also define:
