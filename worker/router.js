@@ -5,7 +5,6 @@ import { handleGuestsApi } from './guests.js';
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const isDebug = env.LOG_LEVEL === 'debug';
 
     if (url.pathname.startsWith('/api/private/guests')) {
       return handleGuestsApi(request, env, url.pathname);
