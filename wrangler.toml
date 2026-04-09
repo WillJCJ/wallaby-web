@@ -9,6 +9,9 @@ preview_urls = false
 [version_metadata]
 binding = "CF_VERSION_METADATA"
 
+[vars]
+LOG_LEVEL = "info"
+
 [build]
 command = "npm run build"
 
@@ -36,6 +39,9 @@ database_id = "fc8fca57-d92e-40c7-85a6-0459263f4fef"
 [env.preview]
 workers_dev = true
 preview_urls = true
+
+[env.preview.vars]
+LOG_LEVEL = "debug"
 
 [[env.preview.d1_databases]]
 binding = "GUESTS_DB"
