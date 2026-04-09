@@ -8,6 +8,27 @@ const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
 
+const formatLocalTimestamp = (timestamp) => {
+	if (!timestamp || typeof timestamp !== 'string') {
+		return null;
+	}
+
+	const parsed = new Date(timestamp);
+	if (Number.isNaN(parsed.getTime())) {
+		return null;
+	}
+
+	return new Intl.DateTimeFormat(undefined, {
+		year: 'numeric',
+		month: 'short',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		timeZoneName: 'short',
+	}).format(parsed);
+};
+
 const showDeploymentVersion = () => {
 	const versionLabel = document.getElementById('footer-version');
 
@@ -29,13 +50,20 @@ const showDeploymentVersion = () => {
 		})
 		.then((data) => {
 			const deploymentId = data?.versionId || data?.deploymentId;
+			const hasDeploymentId = typeof deploymentId === 'string' && deploymentId.length > 0;
+			const localUpdatedAt = formatLocalTimestamp(data?.versionTimestamp);
+			const label = [
+				localUpdatedAt ? `Last updated ${localUpdatedAt}` : null,
+				hasDeploymentId ? `version ${deploymentId.slice(0, 8)}` : null,
+			]
+				.filter(Boolean)
+				.join(' | ');
 
-			if (!deploymentId || typeof deploymentId !== 'string') {
-				return;
+			if (label) {
+				versionLabel.textContent = label;
+				versionLabel.hidden = false;
 			}
 
-			versionLabel.textContent = `v${deploymentId.slice(0, 8)}`;
-			versionLabel.hidden = false;
 		})
 		.catch(() => {
 			// Ignore env info failures to keep footer unobtrusive.
