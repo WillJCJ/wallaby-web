@@ -30,3 +30,25 @@ footer {
   color: var(--text-faint);
   font-size: 0.8rem;
 }
+
+.flash-card {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  max-width: 320px;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  z-index: 999;
+}
+
+.flash-card--success {
+  border-color: #2f9e44;
+}
+
+.flash-card--error {
+  border-color: #e03131;
+}
