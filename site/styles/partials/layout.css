@@ -31,6 +31,12 @@ footer {
   font-size: 0.8rem;
 }
 
+#footer-version {
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  opacity: 0.85;
+}
+
 .flash-card {
   position: fixed;
   right: 1.25rem;
