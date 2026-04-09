@@ -64,6 +64,7 @@ const setupLogout = (logoutLink) => {
 			const response = await fetch(logoutUrl, {
 				method: 'GET',
 				credentials: 'same-origin',
+				cache: 'no-store',
 			});
 
 			if (response.status === 200) {
@@ -89,6 +90,7 @@ const fetchGuestEmail = async () => {
 		const response = await fetch('/api/private/guests/me', {
 			method: 'GET',
 			credentials: 'same-origin',
+			cache: 'no-store',
 		});
 
 		if (!response.ok) {
