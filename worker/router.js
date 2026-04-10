@@ -6,7 +6,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname.startsWith('/api/private/guests')) {
+    if (
+      url.pathname === '/api/private/guests' ||
+      url.pathname.startsWith('/api/private/guests/')
+    ) {
       return handleGuestsApi(request, env, url.pathname);
     }
 
@@ -15,9 +18,25 @@ export default {
         return handleAuthStatus(request);
 
       case '/api/env':
+        {
+          const metadata = env.CF_VERSION_METADATA;
+          const versionId =
+            metadata?.id ||
+            metadata?.version_id ||
+            metadata?.versionId ||
+            null;
+          const versionTimestamp =
+            metadata?.timestamp ||
+            metadata?.created_at ||
+            metadata?.createdAt ||
+            metadata?.created_on ||
+            null;
+
         return new Response(
           JSON.stringify({
-            deploymentId: env.CF_DEPLOYMENT_ID || null,
+            deploymentId: versionId,
+            versionId,
+            versionTimestamp,
           }),
           {
             headers: {
@@ -25,6 +44,7 @@ export default {
             },
           }
         );
+        }
 
       case '/api/private/details':
         return handlePrivateDetails(request, env);
