@@ -39,21 +39,14 @@ export default {
 
       const faviconUrl = new URL(request.url);
       faviconUrl.pathname = faviconPath;
-      const faviconRequest = new Request(faviconUrl.toString(), {
-        method: 'GET',
-        headers: request.headers,
-      });
-      // In local wrangler dev, env.ASSETS may be missing, so fall back to fetch to avoid a 500.
-      const response = env.ASSETS?.fetch
-        ? await env.ASSETS.fetch(faviconRequest)
-        : await fetch(faviconRequest);
+      const response = Response.redirect(faviconUrl.toString(), 302);
+      response.headers.set('cache-control', 'no-store');
 
       if (env.LOG_LEVEL === 'debug') {
         console.log('[favicon] response', {
           pathname: url.pathname,
           resolvedPath: faviconPath,
-          status: response.status,
-          contentType: response.headers.get('content-type'),
+          status: 302,
         });
       }
 
