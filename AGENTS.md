@@ -72,8 +72,18 @@ Rules:
 ## Quality Gates Before Merge
 - Run lint and fix all errors.
 - Run project build and confirm output is correct.
+- Run `npm test` and confirm all tests pass.
 - Validate accessibility basics for UI changes (keyboard, focus, semantics).
 - Confirm CSP/security headers are not weakened unintentionally.
+
+## Worker Tests
+Unit tests for every `worker/` module live in `worker/tests/`. When modifying any file in `worker/`, update the corresponding test file in `worker/tests/` to reflect the change. When adding a new `worker/` module, add a matching test file.
+
+Run tests with:
+
+```bash
+npm test
+```
 
 ## Working Agreement for Agents
 - Do not commit secrets, tokens, or environment credentials.

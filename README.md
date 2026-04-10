@@ -17,6 +17,21 @@ Useful commands:
 
 - `npm run lint`
 - `npm run build`
+- `npm test`
+
+## Tests
+
+Unit tests cover every module in `worker/` using [Vitest](https://vitest.dev/).
+
+Run the full suite locally:
+
+```bash
+npm test
+```
+
+Test files live in `worker/tests/` and mirror the module they cover (for example, `worker/tests/auth.test.js` tests `worker/auth.js`).
+
+Tests run automatically on every push and pull request via the CI workflow in `.github/workflows/test.yml`.
 
 ## Cloudflare Setup
 
