@@ -22,25 +22,6 @@ const setSignedInNav = (detailsLink, profileLink, logoutLink, loginLink) => {
 	loginLink.hidden = true;
 };
 
-const fetchGuestEmail = async () => {
-	try {
-		const response = await fetch('/api/private/guests/me', {
-			method: 'GET',
-			credentials: 'same-origin',
-		});
-
-		if (!response.ok) {
-			return null;
-		}
-
-		const data = await response.json().catch(() => null);
-		const email = data?.guest?.email || null;
-		return typeof email === 'string' && email ? email : null;
-	} catch {
-		return null;
-	}
-};
-
 const initializeAuthNav = async () => {
 	const detailsLink = document.getElementById('nav-details-link');
 	const profileLink = document.getElementById('nav-profile-link');
@@ -70,14 +51,6 @@ const initializeAuthNav = async () => {
 
 	if (identityEmail) {
 		setStoredAuthEmail(identityEmail);
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
-		return;
-	}
-
-	const guestEmail = await fetchGuestEmail();
-
-	if (guestEmail) {
-		setStoredAuthEmail(guestEmail);
 		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
 		return;
 	}
