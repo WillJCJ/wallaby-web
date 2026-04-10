@@ -140,31 +140,16 @@ const setupLogout = (logoutLink) => {
 		return;
 	}
 
-	logoutLink.addEventListener('click', async (event) => {
-		event.preventDefault();
+	const logoutUrl = new URL('/cdn-cgi/access/logout', window.location.origin);
+	logoutUrl.searchParams.set('returnTo', `${window.location.origin}/`);
+	logoutLink.href = logoutUrl.toString();
 
+	logoutLink.addEventListener('click', () => {
+		setStoredAuthEmail(null);
 		try {
-			const logoutUrl = `${window.location.origin}/cdn-cgi/access/logout`;
-			const response = await fetch(logoutUrl, {
-				method: 'GET',
-				credentials: 'same-origin',
-				cache: 'no-store',
-			});
-
-			if (response.status === 200) {
-				setStoredAuthEmail(null);
-				try {
-					window.sessionStorage.setItem(FLASH_STORAGE_KEY, 'logout-success');
-				} catch {
-					// Ignore sessionStorage access failures.
-				}
-				window.location.assign('/');
-				return;
-			}
-
-			showFlashCard('Logout failed', 'error');
+			window.sessionStorage.setItem(FLASH_STORAGE_KEY, 'logout-success');
 		} catch {
-			showFlashCard('Logout failed', 'error');
+			// Ignore sessionStorage access failures.
 		}
 	});
 };
