@@ -24,7 +24,7 @@
 
   const fetchAuthEmail = async () => {
     try {
-      const response = await fetch('/cdn-cgi/access/get-identity', {
+      const response = await fetch('/api/auth/status', {
         credentials: 'same-origin',
         headers: {
           accept: 'application/json',
@@ -36,7 +36,7 @@
       }
 
       const data = await response.json().catch(() => null);
-      const email = data?.email || data?.user_email || data?.identity?.email || null;
+      const email = data?.email || null;
       return typeof email === 'string' && email ? email : null;
     } catch {
       return null;
