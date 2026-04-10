@@ -6,12 +6,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Keep one canonical favicon and swap underlying asset by environment host.
-    if (
-      url.pathname === '/api/favicon.ico' ||
-      url.pathname === '/favicon.ico' ||
-      url.pathname === '/images/favicon.ico'
-    ) {
+    // Route favicon requests through one code path and map to env-specific static assets.
+    if (url.pathname === '/api/favicon.ico' || url.pathname === '/favicon.ico') {
       const host = url.hostname;
       const isLocal =
         host === 'localhost' ||
@@ -27,31 +23,13 @@ export default {
           ? '/images/favicon-preview.ico'
           : '/images/favicon.ico';
 
-      if (env.LOG_LEVEL === 'debug') {
-        console.log('[favicon] resolve', {
-          host,
-          pathname: url.pathname,
-          isLocal,
-          isPreview,
-          faviconPath,
-        });
-      }
-
-      const faviconUrl = new URL(request.url);
-      faviconUrl.pathname = faviconPath;
-      const redirectResponse = Response.redirect(faviconUrl.toString(), 302);
-      const response = new Response(null, redirectResponse);
-      response.headers.set('cache-control', 'no-store');
-
-      if (env.LOG_LEVEL === 'debug') {
-        console.log('[favicon] response', {
-          pathname: url.pathname,
-          resolvedPath: faviconPath,
-          status: 302,
-        });
-      }
-
-      return response;
+      return new Response(null, {
+        status: 302,
+        headers: {
+          location: faviconPath,
+          'cache-control': 'no-store',
+        },
+      });
     }
 
     if (
