@@ -6,6 +6,30 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // Keep a single favicon URL in HTML and swap the underlying asset by host.
+    if (url.pathname === '/images/favicon.ico') {
+      const host = url.hostname;
+      const isLocal =
+        host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host === '::1';
+      const isPreview =
+        host.includes('-preview.') &&
+        host.endsWith('.workers.dev');
+
+      const faviconPath = isLocal
+        ? '/images/favicon-local.ico'
+        : isPreview
+          ? '/images/favicon-preview.ico'
+          : '/images/favicon.ico';
+
+      if (faviconPath !== '/images/favicon.ico') {
+        const faviconUrl = new URL(request.url);
+        faviconUrl.pathname = faviconPath;
+        return env.ASSETS.fetch(new Request(faviconUrl.toString(), request));
+      }
+    }
+
     if (
       url.pathname === '/api/private/guests' ||
       url.pathname.startsWith('/api/private/guests/')
