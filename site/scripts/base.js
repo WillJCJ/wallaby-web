@@ -77,8 +77,9 @@ const showFlashCard = (message, type) => {
 	document.body.appendChild(card);
 
 	window.setTimeout(() => {
-		card.remove();
-	}, 5000);
+		card.classList.add('flash-card--hidden');
+		card.addEventListener('transitionend', () => card.remove(), { once: true });
+	}, 4500);
 };
 
 const showStoredFlashMessage = () => {
