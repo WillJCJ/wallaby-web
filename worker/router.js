@@ -6,15 +6,19 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Keep a single favicon URL in HTML and swap the underlying asset by host.
-    if (url.pathname === '/images/favicon.ico') {
+    // Keep one canonical favicon and swap underlying asset by environment host.
+    if (
+      url.pathname === '/api/favicon.ico' ||
+      url.pathname === '/favicon.ico' ||
+      url.pathname === '/images/favicon.ico'
+    ) {
       const host = url.hostname;
       const isLocal =
         host === 'localhost' ||
         host === '127.0.0.1' ||
         host === '::1';
       const isPreview =
-        host.includes('-preview.') &&
+        host.includes('-preview') &&
         host.endsWith('.workers.dev');
 
       const faviconPath = isLocal
@@ -23,11 +27,37 @@ export default {
           ? '/images/favicon-preview.ico'
           : '/images/favicon.ico';
 
-      if (faviconPath !== '/images/favicon.ico') {
-        const faviconUrl = new URL(request.url);
-        faviconUrl.pathname = faviconPath;
-        return env.ASSETS.fetch(new Request(faviconUrl.toString(), request));
+      if (env.LOG_LEVEL === 'debug') {
+        console.log('[favicon] resolve', {
+          host,
+          pathname: url.pathname,
+          isLocal,
+          isPreview,
+          faviconPath,
+        });
       }
+
+      const faviconUrl = new URL(request.url);
+      faviconUrl.pathname = faviconPath;
+      const faviconRequest = new Request(faviconUrl.toString(), {
+        method: 'GET',
+        headers: request.headers,
+      });
+      // In local wrangler dev, env.ASSETS may be missing, so fall back to fetch to avoid a 500.
+      const response = env.ASSETS?.fetch
+        ? await env.ASSETS.fetch(faviconRequest)
+        : await fetch(faviconRequest);
+
+      if (env.LOG_LEVEL === 'debug') {
+        console.log('[favicon] response', {
+          pathname: url.pathname,
+          resolvedPath: faviconPath,
+          status: response.status,
+          contentType: response.headers.get('content-type'),
+        });
+      }
+
+      return response;
     }
 
     if (
@@ -74,6 +104,11 @@ export default {
         return handlePrivateDetails(request, env);
     }
 
-    return env.ASSETS.fetch(request);
+    if (env.ASSETS?.fetch) {
+      return env.ASSETS.fetch(request);
+    }
+
+    // Defensive local-dev fallback when ASSETS binding is unavailable.
+    return new Response('Not Found', { status: 404 });
   },
 };
