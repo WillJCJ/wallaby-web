@@ -74,11 +74,34 @@ const showFlashCard = (message, type) => {
 	card.textContent = message;
 	card.setAttribute('role', 'status');
 	card.setAttribute('aria-live', 'polite');
+
+	let removed = false;
+	const removeCard = () => {
+		if (removed) {
+			return;
+		}
+
+		removed = true;
+		card.remove();
+	};
+
+	const header = document.querySelector('header');
+	if (header) {
+		const headerOffset = Math.max(8, Math.round(header.getBoundingClientRect().height + 8));
+		card.style.setProperty('--flash-card-top', `${headerOffset}px`);
+	}
+
 	document.body.appendChild(card);
+
+	card.addEventListener('transitionend', (event) => {
+		if (event.target === card && event.propertyName === 'opacity') {
+			removeCard();
+		}
+	});
 
 	window.setTimeout(() => {
 		card.classList.add('flash-card--hidden');
-		card.addEventListener('transitionend', () => card.remove(), { once: true });
+		window.setTimeout(removeCard, 1000);
 	}, 4500);
 };
 
