@@ -1,7 +1,6 @@
 (() => {
   const auth = window.WallabyAuth;
   const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
-  const buildLogoutUrl = auth?.buildLogoutUrl || (() => '/cdn-cgi/access/logout');
   const status = document.getElementById('guest-profile-status');
   const list = document.getElementById('guest-profile-list');
   const form = document.getElementById('guest-profile-form');
@@ -16,7 +15,6 @@
   const formDietaryRequirements = document.getElementById('guest-profile-dietary');
   const formRsvpMessage = document.getElementById('guest-profile-rsvp-message');
   const saveButton = form.querySelector('button[type="submit"]');
-  const logoutLink = document.getElementById('profile-logout');
 
   let isSaving = false;
   let initialFormData = '';
@@ -91,6 +89,7 @@
     const response = await fetch('/api/private/guests/me', {
       method: 'GET',
       credentials: 'same-origin',
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -112,6 +111,7 @@
     const response = await fetch('/api/private/guests/me', {
       method: 'PUT',
       credentials: 'same-origin',
+      cache: 'no-store',
       headers: {
         'content-type': 'application/json',
       },
@@ -171,13 +171,6 @@
   });
 
   window.addEventListener('beforeunload', handleBeforeUnload);
-
-  if (logoutLink) {
-    logoutLink.href = buildLogoutUrl();
-    logoutLink.addEventListener('click', () => {
-      setStoredAuthEmail(null);
-    });
-  }
 
   fetchGuest()
     .then((guest) => {

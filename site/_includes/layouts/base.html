@@ -7,7 +7,8 @@
 
     <title>{{ title }}</title>
 
-    <link rel="icon" href="/images/favicon.ico">
+    <!-- Use /api/favicon.ico so favicon requests always pass through Worker routing logic. -->
+    <link rel="icon" href="/api/favicon.ico">
     <script src="/scripts/auth-utils.js"></script>
     <script src="/scripts/base.js"></script>
     <link rel="stylesheet" href="/styles/main.css" type="text/css">
@@ -24,8 +25,8 @@
             <a href="/wallabies/">Meet the Wallabies</a>
             <a href="/details/" id="nav-details-link" hidden>Details</a>
             <a href="/profile/" id="nav-profile-link" hidden>Profile</a>
-            <a href="/cdn-cgi/access/logout?redirect_url=%2F" id="nav-logout-link" hidden>Logout</a>
             <a href="/login/" id="nav-login-link">Login</a>
+            <a href="#" id="nav-logout-link" hidden>Logout</a>
         </nav>
     </header>
     <main>
@@ -33,6 +34,7 @@
     </main>
     <footer>
         <p>None of the content is AI generated, I just have a shit sense of humour.</p>
+        <p id="footer-version" hidden></p>
     </footer>
 </body>
 

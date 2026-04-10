@@ -30,3 +30,50 @@ footer {
   color: var(--text-faint);
   font-size: 0.8rem;
 }
+
+#footer-version {
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  opacity: 0.85;
+}
+
+@keyframes flash-drop {
+  from {
+    transform: translate(-50%, -125%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.flash-card {
+  position: fixed;
+  top: var(--flash-card-top, 1rem);
+  left: 50%;
+  transform: translate(-50%, 0);
+  max-width: 360px;
+  width: max-content;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  z-index: 90;
+  animation: flash-drop 0.3s ease forwards;
+  transition: opacity 0.5s ease;
+}
+
+.flash-card--hidden {
+  opacity: 0;
+}
+
+.flash-card--success {
+  border-color: #2f9e44;
+}
+
+.flash-card--error {
+  border-color: #e03131;
+}
