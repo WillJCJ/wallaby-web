@@ -39,7 +39,8 @@ export default {
 
       const faviconUrl = new URL(request.url);
       faviconUrl.pathname = faviconPath;
-      const response = Response.redirect(faviconUrl.toString(), 302);
+      const redirectResponse = Response.redirect(faviconUrl.toString(), 302);
+      const response = new Response(null, redirectResponse);
       response.headers.set('cache-control', 'no-store');
 
       if (env.LOG_LEVEL === 'debug') {
