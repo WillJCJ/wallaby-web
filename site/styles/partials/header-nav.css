@@ -23,6 +23,42 @@ header {
   display: block;
 }
 
+.site-brand__logo-svg {
+  width: 3.25rem;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.site-brand--interactive .site-brand__logo-svg path {
+  transition: transform 280ms ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.site-brand--interactive .site-brand__logo-svg #chin { --explode-x: 0px; --explode-y: 20.080px; }
+.site-brand--interactive .site-brand__logo-svg #mouth { --explode-x: 0px; --explode-y: 17.463px; }
+.site-brand--interactive .site-brand__logo-svg #noseLower { --explode-x: 0px; --explode-y: 14.464px; }
+.site-brand--interactive .site-brand__logo-svg #noseUpper { --explode-x: 0px; --explode-y: 8.393px; }
+.site-brand--interactive .site-brand__logo-svg #cheekL { --explode-x: -7.218px; --explode-y: 12.360px; }
+.site-brand--interactive .site-brand__logo-svg #cheekR { --explode-x: 7.175px; --explode-y: 12.401px; }
+
+/* Don't explode the head and eyes */
+.site-brand--interactive .site-brand__logo-svg #eyeL { --explode-x: 0px; --explode-y: 0px; }
+.site-brand--interactive .site-brand__logo-svg #eyeR { --explode-x: 0px; --explode-y: 0px; }
+.site-brand--interactive .site-brand__logo-svg #Forehead { --explode-x: 0px; --explode-y: 0px; }
+
+.site-brand--interactive .site-brand__logo-svg #headUpperL { --explode-x: -7.663px; --explode-y: 0.367px; }
+.site-brand--interactive .site-brand__logo-svg #headUpperR { --explode-x: 7.619px; --explode-y: 0.408px; }
+.site-brand--interactive .site-brand__logo-svg #earLowerL { --explode-x: -8.186px; --explode-y: -10.728px; }
+.site-brand--interactive .site-brand__logo-svg #earLowerR { --explode-x: 8.172px; --explode-y: -10.706px; }
+.site-brand--interactive .site-brand__logo-svg #earUpperL { --explode-x: -15.256px; --explode-y: -12.121px; }
+.site-brand--interactive .site-brand__logo-svg #earUpperR { --explode-x: 15.227px; --explode-y: -12.100px; }
+
+.site-brand--interactive:hover .site-brand__logo-svg path:not(#Forehead):not(#eyeL):not(#eyeR) {
+  transform: translate(var(--explode-x, 0px), var(--explode-y, 0px));
+}
+
 .site-brand__name {
   font-size: 1.4rem;
   font-weight: 600;
