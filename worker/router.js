@@ -6,8 +6,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Route favicon requests through one code path and map to env-specific static assets.
-    if (url.pathname === '/api/favicon.ico' || url.pathname === '/favicon.ico') {
+    // Route logo requests through one code path and map to env-specific static assets.
+    if (url.pathname === '/api/logo.svg' || url.pathname === '/favicon.ico') {
       const host = url.hostname;
       const isLocal =
         host === 'localhost' ||

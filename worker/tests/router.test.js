@@ -25,8 +25,8 @@ describe('router favicon routing', () => {
     expect(res.headers.get('location')).toBe('/images/logos/logo.svg');
   });
 
-  it('redirects /api/favicon.ico to the localhost logo on localhost', async () => {
-    const req = makeRequest('http://localhost/api/favicon.ico');
+  it('redirects /api/logo.svg to the localhost logo on localhost', async () => {
+    const req = makeRequest('http://localhost/api/logo.svg');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(302);
     expect(res.headers.get('location')).toBe('/images/logos/logo_greyscale_red_eyes.svg');
