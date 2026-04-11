@@ -12,7 +12,6 @@ binding = "CF_VERSION_METADATA"
 [[r2_buckets]]
 binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
-remote = true
 
 [[d1_databases]]
 binding = "GUESTS_DB"
