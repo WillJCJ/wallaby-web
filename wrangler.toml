@@ -9,6 +9,11 @@ preview_urls = false
 [version_metadata]
 binding = "CF_VERSION_METADATA"
 
+[[r2_buckets]]
+binding = "PHOTOS_BUCKET"
+bucket_name = "wallaby-web"
+remote = true
+
 [[d1_databases]]
 binding = "GUESTS_DB"
 database_name = "wallabyfest-guests-preview"
@@ -39,6 +44,10 @@ LOG_LEVEL = "info"
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"
 
+[[env.production.r2_buckets]]
+binding = "PHOTOS_BUCKET"
+bucket_name = "wallaby-web"
+
 [[env.production.routes]]
 pattern = "wallabyfest.co.uk"
 custom_domain = true
@@ -55,6 +64,10 @@ preview_urls = true
 
 [env.preview.version_metadata]
 binding = "CF_VERSION_METADATA"
+
+[[env.preview.r2_buckets]]
+binding = "PHOTOS_BUCKET"
+bucket_name = "wallaby-web"
 
 [env.preview.vars]
 LOG_LEVEL = "debug"

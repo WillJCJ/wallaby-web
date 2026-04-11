@@ -8,6 +8,7 @@ afterEach(() => {
 const makeEnv = (overrides = {}) => ({
   ASSETS: null,
   CF_VERSION_METADATA: null,
+  PHOTOS_BUCKET: null,
   ...overrides,
 });
 
@@ -131,5 +132,48 @@ describe('router ASSETS fallback', () => {
     const req = makeRequest('https://example.com/unknown');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// /api/photos/*
+// ---------------------------------------------------------------------------
+
+describe('router /api/photos/*', () => {
+  it('returns 503 when PHOTOS_BUCKET binding is unavailable', async () => {
+    const req = makeRequest('https://example.com/api/photos/party.jpg');
+    const res = await router.fetch(req, makeEnv({ PHOTOS_BUCKET: null }));
+    expect(res.status).toBe(503);
+  });
+
+  it('returns 404 when photo does not exist in R2', async () => {
+    const req = makeRequest('https://example.com/api/photos/missing.jpg');
+    const env = makeEnv({
+      PHOTOS_BUCKET: {
+        get: vi.fn().mockResolvedValue(null),
+      },
+    });
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns photo content and metadata from R2', async () => {
+    const req = makeRequest('https://example.com/api/photos/sample.jpg');
+    const env = makeEnv({
+      PHOTOS_BUCKET: {
+        get: vi.fn().mockResolvedValue({
+          body: 'photo-bytes',
+          httpMetadata: { contentType: 'image/jpeg' },
+          httpEtag: '"etag-123"',
+        }),
+      },
+    });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('photo-bytes');
+    expect(res.headers.get('content-type')).toBe('image/jpeg');
+    expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
+    expect(res.headers.get('etag')).toBe('"etag-123"');
   });
 });

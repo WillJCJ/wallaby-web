@@ -1,0 +1,42 @@
+---
+layout: layouts/base.html
+title: Photos — Wallaby Fest
+---
+<div class="page-intro">
+  <h2>Photos</h2>
+  <p>Festival highlights. Select a tile to expand it, then use arrows to move through the gallery.</p>
+</div>
+
+<section class="photos-section">
+  <article class="photos-feature" id="photos-feature" tabindex="0" aria-label="Selected photo">
+    <button type="button" class="photo-nav photo-nav--prev" id="photos-prev" aria-label="Previous photo">◀</button>
+    <img id="photos-feature-image" src="" alt="" loading="eager" decoding="async">
+    <p class="photos-feature-caption" id="photos-feature-caption"></p>
+    <button type="button" class="photo-nav photo-nav--next" id="photos-next" aria-label="Next photo">▶</button>
+  </article>
+
+  <div class="photos-grid" id="photos-grid" role="list" aria-label="Festival photo thumbnails">
+    {% for photo in photos %}
+    <article class="photo-tile" role="listitem" data-index="{{ loop.index0 }}">
+      <button
+        type="button"
+        class="photo-thumb"
+        data-photo-id="{{ photo.id }}"
+        data-photo-alt="{{ photo.alt }}"
+        data-photo-caption="{{ photo.caption }}"
+        aria-label="Open photo {{ loop.index }}: {{ photo.caption }}"
+      >
+        <img
+          src="/api/photos/{{ photo.id }}"
+          alt="{{ photo.alt }}"
+          loading="lazy"
+          decoding="async"
+        >
+        <span class="photo-caption">{{ photo.caption }}</span>
+      </button>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<script type="module" src="/scripts/photos.js" defer></script>
