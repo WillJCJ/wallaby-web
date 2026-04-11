@@ -18,10 +18,10 @@ export default {
         host.endsWith('.workers.dev');
 
       const faviconPath = isLocal
-        ? '/images/favicon-local.ico'
+        ? '/images/logos/logo_greyscale_red_eyes.svg'
         : isPreview
-          ? '/images/favicon-preview.ico'
-          : '/images/favicon.ico';
+          ? '/images/logos/logo_orangey.svg'
+          : '/images/logos/logo.svg';
 
       return new Response(null, {
         status: 302,

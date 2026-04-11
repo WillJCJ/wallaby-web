@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40.66 -21.468 367.895 320.8" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="50" height="50" divisions="5"/>
+    <bx:export>
+      <bx:file format="svg" href="#mouth"/>
+      <bx:file format="svg" href="#object-1" path="Untitled 2.svg"/>
+      <bx:file format="svg" href="#Forehead" path="Untitled 3.svg"/>
+      <bx:file format="svg" href="#noseUpper" path="Untitled 4.svg"/>
+      <bx:file format="svg" href="#headUpperR" path="Untitled 5.svg"/>
+      <bx:file format="svg" href="#eyeR" path="Untitled 6.svg"/>
+      <bx:file format="svg" href="#object-6" path="Untitled 7.svg"/>
+      <bx:file format="svg" href="#chin" path="Untitled 8.svg"/>
+      <bx:file format="svg" href="#noseLower" path="Untitled 9.svg"/>
+      <bx:file format="svg" href="#earLowerL" path="Untitled 10.svg"/>
+      <bx:file format="svg" href="#headUpperL" path="Untitled 11.svg"/>
+      <bx:file format="svg" href="#earUpperL" path="Untitled 12.svg"/>
+      <bx:file format="svg" href="#eyeL" path="Untitled 13.svg"/>
+      <bx:file format="svg" href="#object-13" path="Untitled 14.svg"/>
+      <bx:file format="svg" href="#earLowerR" path="Untitled 15.svg"/>
+      <bx:file format="svg" href="#earUpperR" path="Untitled 16.svg"/>
+      <bx:file format="pdf" excluded="true">
+        <bx:page/>
+      </bx:file>
+      <bx:file format="svg" path="Untitled 17.svg" excluded="true"/>
+      <bx:file format="svg" path="Untitled 18.svg"/>
+    </bx:export>
+  </defs>
+  <path d="M 221.411 261.665 L 242.949 275.29 L 199.873 275.29 L 221.411 261.665 Z" bx:shape="triangle 199.873 261.665 43.076 13.625 0.5 0 1@6bfdfdd2" style="transform-origin: 208.127px 493.207px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(89, 89, 89);" id="mouth"/>
+  <path d="M 244.854 -1003 L 266.392 -988.644 L 223.316 -988.644 L 244.854 -1003 Z" bx:shape="triangle 223.316 -1003 43.076 14.356 0.5 0 1@eb61aef9" style="stroke-width: 1; fill: rgb(123, 80, 25); transform-origin: 208.127px -493.208px;" transform="matrix(1, 0, 0, -1, 0, 986.41571)" id="object-1"/>
+  <path d="M 221.411 103.038 L 276.453 165.259 L 166.369 165.259 L 221.411 103.038 Z" bx:shape="triangle 166.369 103.038 110.084 62.221 0.5 0 1@152989da" style="transform-origin: 208.127px 493.207px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(151, 151, 151);" id="Forehead"/>
+  <path d="M 221.411 169.995 L 243.551 227.43 L 199.271 227.43 L 221.411 169.995 Z" bx:shape="triangle 199.271 169.995 44.28 57.435 0.5 0 1@b1fba920" style="transform-origin: 208.125px 493.207px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(103, 103, 103);" id="noseUpper"/>
+  <path d="M 201.615 161.35 L 205.527 225.89 L 120.48 225.89 L 201.615 161.35 Z" bx:shape="triangle 120.48 161.35 85.047 64.54 0.954 0 1@90c30a72" style="transform-origin: 231.593px -166.283px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(117, 117, 117);" transform="matrix(0.992749, 0.120206, 0.356382, -0.964152, -23.244937, 659.047591)" id="headUpperR"/>
+  <path d="M 264.245 -182.33 L 281.691 -172.758 L 257.76 -172.758 L 264.245 -182.33 Z" bx:shape="triangle 257.76 -182.33 23.931 9.572 0.271 0 1@f34d5b48" style="transform-origin: 208.349px -492.765px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(74, 74, 74);" transform="matrix(1, 0, 0, -1, 0, 985.530823)" id="eyeR"/>
+  <path d="M 436.848 708.367 L 468.76 747.723 L 360.585 747.723 L 436.848 708.367 Z" bx:shape="triangle 360.585 708.367 108.175 39.356 0.705 0 1@2f63872a" style="transform-origin: 155.276px 829.33px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(141, 141, 141);" transform="matrix(0.529917, -0.84805, 0.84805, 0.529917, 53.071799, -336.565861)" id="object-6" class="cheekR"/>
+  <path d="M -221.413 -297.52 L -194.677 -279.699 L -248.15 -279.699 L -221.413 -297.52 Z" bx:shape="triangle -248.15 -297.52 53.473 17.821 0.5 0 1@1aa06239" style="transform-origin: -208.491px -493.207px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(215, 215, 215);" transform="matrix(-1, 0, 0, -1, 416.983002, 986.41449)" id="chin"/>
+  <path d="M 221.412 -255.78 L 238.624 -235.033 L 204.199 -235.033 L 221.412 -255.78 Z" bx:shape="triangle 204.199 -255.78 34.425 20.747 0.5 0 1@c3982112" style="transform-origin: 208.127px -493.208px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(47, 47, 47);" transform="matrix(1, 0, 0, -1, 0, 986.416016)" id="noseLower"/>
+  <path d="M -88.13 -41.509 L -54.719 54.904 L -122.08 54.904 L -88.13 -41.509 Z" bx:shape="triangle -122.08 -41.509 67.361 96.413 0.504 0 1@99e02dc2" style="transform-origin: -74.929px 452.836px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(170, 170, 170);" transform="matrix(0.990268, -0.139173, 0.139173, 0.990268, 302.09506, 36.388865)" id="earLowerL"/>
+  <path d="M -39.345 -161.35 L -35.433 -96.81 L -120.48 -96.81 L -39.345 -161.35 Z" bx:shape="triangle -120.48 -161.35 85.047 64.54 0.954 0 1@78a96109" style="transform-origin: -9.367px -488.983px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(175, 175, 175);" transform="matrix(-0.992749, 0.120206, -0.356382, -0.964152, 243.503531, 981.437958)" id="headUpperL"/>
+  <path d="M 245.458 -151.46 L 263.225 -45.737 L 197.42 -45.737 L 245.458 -151.46 Z" bx:shape="triangle 197.42 -151.46 65.805 105.723 0.73 0 1@7d3172ea" style="transform-origin: 374.784px -520.575px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(203, 203, 203);" transform="matrix(0.984801, 0.173684, 0.037849, -1.008758, -146.43461, 1013.792904)" id="earUpperL"/>
+  <path d="M -178.235 -182.02 L -160.789 -172.448 L -184.72 -172.448 L -178.235 -182.02 Z" bx:shape="triangle -184.72 -182.02 23.931 9.572 0.271 0 1@fc179d5d" style="transform-origin: -234.136px -492.456px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(74, 74, 74);" transform="matrix(-1, 0, 0, -1, 468.271606, 984.911072)" id="eyeL"/>
+  <path d="M -284.317 -708.37 L -252.405 -669.014 L -360.58 -669.014 L -284.317 -708.37 Z" bx:shape="triangle -360.58 -708.37 108.175 39.356 0.705 0 1@2c46c285" style="transform-origin: -565.894px -587.404px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(162, 162, 162);" transform="matrix(-0.529917, -0.84805, -0.84805, 0.529917, 800.03155, 1079.857966)" id="object-13" class="cheekL"/>
+  <path d="M -88.13 -41.509 L -54.719 54.904 L -122.08 54.904 L -88.13 -41.509 Z" bx:shape="triangle -122.08 -41.509 67.361 96.413 0.504 0 1@99e02dc2" style="transform-origin: -74.929px 452.836px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(100, 100, 100);" transform="matrix(-0.990268, -0.139173, -0.139173, 0.990268, 290.479433, 36.5556)" id="earLowerR"/>
+  <path d="M -149.382 151.46 L -131.615 257.183 L -197.42 257.183 L -149.382 151.46 Z" bx:shape="triangle -197.42 151.46 65.805 105.723 0.73 0 1@89500d41" style="transform-origin: -20.056px -217.655px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(46, 46, 46); stroke-width: 0px; fill: rgb(138, 138, 138);" transform="matrix(-0.984801, 0.173684, -0.037849, -1.008758, 234.303648, 711.035444)" id="earUpperR"/>
+</svg>

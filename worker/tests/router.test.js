@@ -18,25 +18,25 @@ const makeRequest = (url, options = {}) => new Request(url, options);
 // ---------------------------------------------------------------------------
 
 describe('router favicon routing', () => {
-  it('redirects /favicon.ico to /images/favicon.ico on production', async () => {
+  it('redirects /favicon.ico to /images/logos/logo.svg on production', async () => {
     const req = makeRequest('https://wallaby.example.com/favicon.ico');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/images/favicon.ico');
+    expect(res.headers.get('location')).toBe('/images/logos/logo.svg');
   });
 
-  it('redirects /api/favicon.ico to /images/favicon-local.ico on localhost', async () => {
+  it('redirects /api/favicon.ico to the localhost logo on localhost', async () => {
     const req = makeRequest('http://localhost/api/favicon.ico');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/images/favicon-local.ico');
+    expect(res.headers.get('location')).toBe('/images/logos/logo_greyscale_red_eyes.svg');
   });
 
-  it('redirects to preview favicon on a -preview.workers.dev host', async () => {
+  it('redirects to the preview logo on a -preview.workers.dev host', async () => {
     const req = makeRequest('https://my-app-preview.workers.dev/favicon.ico');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/images/favicon-preview.ico');
+    expect(res.headers.get('location')).toBe('/images/logos/logo_orangey.svg');
   });
 
   it('sets cache-control: no-store on favicon responses', async () => {
