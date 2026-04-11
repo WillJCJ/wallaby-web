@@ -36,3 +36,17 @@ binding = "GUESTS_DB"
 ```
 
 If this binding name does not match, guest endpoints will fail with database configuration errors.
+
+## R2 binding requirement
+
+Photo endpoints expect:
+
+```toml
+[[r2_buckets]]
+binding = "PHOTOS_BUCKET"
+bucket_name = "wallaby-web"
+```
+
+If this binding name does not match, `GET /api/photos/:key` will return `503 Photos bucket is not configured`.
+
+See [R2](r2.md) for bucket creation, uploads, and photo metadata conventions.

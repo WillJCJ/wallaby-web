@@ -92,6 +92,12 @@ npm test
 - Prefer minimal, targeted changes over broad rewrites.
 - If uncertain, document assumptions in the PR description.
 
+## Coding Choice and Style
+
+When animating or scripting web page stuff, try your best to use CSS and html
+before involving javascript.
+Prefer concise and elegant solutions.
+
 ## Writing Style
 - Use direct present-tense wording when describing behavior.
 - Avoid temporal framing like "now includes", "new feature", or "recently added".

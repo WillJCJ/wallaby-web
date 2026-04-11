@@ -6,8 +6,44 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // Route favicon requests through one code path and map to env-specific static assets.
-    if (url.pathname === '/api/favicon.ico' || url.pathname === '/favicon.ico') {
+    if (url.pathname.startsWith('/api/photos/')) {
+      if (!env.PHOTOS_BUCKET) {
+        return new Response('Photos bucket is not configured', { status: 503 });
+      }
+
+      const key = decodeURIComponent(url.pathname.slice('/api/photos/'.length));
+      if (!key) {
+        return new Response('Photo key is required', { status: 400 });
+      }
+
+      const object = await env.PHOTOS_BUCKET.get(key);
+      if (!object) {
+        return new Response('Photo not found', { status: 404 });
+      }
+
+      const extension = key.split('.').pop()?.toLowerCase() || '';
+      const fallbackType = extension === 'png'
+        ? 'image/png'
+        : extension === 'webp'
+          ? 'image/webp'
+          : 'image/jpeg';
+
+      const headers = new Headers();
+      headers.set('content-type', object.httpMetadata?.contentType || fallbackType);
+      headers.set('cache-control', 'public, max-age=3600');
+      if (object.httpEtag) {
+        headers.set('etag', object.httpEtag);
+      }
+
+      if (request.method === 'HEAD') {
+        return new Response(null, { status: 200, headers });
+      }
+
+      return new Response(object.body, { status: 200, headers });
+    }
+
+    // Route logo requests through one code path and map to env-specific static assets.
+    if (url.pathname === '/api/logo.svg' || url.pathname === '/favicon.ico') {
       const host = url.hostname;
       const isLocal =
         host === 'localhost' ||
@@ -18,10 +54,10 @@ export default {
         host.endsWith('.workers.dev');
 
       const faviconPath = isLocal
-        ? '/images/favicon-local.ico'
+        ? '/images/logos/logo_greyscale_red_eyes.svg'
         : isPreview
-          ? '/images/favicon-preview.ico'
-          : '/images/favicon.ico';
+          ? '/images/logos/logo_orangey.svg'
+          : '/images/logos/logo.svg';
 
       return new Response(null, {
         status: 302,
