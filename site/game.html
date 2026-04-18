@@ -1,0 +1,27 @@
+---
+layout: layouts/base.html
+title: Wallaby Run — WallabyFest
+---
+<div class="page-intro">
+  <h2>Wallaby Run</h2>
+  <p>Tap, click, or press space to hop. Leap the goats and see how far you can bound across the paddock.</p>
+</div>
+
+<div class="wallaby-game">
+  <div class="wallaby-game__scoreboard" aria-live="polite">
+    <span class="wallaby-game__score">Score: <span id="wallaby-game-score">0</span></span>
+    <span class="wallaby-game__best">Best: <span id="wallaby-game-best">0</span></span>
+  </div>
+  <canvas
+    id="wallaby-game-canvas"
+    class="wallaby-game__canvas"
+    width="800"
+    height="260"
+    role="img"
+    aria-label="Wallaby Run game. Tap or press space to make the wallaby jump."
+    tabindex="0"
+  ></canvas>
+  <p class="wallaby-game__hint" id="wallaby-game-hint">Tap the canvas or press space to start.</p>
+</div>
+
+<script src="/scripts/game.js" defer></script>
