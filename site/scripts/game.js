@@ -22,14 +22,22 @@
 
   const COLOURS = {
     sky: '#1a1a2e',
-    groundLine: '#2d2d3a',
-    ground: '#111827',
+    groundLine: '#1f3a20',
+    grass: '#2f6b32',
+    grassDark: '#244f26',
+    grassBlade: '#3f8a44',
     wallabyBody: '#9d6620',
     wallabyBelly: '#bb9864',
     wallabyEar: '#7b3c20',
     wallabyEye: '#111827',
-    fencePost: '#7b5019',
-    fenceRail: '#a07639',
+    goatBody: '#e8e6df',
+    goatBelly: '#f7f5ee',
+    goatHoof: '#2a2a33',
+    goatHorn: '#5a4a35',
+    goatFace: '#cdbfa6',
+    treeTrunk: '#3a2a1b',
+    treeCanopy: '#1f4a24',
+    treeCanopyDark: '#173619',
     cloud: '#2d2d3a',
     text: '#e8e6df',
     accent: '#f5c842',
@@ -52,6 +60,7 @@
     },
     obstacles: [],
     clouds: [],
+    trees: [],
     groundOffset: 0,
     nextObstacleIn: 0.8,
   };
@@ -71,24 +80,34 @@
   const spawnCloud = (x) => {
     state.clouds.push({
       x: x ?? WIDTH + randomBetween(20, 120),
-      y: randomBetween(24, 110),
+      y: randomBetween(20, 90),
       scale: randomBetween(0.6, 1.1),
       speed: randomBetween(30, 55),
     });
   };
 
+  const spawnTree = (x) => {
+    state.trees.push({
+      x: x ?? WIDTH + randomBetween(40, 180),
+      // Trees sit on the horizon line (top of grass strip).
+      baseY: GROUND_Y + randomBetween(-2, 4),
+      scale: randomBetween(0.7, 1.15),
+      speed: randomBetween(55, 75),
+      variant: Math.random() < 0.5 ? 0 : 1,
+    });
+  };
+
   const spawnObstacle = () => {
-    // Fence width varies: single, double, or triple post.
-    const posts = 1 + Math.floor(Math.random() * 3);
-    const postSpacing = 14;
-    const width = posts * postSpacing + 6;
-    const height = randomBetween(32, 48);
+    // Goat size varies a little so timing stays interesting.
+    const scale = randomBetween(0.5, 1.5);
+    const width = 44 * scale;
+    const height = 34 * scale;
     state.obstacles.push({
       x: WIDTH + 20,
       width,
       height,
-      posts,
-      postSpacing,
+      scale,
+      legPhase: Math.random() * Math.PI * 2,
     });
     // Gap scales with speed so faster runs keep the same rhythm.
     const minGap = Math.max(0.6, 260 / state.speed);
@@ -102,6 +121,7 @@
     state.score = 0;
     state.obstacles.length = 0;
     state.clouds.length = 0;
+    state.trees.length = 0;
     state.wallaby.y = GROUND_Y;
     state.wallaby.vy = 0;
     state.wallaby.grounded = true;
@@ -110,6 +130,9 @@
     state.nextObstacleIn = 0.8;
     for (let i = 0; i < 3; i++) {
       spawnCloud(randomBetween(0, WIDTH));
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnTree(randomBetween(0, WIDTH));
     }
   };
 
@@ -122,7 +145,7 @@
   const startGame = () => {
     resetRun();
     state.status = 'running';
-    hintEl.textContent = 'Hop the fences. Good luck!';
+    hintEl.textContent = 'Hop the goats. Good luck!';
     jump();
   };
 
@@ -171,10 +194,13 @@
 
   const update = (dt) => {
     if (state.status !== 'running') {
-      // Drift clouds gently on the title/game-over screen.
+      // Drift scenery gently on the title/game-over screen.
       state.clouds.forEach((c) => { c.x -= c.speed * 0.3 * dt; });
       state.clouds = state.clouds.filter((c) => c.x + 60 > 0);
       while (state.clouds.length < 3) spawnCloud();
+      state.trees.forEach((t) => { t.x -= t.speed * 0.3 * dt; });
+      state.trees = state.trees.filter((t) => t.x + 60 > 0);
+      while (state.trees.length < 4) spawnTree();
       return;
     }
 
@@ -206,12 +232,22 @@
       spawnCloud();
     }
 
+    // Trees (parallax: slower than ground)
+    state.trees.forEach((t) => { t.x -= t.speed * dt; });
+    state.trees = state.trees.filter((t) => t.x + 60 > 0);
+    if (state.trees.length < 4 && Math.random() < 1.2 * dt) {
+      spawnTree();
+    }
+
     // Obstacles
     state.nextObstacleIn -= dt;
     if (state.nextObstacleIn <= 0) {
       spawnObstacle();
     }
-    state.obstacles.forEach((o) => { o.x -= state.speed * dt; });
+    state.obstacles.forEach((o) => {
+      o.x -= state.speed * dt;
+      o.legPhase = (o.legPhase + dt * 10) % (Math.PI * 2);
+    });
     state.obstacles = state.obstacles.filter((o) => o.x + o.width > -10);
 
     // Collision
@@ -244,9 +280,52 @@
     ctx.restore();
   };
 
+  const drawTree = (tree) => {
+    ctx.save();
+    ctx.translate(tree.x, tree.baseY);
+    ctx.scale(tree.scale, tree.scale);
+
+    // Trunk
+    ctx.fillStyle = COLOURS.treeTrunk;
+    ctx.fillRect(-3, -32, 6, 32);
+
+    // Canopy (back layer)
+    ctx.fillStyle = COLOURS.treeCanopyDark;
+    ctx.beginPath();
+    ctx.arc(-8, -38, 14, 0, Math.PI * 2);
+    ctx.arc(10, -36, 13, 0, Math.PI * 2);
+    ctx.arc(0, -50, 15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Canopy (front highlight)
+    ctx.fillStyle = COLOURS.treeCanopy;
+    if (tree.variant === 0) {
+      ctx.beginPath();
+      ctx.arc(-4, -44, 12, 0, Math.PI * 2);
+      ctx.arc(8, -40, 10, 0, Math.PI * 2);
+      ctx.arc(2, -54, 11, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.arc(-10, -40, 10, 0, Math.PI * 2);
+      ctx.arc(6, -44, 11, 0, Math.PI * 2);
+      ctx.arc(-2, -52, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  };
+
   const drawGround = () => {
-    ctx.fillStyle = COLOURS.ground;
+    // Grass strip
+    ctx.fillStyle = COLOURS.grass;
     ctx.fillRect(0, GROUND_Y, WIDTH, HEIGHT - GROUND_Y);
+
+    // Darker band near the bottom for depth
+    ctx.fillStyle = COLOURS.grassDark;
+    ctx.fillRect(0, HEIGHT - 14, WIDTH, 14);
+
+    // Horizon line
     ctx.strokeStyle = COLOURS.groundLine;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -254,40 +333,102 @@
     ctx.lineTo(WIDTH, GROUND_Y + 0.5);
     ctx.stroke();
 
-    // dashed scroll marks
-    ctx.strokeStyle = COLOURS.groundLine;
+    // Scrolling grass tufts
+    ctx.strokeStyle = COLOURS.grassBlade;
     ctx.lineWidth = 2;
-    for (let x = -state.groundOffset; x < WIDTH; x += 40) {
+    ctx.lineCap = 'round';
+    for (let x = -state.groundOffset; x < WIDTH; x += 20) {
+      const baseY = GROUND_Y + 10 + ((x * 7) % 6);
       ctx.beginPath();
-      ctx.moveTo(x, GROUND_Y + 10);
-      ctx.lineTo(x + 18, GROUND_Y + 10);
+      ctx.moveTo(x, baseY);
+      ctx.lineTo(x + 2, baseY - 6);
+      ctx.moveTo(x + 4, baseY);
+      ctx.lineTo(x + 4, baseY - 8);
+      ctx.moveTo(x + 8, baseY);
+      ctx.lineTo(x + 10, baseY - 5);
       ctx.stroke();
     }
+    ctx.lineCap = 'butt';
   };
 
-  const drawFence = (o) => {
+  const drawGoat = (o) => {
     const baseY = GROUND_Y;
-    const topY = GROUND_Y - o.height;
-    // Rails
-    ctx.fillStyle = COLOURS.fenceRail;
-    ctx.fillRect(o.x - 2, topY + o.height * 0.25, o.width + 4, 4);
-    ctx.fillRect(o.x - 2, topY + o.height * 0.6, o.width + 4, 4);
-    // Posts
-    ctx.fillStyle = COLOURS.fencePost;
-    for (let i = 0; i < o.posts; i++) {
-      const px = o.x + 3 + i * o.postSpacing;
-      ctx.fillRect(px, topY, 6, o.height);
-      // Pointed top
-      ctx.beginPath();
-      ctx.moveTo(px, topY);
-      ctx.lineTo(px + 3, topY - 5);
-      ctx.lineTo(px + 6, topY);
-      ctx.closePath();
-      ctx.fill();
-    }
-    // Base shadow
-    ctx.fillStyle = COLOURS.groundLine;
-    ctx.fillRect(o.x - 2, baseY - 2, o.width + 4, 2);
+    const s = o.scale;
+    ctx.save();
+    ctx.translate(o.x + o.width / 2, baseY);
+
+    // Body
+    ctx.fillStyle = COLOURS.goatBody;
+    ctx.beginPath();
+    ctx.ellipse(0, -o.height * 0.5, o.width * 0.45, o.height * 0.38, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Belly
+    ctx.fillStyle = COLOURS.goatBelly;
+    ctx.beginPath();
+    ctx.ellipse(-2, -o.height * 0.4, o.width * 0.28, o.height * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Head
+    ctx.fillStyle = COLOURS.goatBody;
+    ctx.beginPath();
+    ctx.ellipse(o.width * 0.42, -o.height * 0.75, o.width * 0.2, o.height * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Snout
+    ctx.fillStyle = COLOURS.goatFace;
+    ctx.beginPath();
+    ctx.ellipse(o.width * 0.56, -o.height * 0.68, o.width * 0.1, o.height * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Horns
+    ctx.strokeStyle = COLOURS.goatHorn;
+    ctx.lineWidth = 2 * s;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(o.width * 0.36, -o.height * 0.92);
+    ctx.quadraticCurveTo(o.width * 0.3, -o.height * 1.1, o.width * 0.42, -o.height * 1.15);
+    ctx.moveTo(o.width * 0.46, -o.height * 0.94);
+    ctx.quadraticCurveTo(o.width * 0.42, -o.height * 1.12, o.width * 0.54, -o.height * 1.15);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+
+    // Ear
+    ctx.fillStyle = COLOURS.goatFace;
+    ctx.beginPath();
+    ctx.ellipse(o.width * 0.3, -o.height * 0.88, 4 * s, 3 * s, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eye
+    ctx.fillStyle = COLOURS.wallabyEye;
+    ctx.beginPath();
+    ctx.arc(o.width * 0.48, -o.height * 0.76, 1.6 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tail
+    ctx.fillStyle = COLOURS.goatBody;
+    ctx.beginPath();
+    ctx.ellipse(-o.width * 0.42, -o.height * 0.7, 4 * s, 5 * s, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs (simple trotting animation)
+    ctx.fillStyle = COLOURS.goatBody;
+    const swing = Math.sin(o.legPhase) * 2 * s;
+    const legW = 4 * s;
+    const legH = o.height * 0.35;
+    const legTop = -legH;
+    ctx.fillRect(o.width * 0.22 - legW / 2 + swing, legTop, legW, legH);
+    ctx.fillRect(o.width * 0.32 - legW / 2 - swing, legTop, legW, legH);
+    ctx.fillRect(-o.width * 0.3 - legW / 2 - swing, legTop, legW, legH);
+    ctx.fillRect(-o.width * 0.2 - legW / 2 + swing, legTop, legW, legH);
+    // Hooves
+    ctx.fillStyle = COLOURS.goatHoof;
+    ctx.fillRect(o.width * 0.22 - legW / 2 + swing, -3, legW, 3);
+    ctx.fillRect(o.width * 0.32 - legW / 2 - swing, -3, legW, 3);
+    ctx.fillRect(-o.width * 0.3 - legW / 2 - swing, -3, legW, 3);
+    ctx.fillRect(-o.width * 0.2 - legW / 2 + swing, -3, legW, 3);
+
+    ctx.restore();
   };
 
   const drawWallaby = () => {
@@ -397,13 +538,14 @@
     ctx.fillStyle = COLOURS.sky;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     state.clouds.forEach(drawCloud);
+    state.trees.forEach(drawTree);
     drawGround();
-    state.obstacles.forEach(drawFence);
+    state.obstacles.forEach(drawGoat);
     drawWallaby();
     drawOverlay();
   };
 
-  // Prime initial state so the ready screen shows a wallaby and clouds.
+  // Prime initial state so the ready screen shows a wallaby, trees and clouds.
   resetRun();
 
   let lastTime = performance.now();
