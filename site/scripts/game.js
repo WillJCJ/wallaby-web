@@ -39,6 +39,25 @@
     treeCanopy: '#1f4a24',
     treeCanopyDark: '#173619',
     cloud: '#2d2d3a',
+    tentCanvas: '#b55a2a',
+    tentCanvasDark: '#8a3f1c',
+    tentPole: '#3a2a1b',
+    tentDoor: '#2a1810',
+    fireLog: '#3a2a1b',
+    fireOuter: '#f5a524',
+    fireInner: '#fde68a',
+    fireEmber: '#dc2626',
+    quailBody: '#7a5a3a',
+    quailBelly: '#d9c4a0',
+    quailHead: '#5a3f26',
+    quailBeak: '#2a1810',
+    quailPlume: '#2a1810',
+    chickenBody: '#f5f5f5',
+    chickenWing: '#d6d0c4',
+    chickenComb: '#dc2626',
+    chickenBeak: '#f5a524',
+    chickenLeg: '#f5a524',
+    chickenEye: '#111827',
     text: '#e8e6df',
     accent: '#f5c842',
   };
@@ -61,6 +80,8 @@
     obstacles: [],
     clouds: [],
     trees: [],
+    camps: [],
+    quails: [],
     groundOffset: 0,
     nextObstacleIn: 0.8,
   };
@@ -97,18 +118,61 @@
     });
   };
 
-  const spawnObstacle = () => {
-    // Goat size varies a little so timing stays interesting.
-    const scale = randomBetween(0.5, 1.5);
-    const width = 44 * scale;
-    const height = 34 * scale;
-    state.obstacles.push({
-      x: WIDTH + 20,
-      width,
-      height,
-      scale,
-      legPhase: Math.random() * Math.PI * 2,
+  const spawnCamp = (x) => {
+    state.camps.push({
+      x: x ?? WIDTH + randomBetween(80, 240),
+      baseY: GROUND_Y + randomBetween(-1, 3),
+      scale: randomBetween(0.9, 1.15),
+      speed: randomBetween(55, 75),
+      flicker: Math.random() * Math.PI * 2,
     });
+  };
+
+  const spawnQuailGroup = (x) => {
+    const groupX = x ?? WIDTH + randomBetween(40, 180);
+    const count = 3 + Math.floor(Math.random() * 3);
+    const speed = randomBetween(55, 75);
+    const scale = randomBetween(0.7, 1.0);
+    for (let i = 0; i < count; i++) {
+      state.quails.push({
+        x: groupX + i * randomBetween(10, 16),
+        baseY: GROUND_Y + randomBetween(-2, 4),
+        scale: scale * randomBetween(0.85, 1.1),
+        speed,
+        bobPhase: Math.random() * Math.PI * 2,
+      });
+    }
+  };
+
+  const spawnObstacle = () => {
+    // Mix goats with the occasional hopping chicken.
+    const isChicken = Math.random() < 0.3;
+    if (isChicken) {
+      const scale = randomBetween(0.7, 1.0);
+      const width = 30 * scale;
+      const height = 26 * scale;
+      state.obstacles.push({
+        type: 'chicken',
+        x: WIDTH + 20,
+        width,
+        height,
+        scale,
+        legPhase: Math.random() * Math.PI * 2,
+        hopPhase: Math.random() * Math.PI * 2,
+      });
+    } else {
+      const scale = randomBetween(0.5, 1.5);
+      const width = 44 * scale;
+      const height = 34 * scale;
+      state.obstacles.push({
+        type: 'goat',
+        x: WIDTH + 20,
+        width,
+        height,
+        scale,
+        legPhase: Math.random() * Math.PI * 2,
+      });
+    }
     // Gap scales with speed so faster runs keep the same rhythm.
     const minGap = Math.max(0.6, 260 / state.speed);
     const maxGap = Math.max(1.1, 520 / state.speed);
@@ -122,6 +186,8 @@
     state.obstacles.length = 0;
     state.clouds.length = 0;
     state.trees.length = 0;
+    state.camps.length = 0;
+    state.quails.length = 0;
     state.wallaby.y = GROUND_Y;
     state.wallaby.vy = 0;
     state.wallaby.grounded = true;
@@ -201,6 +267,10 @@
       state.trees.forEach((t) => { t.x -= t.speed * 0.3 * dt; });
       state.trees = state.trees.filter((t) => t.x + 60 > 0);
       while (state.trees.length < 4) spawnTree();
+      state.camps.forEach((c) => { c.x -= c.speed * 0.3 * dt; c.flicker += dt * 6; });
+      state.camps = state.camps.filter((c) => c.x + 80 > 0);
+      state.quails.forEach((q) => { q.x -= q.speed * 0.3 * dt; q.bobPhase += dt * 8; });
+      state.quails = state.quails.filter((q) => q.x + 20 > 0);
       return;
     }
 
@@ -239,6 +309,20 @@
       spawnTree();
     }
 
+    // Camps (tent + campfire) — rare background dressing.
+    state.camps.forEach((c) => { c.x -= c.speed * dt; c.flicker += dt * 6; });
+    state.camps = state.camps.filter((c) => c.x + 80 > 0);
+    if (state.camps.length < 1 && Math.random() < 0.06 * dt) {
+      spawnCamp();
+    }
+
+    // Quail groups — occasional background flock.
+    state.quails.forEach((q) => { q.x -= q.speed * dt; q.bobPhase += dt * 8; });
+    state.quails = state.quails.filter((q) => q.x + 20 > 0);
+    if (state.quails.length < 6 && Math.random() < 0.15 * dt) {
+      spawnQuailGroup();
+    }
+
     // Obstacles
     state.nextObstacleIn -= dt;
     if (state.nextObstacleIn <= 0) {
@@ -247,6 +331,9 @@
     state.obstacles.forEach((o) => {
       o.x -= state.speed * dt;
       o.legPhase = (o.legPhase + dt * 10) % (Math.PI * 2);
+      if (o.type === 'chicken') {
+        o.hopPhase = (o.hopPhase + dt * 6) % (Math.PI * 2);
+      }
     });
     state.obstacles = state.obstacles.filter((o) => o.x + o.width > -10);
 
@@ -258,7 +345,8 @@
     const wh = w.height - hitboxPad;
     for (const o of state.obstacles) {
       const ox = o.x;
-      const oy = GROUND_Y - o.height;
+      const hop = o.type === 'chicken' ? Math.max(0, Math.sin(o.hopPhase)) * 27 : 0;
+      const oy = GROUND_Y - o.height - hop;
       if (rectsOverlap(wx, wy, ww, wh, ox, oy, o.width, o.height)) {
         endGame();
         break;
@@ -314,6 +402,216 @@
     }
 
     ctx.restore();
+  };
+
+  const drawCamp = (camp) => {
+    ctx.save();
+    ctx.translate(camp.x, camp.baseY);
+    ctx.scale(camp.scale, camp.scale);
+
+    // Tent shadow on the ground
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(-4, 2, 34, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tent body (triangle)
+    ctx.fillStyle = COLOURS.tentCanvas;
+    ctx.beginPath();
+    ctx.moveTo(-26, 0);
+    ctx.lineTo(0, -34);
+    ctx.lineTo(26, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Shaded side
+    ctx.fillStyle = COLOURS.tentCanvasDark;
+    ctx.beginPath();
+    ctx.moveTo(0, -34);
+    ctx.lineTo(26, 0);
+    ctx.lineTo(10, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Door flap
+    ctx.fillStyle = COLOURS.tentDoor;
+    ctx.beginPath();
+    ctx.moveTo(-6, 0);
+    ctx.lineTo(0, -22);
+    ctx.lineTo(6, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Ridge pole tip
+    ctx.strokeStyle = COLOURS.tentPole;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -36);
+    ctx.lineTo(0, -32);
+    ctx.stroke();
+
+    // Campfire to the right of the tent
+    const fx = 38;
+    const fy = -2;
+    ctx.strokeStyle = COLOURS.fireLog;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(fx - 8, fy);
+    ctx.lineTo(fx + 8, fy);
+    ctx.moveTo(fx - 6, fy + 2);
+    ctx.lineTo(fx + 6, fy - 2);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+
+    const flick = 1 + Math.sin(camp.flicker) * 0.12;
+    ctx.fillStyle = COLOURS.fireOuter;
+    ctx.beginPath();
+    ctx.moveTo(fx - 6, fy - 1);
+    ctx.quadraticCurveTo(fx - 3, fy - 10 * flick, fx, fy - 14 * flick);
+    ctx.quadraticCurveTo(fx + 3, fy - 10 * flick, fx + 6, fy - 1);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.fireInner;
+    ctx.beginPath();
+    ctx.moveTo(fx - 3, fy - 1);
+    ctx.quadraticCurveTo(fx - 1, fy - 6 * flick, fx, fy - 9 * flick);
+    ctx.quadraticCurveTo(fx + 1, fy - 6 * flick, fx + 3, fy - 1);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.fireEmber;
+    ctx.beginPath();
+    ctx.arc(fx - 4, fy, 1.2, 0, Math.PI * 2);
+    ctx.arc(fx + 5, fy + 1, 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  };
+
+  const drawQuail = (quail) => {
+    const bob = Math.sin(quail.bobPhase) * 0.6;
+    ctx.save();
+    ctx.translate(quail.x, quail.baseY + bob);
+    ctx.scale(quail.scale, quail.scale);
+
+    ctx.fillStyle = COLOURS.quailBody;
+    ctx.beginPath();
+    ctx.ellipse(0, -5, 7, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.quailBelly;
+    ctx.beginPath();
+    ctx.ellipse(-1, -4, 4, 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.quailHead;
+    ctx.beginPath();
+    ctx.arc(5, -9, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = COLOURS.quailPlume;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(5, -12);
+    ctx.quadraticCurveTo(3, -15, 4, -17);
+    ctx.stroke();
+
+    ctx.fillStyle = COLOURS.quailBeak;
+    ctx.beginPath();
+    ctx.moveTo(7, -9);
+    ctx.lineTo(9, -8);
+    ctx.lineTo(7, -7.5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = COLOURS.quailBeak;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-2, 0);
+    ctx.lineTo(-2, 2);
+    ctx.moveTo(2, 0);
+    ctx.lineTo(2, 2);
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  const drawChicken = (o) => {
+    const hop = Math.max(0, Math.sin(o.hopPhase)) * 21;
+    const baseY = GROUND_Y - hop;
+    const s = o.scale;
+    ctx.save();
+    ctx.translate(o.x + o.width / 2, baseY);
+
+    const shadowScale = Math.max(0.4, 1 - hop / 30);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, hop + 2, o.width * 0.4 * shadowScale, 3 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.chickenBody;
+    ctx.beginPath();
+    ctx.ellipse(0, -o.height * 0.55, o.width * 0.4, o.height * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.chickenWing;
+    ctx.beginPath();
+    ctx.ellipse(-o.width * 0.05, -o.height * 0.55, o.width * 0.22, o.height * 0.25, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.chickenBody;
+    ctx.beginPath();
+    ctx.arc(o.width * 0.32, -o.height * 0.95, o.width * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.chickenComb;
+    ctx.beginPath();
+    ctx.arc(o.width * 0.28, -o.height * 1.12, 2.2 * s, 0, Math.PI * 2);
+    ctx.arc(o.width * 0.34, -o.height * 1.16, 2.4 * s, 0, Math.PI * 2);
+    ctx.arc(o.width * 0.4, -o.height * 1.12, 2.2 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(o.width * 0.38, -o.height * 0.82, 1.8 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.chickenBeak;
+    ctx.beginPath();
+    ctx.moveTo(o.width * 0.48, -o.height * 0.93);
+    ctx.lineTo(o.width * 0.56, -o.height * 0.9);
+    ctx.lineTo(o.width * 0.48, -o.height * 0.87);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = COLOURS.chickenEye;
+    ctx.beginPath();
+    ctx.arc(o.width * 0.38, -o.height * 0.96, 1.2 * s, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = COLOURS.chickenLeg;
+    ctx.lineWidth = 2 * s;
+    ctx.lineCap = 'round';
+    const swing = Math.sin(o.legPhase) * 2 * s;
+    const legLen = hop > 1 ? o.height * 0.18 : o.height * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(-o.width * 0.08 + swing, -o.height * 0.1);
+    ctx.lineTo(-o.width * 0.08 + swing, -o.height * 0.1 + legLen);
+    ctx.moveTo(o.width * 0.08 - swing, -o.height * 0.1);
+    ctx.lineTo(o.width * 0.08 - swing, -o.height * 0.1 + legLen);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+
+    ctx.restore();
+  };
+
+  const drawObstacle = (o) => {
+    if (o.type === 'chicken') {
+      drawChicken(o);
+    } else {
+      drawGoat(o);
+    }
   };
 
   const drawGround = () => {
@@ -539,8 +837,10 @@
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     state.clouds.forEach(drawCloud);
     state.trees.forEach(drawTree);
+    state.camps.forEach(drawCamp);
+    state.quails.forEach(drawQuail);
     drawGround();
-    state.obstacles.forEach(drawGoat);
+    state.obstacles.forEach(drawObstacle);
     drawWallaby();
     drawOverlay();
   };
