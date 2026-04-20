@@ -13,10 +13,17 @@ npm install
 npm run dev
 ```
 
+Or to run the worker as well:
+
+```bash
+npm run dev:wrangler
+```
+
 Useful commands:
 
 - `npm run lint`
 - `npm run build`
+- `npm run dev:wrangler`
 - `npm test`
 
 ## Tests

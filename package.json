@@ -19,6 +19,7 @@
     "build:html": "eleventy --config eleventy.js --input=site --output=dist",
     "build": "npm run build:clean && npm run build:html",
     "dev": "eleventy --config eleventy.js --input=site --output=dist --serve",
+    "dev:wrangler": "MINIFY=false wrangler dev --live-reload",
     "test": "vitest run",
     "test:watch": "vitest"
   }

@@ -23,6 +23,7 @@ LOG_LEVEL = "debug"
 
 [build]
 command = "npm run build"
+watch_dir = "site"
 
 [assets]
 directory = "dist"
