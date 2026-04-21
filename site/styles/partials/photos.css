@@ -26,7 +26,10 @@
   content: '';
   position: absolute;
   inset: -6%;
-  background: var(--lqip) center / cover no-repeat;
+  background-image: var(--lqip);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   filter: blur(10px);
 }
 
@@ -109,7 +112,10 @@ body:has(.photo-item:target)::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--lqip) center / contain no-repeat;
+  background-image: var(--lqip);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   filter: blur(16px);
   border-radius: 4px;
 }
