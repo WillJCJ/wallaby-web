@@ -1,0 +1,242 @@
+/* Colour Schemes for Wallaby Fest */
+
+/* 1. Warm Sunset - Inspired by logo's warm tones */
+:root[data-colour-scheme="warm-sunset"] {
+  --saddle-brown: #d97d3e;
+  --metallic-gold: #ffd700;
+  --charcoal: #2d1810;
+  --dark-walnut: #c24a1f;
+  --muted-teal: #f4a460;
+  --neutral-light: #fff8e7;
+  --muted-teal-bright: #ffb366;
+  --bg: #fff8e7;
+  --bg-surface: #d97d3e;
+  --bg-card: #c24a1f;
+  --border: #d97d3e;
+  --text: #ffe4b5;
+  --text-muted: #ffe4b5;
+  --text-faint: #ffe4b5;
+  --text-strong: #ffd700;
+  --text-on-bg: #1a0f08;
+  --text-on-accent: #fff8e7;
+  --accent: #ffd700;
+}
+
+/* 2. Cool Teal - Fresh and modern */
+:root[data-colour-scheme="cool-teal"] {
+  --saddle-brown: #2c7a7b;
+  --metallic-gold: #fbbf24;
+  --charcoal: #1f2937;
+  --dark-walnut: #0d9488;
+  --muted-teal: #5eead4;
+  --neutral-light: #ecfdf5;
+  --muted-teal-bright: #7ee8d4;
+  --bg: #ecfdf5;
+  --bg-surface: #2c7a7b;
+  --bg-card: #0d9488;
+  --border: #2c7a7b;
+  --text: #d1fae5;
+  --text-muted: #d1fae5;
+  --text-faint: #d1fae5;
+  --text-strong: #fbbf24;
+  --text-on-bg: #0f2818;
+  --text-on-accent: #ecfdf5;
+  --accent: #fbbf24;
+}
+
+/* 3. Forest Green - Earthy and calming */
+:root[data-colour-scheme="forest-green"] {
+  --saddle-brown: #1f5641;
+  --metallic-gold: #d4a574;
+  --charcoal: #0f1419;
+  --dark-walnut: #2d5a42;
+  --muted-teal: #52b788;
+  --neutral-light: #f0fdf4;
+  --muted-teal-bright: #74c69d;
+  --bg: #f0fdf4;
+  --bg-surface: #1f5641;
+  --bg-card: #2d5a42;
+  --border: #1f5641;
+  --text: #c7e9c0;
+  --text-muted: #c7e9c0;
+  --text-faint: #c7e9c0;
+  --text-strong: #d4a574;
+  --text-on-bg: #0a2e1f;
+  --text-on-accent: #f0fdf4;
+  --accent: #d4a574;
+}
+
+/* 4. Ocean Blue - Calm and professional */
+:root[data-colour-scheme="ocean-blue"] {
+  --saddle-brown: #0369a1;
+  --metallic-gold: #fbbf24;
+  --charcoal: #082f49;
+  --dark-walnut: #0c4a6e;
+  --muted-teal: #06b6d4;
+  --neutral-light: #ecf0f1;
+  --muted-teal-bright: #22d3ee;
+  --bg: #ecf0f1;
+  --bg-surface: #0369a1;
+  --bg-card: #0c4a6e;
+  --border: #0369a1;
+  --text: #bae6fd;
+  --text-muted: #bae6fd;
+  --text-faint: #bae6fd;
+  --text-strong: #fbbf24;
+  --text-on-bg: #051e2f;
+  --text-on-accent: #ecf0f1;
+  --accent: #fbbf24;
+}
+
+/* 5. Minimalist - Clean and simple */
+:root[data-colour-scheme="minimalist"] {
+  --saddle-brown: #4b5563;
+  --metallic-gold: #e74c3c;
+  --charcoal: #2c3e50;
+  --dark-walnut: #34495e;
+  --muted-teal: #95a5a6;
+  --neutral-light: #ecf0f1;
+  --muted-teal-bright: #bdc3c7;
+  --bg: #ecf0f1;
+  --bg-surface: #4b5563;
+  --bg-card: #34495e;
+  --border: #4b5563;
+  --text: #bdc3c7;
+  --text-muted: #bdc3c7;
+  --text-faint: #bdc3c7;
+  --text-strong: #e74c3c;
+  --text-on-bg: #1a232f;
+  --text-on-accent: #ecf0f1;
+  --accent: #e74c3c;
+}
+
+/* 6. Berry - Rich and elegant */
+:root[data-colour-scheme="berry"] {
+  --saddle-brown: #5b21b6;
+  --metallic-gold: #fcd34d;
+  --charcoal: #1f1838;
+  --dark-walnut: #7c3aed;
+  --muted-teal: #c084fc;
+  --neutral-light: #faf5ff;
+  --muted-teal-bright: #d8b4fe;
+  --bg: #faf5ff;
+  --bg-surface: #5b21b6;
+  --bg-card: #7c3aed;
+  --border: #5b21b6;
+  --text: #e9d5ff;
+  --text-muted: #e9d5ff;
+  --text-faint: #e9d5ff;
+  --text-strong: #fcd34d;
+  --text-on-bg: #2d0f4a;
+  --text-on-accent: #faf5ff;
+  --accent: #fcd34d;
+}
+
+/* 7. Coral - Warm and friendly */
+:root[data-colour-scheme="coral"] {
+  --saddle-brown: #ea580c;
+  --metallic-gold: #fda969;
+  --charcoal: #3d2817;
+  --dark-walnut: #dc2626;
+  --muted-teal: #79e7c1;
+  --neutral-light: #fffbeb;
+  --muted-teal-bright: #a7f3d0;
+  --bg: #fffbeb;
+  --bg-surface: #ea580c;
+  --bg-card: #dc2626;
+  --border: #ea580c;
+  --text: #fed7aa;
+  --text-muted: #fed7aa;
+  --text-faint: #fed7aa;
+  --text-strong: #fda969;
+  --text-on-bg: #1f150d;
+  --text-on-accent: #fffbeb;
+  --accent: #fda969;
+}
+
+/* 8. Muted Earth - Soft and natural */
+:root[data-colour-scheme="muted-earth"] {
+  --saddle-brown: #78716c;
+  --metallic-gold: #c8b8a8;
+  --charcoal: #44403c;
+  --dark-walnut: #92837d;
+  --muted-teal: #a89968;
+  --neutral-light: #f5f5f4;
+  --muted-teal-bright: #b8a896;
+  --bg: #f5f5f4;
+  --bg-surface: #78716c;
+  --bg-card: #92837d;
+  --border: #78716c;
+  --text: #d7ccc8;
+  --text-muted: #d7ccc8;
+  --text-faint: #d7ccc8;
+  --text-strong: #c8b8a8;
+  --text-on-bg: #262422;
+  --text-on-accent: #f5f5f4;
+  --accent: #c8b8a8;
+}
+
+/* 9. Midnight - Deep and sophisticated */
+:root[data-colour-scheme="midnight"] {
+  --saddle-brown: #1e293b;
+  --metallic-gold: #64748b;
+  --charcoal: #0f172a;
+  --dark-walnut: #334155;
+  --muted-teal: #38bdf8;
+  --neutral-light: #f0f4f8;
+  --muted-teal-bright: #7dd3fc;
+  --bg: #f0f4f8;
+  --bg-surface: #1e293b;
+  --bg-card: #334155;
+  --border: #1e293b;
+  --text: #cbd5e1;
+  --text-muted: #cbd5e1;
+  --text-faint: #cbd5e1;
+  --text-strong: #64748b;
+  --text-on-bg: #0a0f1a;
+  --text-on-accent: #f0f4f8;
+  --accent: #64748b;
+}
+
+/* 10. Vibrant Pop - Bold and playful */
+:root[data-colour-scheme="vibrant-pop"] {
+  --saddle-brown: #d91e63;
+  --metallic-gold: #ffb300;
+  --charcoal: #1a0033;
+  --dark-walnut: #c2185b;
+  --muted-teal: #00bcd4;
+  --neutral-light: #f3e5f5;
+  --muted-teal-bright: #4dd0e1;
+  --bg: #f3e5f5;
+  --bg-surface: #d91e63;
+  --bg-card: #c2185b;
+  --border: #d91e63;
+  --text: #f8bbd0;
+  --text-muted: #f8bbd0;
+  --text-faint: #f8bbd0;
+  --text-strong: #ffb300;
+  --text-on-bg: #3d0d23;
+  --text-on-accent: #f3e5f5;
+  --accent: #ffb300;
+}
+
+/* Default/Original scheme */
+:root[data-colour-scheme="wallaby-brown"] {
+  --saddle-brown: #7b3c20;
+  --metallic-gold: #dbb957;
+  --charcoal: #605a57;
+  --dark-walnut: #683823;
+  --muted-teal: #7abbae;
+  --neutral-light: #d1d5db;
+  --muted-teal-bright: #95d2c6;
+  --bg: #605a57;
+  --bg-surface: #7b3c20;
+  --bg-card: #683823;
+  --border: #7b3c20;
+  --text: #d1d5db;
+  --text-muted: #d1d5db;
+  --text-faint: #d1d5db;
+  --text-strong: #dbb957;
+  --text-on-accent: #605a57;
+  --accent: #dbb957;
+}

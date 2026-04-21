@@ -13,7 +13,7 @@
   width: 100%;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.95rem;
-  color: var(--text-muted);
+  color: var(--text-on-bg);
   letter-spacing: 0.04em;
 }
 
@@ -42,7 +42,7 @@
 }
 
 .wallaby-game__hint {
-  color: var(--text-faint);
+  color: var(--text-on-bg);
   font-size: 0.9rem;
   margin: 0;
   text-align: center;

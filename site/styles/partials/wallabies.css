@@ -4,6 +4,7 @@
   position: relative;
   z-index: 20;
   pointer-events: none;
+  color: var(--text-on-bg);
 }
 
 .page-intro h2 {
@@ -11,6 +12,10 @@
   font-weight: 600;
   color: var(--text-strong);
   margin-bottom: 0.5rem;
+}
+
+.page-intro p {
+  color: var(--text-on-bg);
 }
 
 .page-intro-tagline {
