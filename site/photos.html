@@ -35,14 +35,14 @@ title: Photos — Wallaby Fest
         {% if photo.caption %}<figcaption class="lightbox-caption">{{ photo.caption }}</figcaption>{% endif %}
       </figure>
       {% if forloop.first %}
-      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo">&#8249;</a>
+      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo"></a>
       {% else %}
-      <a href="#photo-{{ forloop.index | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo">&#8249;</a>
+      <a href="#photo-{{ forloop.index | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo"></a>
       {% endif %}
       {% if forloop.last %}
-      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo">&#8250;</a>
+      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo"></a>
       {% else %}
-      <a href="#photo-{{ forloop.index | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo">&#8250;</a>
+      <a href="#photo-{{ forloop.index | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo"></a>
       {% endif %}
     </div>
 

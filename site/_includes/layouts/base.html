@@ -32,7 +32,8 @@
 
 <body>
     <header>
-        <a href="/" class="site-brand site-brand--interactive" aria-label="Wallaby Fest home">
+        <div class="site-brand">
+            <button type="button" class="site-brand--interactive" aria-label="Change colour scheme">
             <svg id="site-logo" class="site-brand__logo-svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="40.66 -21.468 367.895 320.8">
                 <defs>
                     <radialGradient id="logoHalo" cx="50%" cy="50%" r="50%">
@@ -58,9 +59,16 @@
                 <path style="fill: #9d8c7b" id="earUpperL" d="M 114.95965 98.408338 L 136.458119 -5.154741 L 71.653289 -16.584016 L 114.95965 98.408338 Z"/>
                 <path style="fill: #7b6753" id="earUpperR" d="M 327.637388 98.570878 L 306.138919 -4.992201 L 370.943749 -16.421476 L 327.637388 98.570878 Z"/>
             </svg>
-            <span class="site-brand__name">Wallaby Fest</span>
-        </a>
-        <nav>
+            </button>
+            <a href="/" class="site-brand__name">Wallaby Fest</a>
+        </div>
+        <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+          <label for="nav-toggle" class="nav-burger" aria-label="Toggle navigation">
+            <span class="nav-burger__bar"></span>
+            <span class="nav-burger__bar"></span>
+            <span class="nav-burger__bar"></span>
+          </label>
+          <nav id="main-nav">
             <a href="/">Home</a>
             <a href="/festival-map/">Map</a>
             <a href="/photos/">Photos</a>
@@ -70,7 +78,7 @@
             <a href="/profile/" id="nav-profile-link" hidden>Profile</a>
             <a href="/login/" id="nav-login-link">Login</a>
             <a href="#" id="nav-logout-link" hidden>Logout</a>
-        </nav>
+          </nav>
     </header>
     <main>
         {{ content }}
