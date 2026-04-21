@@ -68,6 +68,7 @@ Rules:
 - Include a short summary and why the change was needed.
 - Confirm linting passes and run a quick manual smoke test.
 - Do not mix unrelated refactors with feature/fix work.
+- Create a merge commit when merging a PR, don't rebase or squash.
 
 ## Quality Gates Before Merge
 - Run lint and fix all errors.
@@ -100,7 +101,7 @@ before involving javascript.
 Prefer concise and elegant solutions.
 
 ## Writing Style
-- Use direct present-tense wording when describing behavior.
+- Use direct present-tense wording when describing behaviour.
 - Avoid temporal framing like "now includes", "new feature", or "recently added".
 - Apply the same tone in README text, PR descriptions, comments, and user-facing copy.
 - Use British English spelling and grammar in all written content.

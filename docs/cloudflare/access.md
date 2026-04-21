@@ -17,7 +17,7 @@ Protect these routes with authentication:
 2. Select your account and go to Access -> Applications.
 3. Click Create an application and choose Self-hosted.
 4. Configure:
-   - Application name: `WallabyFest Private`
+   - Application name: `Wallaby Fest Private`
    - Session duration: your preference
    - Application domain: `wallabyfest.co.uk`
 5. Add an allow policy with your approved users/emails.

@@ -22,5 +22,6 @@ remove as needed
 ## Checklist
 
 - [ ] Linting passes
+- [ ] Tests pass
 - [ ] Manual smoke test
 - [ ] Accessibility basics checked (keyboard/focus/semantics when applicable)

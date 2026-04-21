@@ -1,5 +1,5 @@
 /**
- * Optimize wallaby images for the web.
+ * Optimise wallaby images for the web.
  *
  * For each wallaby card image (thumbnail + feature):
  *   - Pre-crops to 16:9 using the per-wallaby y-offset stored in wallabies.json,
