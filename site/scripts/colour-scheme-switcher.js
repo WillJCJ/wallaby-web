@@ -19,14 +19,15 @@ const COLOUR_SCHEMES = [
 ];
 
 const STORAGE_KEY = 'wallabyfest-colour-scheme';
+const DEFAULT_SCHEME = 'minimalist';
 
 /**
  * Initialize colour scheme switcher
  * Loads saved scheme or uses default, and sets up logo click handler
  */
 function initializeColourScheme() {
-  // Load saved scheme or use first one
-  const savedScheme = localStorage.getItem(STORAGE_KEY) || COLOUR_SCHEMES[0];
+  // Load saved scheme or use default
+  const savedScheme = localStorage.getItem(STORAGE_KEY) || DEFAULT_SCHEME;
   applyColourScheme(savedScheme);
 
   // Bind click to the whole brand element (logo + title), preventing navigation
@@ -76,7 +77,7 @@ function schemeDisplayName(scheme) {
  */
 function applyColourScheme(scheme) {
   if (!COLOUR_SCHEMES.includes(scheme)) {
-    scheme = COLOUR_SCHEMES[0];
+    scheme = DEFAULT_SCHEME;
   }
 
   // Set the data attribute on root element
@@ -111,7 +112,7 @@ function updateFooterLabel(scheme) {
  * Cycle to the next colour scheme
  */
 function cycleColourScheme() {
-  const currentScheme = document.documentElement.getAttribute('data-colour-scheme') || COLOUR_SCHEMES[0];
+  const currentScheme = document.documentElement.getAttribute('data-colour-scheme') || DEFAULT_SCHEME;
   const currentIndex = COLOUR_SCHEMES.indexOf(currentScheme);
   const nextIndex = (currentIndex + 1) % COLOUR_SCHEMES.length;
   const nextScheme = COLOUR_SCHEMES[nextIndex];
