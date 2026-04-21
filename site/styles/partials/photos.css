@@ -6,7 +6,7 @@
   position: sticky;
   top: 0.9rem;
   z-index: 12;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--accent);
   background: var(--bg-card);
@@ -32,7 +32,7 @@
   bottom: 0.8rem;
   margin: 0;
   padding: 0.4rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--overlay-soft);
   color: var(--text-strong);
   font-size: 0.78rem;
@@ -79,7 +79,7 @@
   right: 0.6rem;
   bottom: 0.6rem;
   padding: 0.3rem 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--overlay-soft);
   color: var(--text-strong);
   font-size: 0.74rem;
@@ -94,7 +94,7 @@
   width: 2.2rem;
   height: 2.2rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--overlay-soft);
   color: var(--text-strong);
   font-size: 1rem;
@@ -127,7 +127,7 @@
   transform: scale(1.03);
 }
 
-@media (max-width: 760px) {
+@media (width <= 760px) {
   .photos-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.65rem;

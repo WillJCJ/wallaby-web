@@ -1,5 +1,4 @@
-import { HTTP_STATUS } from './constants.js';
-import { jsonResponse } from './response.js';
+import { unauthorized, forbidden } from './response.js';
 
 export const getAuthenticatedEmail = (request) => request.headers.get('CF-Access-Authenticated-User-Email');
 
@@ -17,12 +16,7 @@ export const requireAuthenticatedEmail = (request) => {
   const email = getAuthenticatedEmail(request);
 
   if (!email) {
-    return {
-      error: jsonResponse(
-        { error: 'Unauthorized' },
-        { status: HTTP_STATUS.UNAUTHORIZED }
-      ),
-    };
+    return { error: unauthorized() };
   }
 
   return { email };
@@ -32,10 +26,7 @@ export const requireAdmin = (email, env) => {
   const admins = parseAdminEmails(env);
 
   if (!admins.has(email.toLowerCase())) {
-    return jsonResponse(
-      { error: 'Forbidden' },
-      { status: HTTP_STATUS.FORBIDDEN }
-    );
+    return forbidden();
   }
 
   return null;

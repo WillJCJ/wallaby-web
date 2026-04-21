@@ -6,6 +6,16 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // /cdn-cgi/image/ is handled by Cloudflare's edge in production and never
+    // reaches the Worker. Locally, Wrangler passes it through, so we strip the
+    // transform options and serve the underlying resource as-is.
+    if (url.pathname.startsWith('/cdn-cgi/image/')) {
+      const stripped = url.pathname.replace(/^\/cdn-cgi\/image\/[^/]+\//, '/');
+      const inner = new URL(request.url);
+      inner.pathname = stripped;
+      return fetch(inner, request);
+    }
+
     if (url.pathname.startsWith('/api/photos/')) {
       if (!env.PHOTOS_BUCKET) {
         return new Response('Photos bucket is not configured', { status: 503 });

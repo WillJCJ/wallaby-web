@@ -3,7 +3,7 @@
   max-width: 720px;
   margin: 0 auto 3rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--bg-card);
   padding: 1.5rem;
 }
@@ -30,7 +30,7 @@
 
 .private-item {
   background: var(--bg-surface);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0.9rem;
 }
 
@@ -45,7 +45,7 @@
 .private-item dd {
   margin: 0;
   color: var(--text-strong);
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .guest-profile-form {
@@ -73,7 +73,7 @@
 .guest-profile-form textarea {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg-surface);
   color: var(--text);
   padding: 0.6rem 0.7rem;
@@ -89,33 +89,4 @@
   justify-self: start;
   border: none;
   cursor: pointer;
-}
-
-.admin-guests-list {
-  margin-top: 1.5rem;
-  display: grid;
-  gap: 0.8rem;
-}
-
-.admin-guest-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.9rem;
-}
-
-.admin-guest-card h3 {
-  margin: 0 0 0.35rem;
-  color: var(--text-strong);
-  font-size: 1rem;
-}
-
-.admin-guest-meta {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-.admin-guest-empty {
-  color: var(--text-muted);
 }

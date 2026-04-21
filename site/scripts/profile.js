@@ -1,6 +1,6 @@
+import { apiFetch } from '/scripts/api-utils.js';
+
 (() => {
-  const auth = window.WallabyAuth;
-  const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
   const status = document.getElementById('guest-profile-status');
   const list = document.getElementById('guest-profile-list');
   const form = document.getElementById('guest-profile-form');
@@ -86,18 +86,7 @@
   };
 
   const fetchGuest = async () => {
-    const response = await fetch('/api/private/guests/me', {
-      method: 'GET',
-      credentials: 'same-origin',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.error || 'Unable to load your guest profile right now.');
-    }
-
-    const data = await response.json();
+    const data = await (await apiFetch('/api/private/guests/me')).json();
     const guest = data?.guest;
 
     if (!guest) {
@@ -108,27 +97,17 @@
   };
 
   const saveGuest = async () => {
-    const response = await fetch('/api/private/guests/me', {
+    const data = await (await apiFetch('/api/private/guests/me', {
       method: 'PUT',
-      credentials: 'same-origin',
-      cache: 'no-store',
-      headers: {
-        'content-type': 'application/json',
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         rsvp: formRsvp.value,
         additionalGuests: Number.parseInt(formAdditionalGuests.value, 10) || 0,
         dietaryRequirements: formDietaryRequirements.value,
         rsvpMessage: formRsvpMessage.value,
       }),
-    });
+    })).json();
 
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.error || 'Unable to save your profile right now.');
-    }
-
-    const data = await response.json();
     const guest = data?.guest;
 
     if (!guest) {
@@ -178,7 +157,7 @@
       fillForm(guest);
 
       if (guest.email) {
-        setStoredAuthEmail(guest.email);
+        window.WallabyAuth?.setStoredAuthEmail(guest.email);
       }
 
       list.hidden = false;

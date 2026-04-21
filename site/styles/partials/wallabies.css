@@ -1,32 +1,3 @@
-.page-intro {
-  text-align: center;
-  padding: 3rem 2rem 2rem;
-  position: relative;
-  z-index: 20;
-  pointer-events: none;
-  color: var(--tone-ink);
-}
-
-.page-intro h2 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text-strong);
-  margin-bottom: 0.5rem;
-}
-
-.page-intro p {
-  color: var(--tone-ink);
-}
-
-.page-intro-tagline {
-  color: var(--accent);
-  padding-block: 0.5rem;
-}
-
-.page-intro-actions {
-  margin-top: 0.75rem;
-}
-
 .wallaby-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -42,12 +13,10 @@
 }
 
 .wallaby-card {
-  --wallaby-thumbnail-offset-y: 0px;
-  --wallaby-image-offset-y: 0px;
   position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: visible;
   transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   pointer-events: auto;
@@ -71,7 +40,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: border-radius 0.18s ease;
 }
 
@@ -81,19 +50,17 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 50%;
+  object-position: center;
   display: block;
-  transition: opacity 0.18s ease, object-position 0.18s ease;
+  transition: opacity 0.18s ease;
 }
 
 .wallaby-card-image-thumb {
   opacity: 1;
-  object-position: 50% calc(50% + var(--wallaby-thumbnail-offset-y));
 }
 
 .wallaby-card-image-full {
   opacity: 0;
-  object-position: 50% calc(50% + var(--wallaby-image-offset-y));
 }
 
 .wallaby-card-toggle {
@@ -144,20 +111,15 @@
   gap: 0.5rem;
 }
 
-.wallaby-alias-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-faint);
-}
 
 .wallaby-card-details {
+  display: none;
   position: relative;
   background: var(--bg-card);
   margin: -0.6rem -1px -1px;
   border: 1px solid var(--accent);
   border-top: 0;
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
   padding: 1.25rem;
   box-shadow: 0 14px 28px var(--shadow-strong);
 }
@@ -186,6 +148,7 @@
 }
 
 .wallaby-card[open] .wallaby-card-details {
+  display: block;
   cursor: pointer;
 }
 
@@ -204,15 +167,11 @@
 
 .stat {
   background: var(--bg-surface);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0.75rem;
 }
 
 .stat-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-faint);
   margin-bottom: 0.25rem;
 }
 

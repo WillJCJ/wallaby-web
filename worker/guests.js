@@ -1,4 +1,3 @@
-import { HTTP_STATUS } from './constants.js';
 import {
   normalizeAuthenticatedEmail,
   requireAdmin,
@@ -10,7 +9,16 @@ import {
   validateGuestPayload,
   validateGuestSelfPayload,
 } from './validation.js';
-import { jsonResponse } from './response.js';
+import {
+  jsonResponse,
+  badRequest,
+  notFound,
+  methodNotAllowed,
+  internalError,
+} from './response.js';
+
+const GUEST_COLUMNS =
+  'id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by';
 
 const formatGuest = (row) => ({
   id: row.id,
@@ -25,39 +33,30 @@ const formatGuest = (row) => ({
   updatedBy: row.updated_by,
 });
 
+const parseAndValidate = async (request, validator, validatorArg) => {
+  const body = await parseJsonBody(request);
+  if (!body) {
+    return { errorResponse: badRequest('Invalid JSON body') };
+  }
+  const validated = validator(body, validatorArg);
+  if (validated.error) {
+    return { errorResponse: badRequest(validated.error) };
+  }
+  return { input: validated.value };
+};
+
 const handleGuestsCollection = async (request, env, adminEmail) => {
   if (request.method === 'GET') {
     const results = await env.GUESTS_DB
-      .prepare(
-        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
-         FROM guests
-         ORDER BY name COLLATE NOCASE ASC`
-      )
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests ORDER BY name COLLATE NOCASE ASC`)
       .all();
 
     return jsonResponse({ guests: (results.results || []).map(formatGuest) });
   }
 
   if (request.method === 'POST') {
-    const body = await parseJsonBody(request);
-
-    if (!body) {
-      return jsonResponse(
-        { error: 'Invalid JSON body' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
-    }
-
-    const validated = validateGuestPayload(body);
-
-    if (validated.error) {
-      return jsonResponse(
-        { error: validated.error },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
-    }
-
-    const input = validated.value;
+    const { errorResponse, input } = await parseAndValidate(request, validateGuestPayload);
+    if (errorResponse) return errorResponse;
 
     const insert = await env.GUESTS_DB
       .prepare(
@@ -76,80 +75,43 @@ const handleGuestsCollection = async (request, env, adminEmail) => {
       .run();
 
     if (!insert.success) {
-      return jsonResponse(
-        { error: 'Unable to create guest' },
-        { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
-      );
+      return internalError('Unable to create guest');
     }
 
     const guestId = insert.meta.last_row_id;
 
     const row = await env.GUESTS_DB
-      .prepare(
-        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
-         FROM guests
-         WHERE id = ?`
-      )
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
       .bind(guestId)
       .first();
 
     return jsonResponse({ guest: formatGuest(row) }, { status: 201 });
   }
 
-  return jsonResponse(
-    { error: 'Method Not Allowed' },
-    { status: HTTP_STATUS.METHOD_NOT_ALLOWED }
-  );
+  return methodNotAllowed();
 };
 
 const handleGuestById = async (request, env, adminEmail, guestId) => {
   if (!Number.isInteger(guestId) || guestId < 1) {
-    return jsonResponse(
-      { error: 'Invalid guest id' },
-      { status: HTTP_STATUS.BAD_REQUEST }
-    );
+    return badRequest('Invalid guest id');
   }
 
   if (request.method === 'GET') {
     const row = await env.GUESTS_DB
-      .prepare(
-        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
-         FROM guests
-         WHERE id = ?`
-      )
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
       .bind(guestId)
       .first();
 
     if (!row) {
-      return jsonResponse(
-        { error: 'Guest not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return notFound('Guest not found');
     }
 
     return jsonResponse({ guest: formatGuest(row) });
   }
 
   if (request.method === 'PUT') {
-    const body = await parseJsonBody(request);
-
-    if (!body) {
-      return jsonResponse(
-        { error: 'Invalid JSON body' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
-    }
-
-    const validated = validateGuestPayload(body);
-
-    if (validated.error) {
-      return jsonResponse(
-        { error: validated.error },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
-    }
-
-    const input = validated.value;
+    const { errorResponse, input } = await parseAndValidate(request, validateGuestPayload);
+    if (errorResponse) return errorResponse;
 
     const update = await env.GUESTS_DB
       .prepare(
@@ -177,25 +139,15 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
       .run();
 
     if (!update.success) {
-      return jsonResponse(
-        { error: 'Unable to update guest' },
-        { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
-      );
+      return internalError('Unable to update guest');
     }
 
     if (!update.meta.changed_db) {
-      return jsonResponse(
-        { error: 'Guest not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return notFound('Guest not found');
     }
 
     const row = await env.GUESTS_DB
-      .prepare(
-        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
-         FROM guests
-         WHERE id = ?`
-      )
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
       .bind(guestId)
       .first();
 
@@ -209,26 +161,17 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
       .run();
 
     if (!deleted.success) {
-      return jsonResponse(
-        { error: 'Unable to delete guest' },
-        { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
-      );
+      return internalError('Unable to delete guest');
     }
 
     if (!deleted.meta.changed_db) {
-      return jsonResponse(
-        { error: 'Guest not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return notFound('Guest not found');
     }
 
     return jsonResponse({ ok: true });
   }
 
-  return jsonResponse(
-    { error: 'Method Not Allowed' },
-    { status: HTTP_STATUS.METHOD_NOT_ALLOWED }
-  );
+  return methodNotAllowed();
 };
 
 const handleGuestSelf = async (request, env, authenticatedEmail) => {
@@ -236,44 +179,20 @@ const handleGuestSelf = async (request, env, authenticatedEmail) => {
 
   if (request.method === 'GET' || request.method === 'PUT') {
     const existingGuest = await env.GUESTS_DB
-      .prepare(
-        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
-         FROM guests
-         WHERE LOWER(email) = ?`
-      )
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE LOWER(email) = ?`)
       .bind(email)
       .first();
 
     if (!existingGuest) {
-      return jsonResponse(
-        { error: 'Guest not found' },
-        { status: HTTP_STATUS.NOT_FOUND }
-      );
+      return notFound('Guest not found');
     }
 
     if (request.method === 'GET') {
       return jsonResponse({ guest: formatGuest(existingGuest) });
     }
 
-    const body = await parseJsonBody(request);
-
-    if (!body) {
-      return jsonResponse(
-        { error: 'Invalid JSON body' },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
-    }
-
-    const validated = validateGuestSelfPayload(body, existingGuest);
-
-    if (validated.error) {
-      return jsonResponse(
-        { error: validated.error },
-        { status: HTTP_STATUS.BAD_REQUEST }
-      );
-    }
-
-    const input = validated.value;
+    const { errorResponse, input } = await parseAndValidate(request, validateGuestSelfPayload, existingGuest);
+    if (errorResponse) return errorResponse;
 
     const update = await env.GUESTS_DB
       .prepare(
@@ -297,28 +216,18 @@ const handleGuestSelf = async (request, env, authenticatedEmail) => {
       .run();
 
     if (!update.success) {
-      return jsonResponse(
-        { error: 'Unable to update guest' },
-        { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
-      );
+      return internalError('Unable to update guest');
     }
 
     const row = await env.GUESTS_DB
-      .prepare(
-        `SELECT id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, created_at, updated_at, updated_by
-         FROM guests
-         WHERE LOWER(email) = ?`
-      )
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE LOWER(email) = ?`)
       .bind(email)
       .first();
 
     return jsonResponse({ guest: formatGuest(row) });
   }
 
-  return jsonResponse(
-    { error: 'Method Not Allowed' },
-    { status: HTTP_STATUS.METHOD_NOT_ALLOWED }
-  );
+  return methodNotAllowed();
 };
 
 export const handleGuestsApi = async (request, env, pathname) => {
@@ -359,8 +268,5 @@ export const handleGuestsApi = async (request, env, pathname) => {
     );
   }
 
-  return jsonResponse(
-    { error: 'Not Found' },
-    { status: HTTP_STATUS.NOT_FOUND }
-  );
+  return notFound();
 };

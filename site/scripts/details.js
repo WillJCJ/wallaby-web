@@ -1,6 +1,6 @@
+import { apiFetch } from '/scripts/api-utils.js';
+
 (() => {
-  const auth = window.WallabyAuth;
-  const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
   const status = document.getElementById('private-status');
   const list = document.getElementById('private-list');
   const address = document.getElementById('private-address');
@@ -15,25 +15,14 @@
     list.hidden = true;
   };
 
-  fetch('/api/private/details', {
-    method: 'GET',
-    credentials: 'same-origin',
-    cache: 'no-store',
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        throw new Error(body.error || 'Unable to load private details right now.');
-      }
-
-      return response.json();
-    })
+  apiFetch('/api/private/details')
+    .then((response) => response.json())
     .then((data) => {
       address.textContent = data.address || 'Not configured';
       gateCode.textContent = data.gateCode || 'Not configured';
 
       if (data.viewer) {
-        setStoredAuthEmail(data.viewer);
+        window.WallabyAuth?.setStoredAuthEmail(data.viewer);
       }
 
       list.hidden = false;

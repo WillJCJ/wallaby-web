@@ -55,8 +55,8 @@ header {
 .site-brand--interactive .site-brand__logo-svg #earUpperL { --explode-x: -15.256px; --explode-y: -12.121px; }
 .site-brand--interactive .site-brand__logo-svg #earUpperR { --explode-x: 15.227px; --explode-y: -12.100px; }
 
-.site-brand--interactive:hover .site-brand__logo-svg path:not(#Forehead):not(#eyeL):not(#eyeR) {
-  transform: translate(var(--explode-x, 0px), var(--explode-y, 0px));
+.site-brand--interactive:hover .site-brand__logo-svg path:not(#Forehead, #eyeL, #eyeR) {
+  transform: translate(var(--explode-x, 0), var(--explode-y, 0));
 }
 
 .site-brand__name {
