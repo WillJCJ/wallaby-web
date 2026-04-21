@@ -1,5 +1,6 @@
 import CleanCSS from 'clean-css';
 import { minify } from 'html-minifier-next';
+import process from 'node:process';
 
 export default function (eleventyConfig) {
   const runMinify = process.env.MINIFY !== 'false';
