@@ -163,6 +163,7 @@ footer {
     transform: translate(-50%, -125%);
     opacity: 0;
   }
+
   to {
     transform: translate(-50%, 0);
     opacity: 1;

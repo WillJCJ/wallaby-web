@@ -1,0 +1,28 @@
+.page-intro {
+  text-align: center;
+  padding: 3rem 2rem 2rem;
+  position: relative;
+  z-index: 20;
+  pointer-events: none;
+  color: var(--tone-ink);
+}
+
+.page-intro h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 0.5rem;
+}
+
+.page-intro p {
+  color: var(--tone-ink);
+}
+
+.page-intro-tagline {
+  color: var(--accent);
+  padding-block: 0.5rem;
+}
+
+.page-intro-actions {
+  margin-top: 0.75rem;
+}
