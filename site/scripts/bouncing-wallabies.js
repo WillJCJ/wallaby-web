@@ -144,6 +144,43 @@ const initializeBouncingWallabies = () => {
   layer.className = 'wallaby-bouncer-layer';
   document.body.appendChild(layer);
 
+  // Spark particle canvas — fixed overlay, always on top
+  const sparkCanvas = document.createElement('canvas');
+  sparkCanvas.setAttribute('aria-hidden', 'true');
+  sparkCanvas.style.cssText =
+    'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999';
+  document.body.appendChild(sparkCanvas);
+  const sparkCtx = sparkCanvas.getContext('2d');
+  let sparks = [];
+
+  const resizeSparkCanvas = () => {
+    sparkCanvas.width = window.innerWidth;
+    sparkCanvas.height = window.innerHeight;
+  };
+  resizeSparkCanvas();
+  window.addEventListener('resize', resizeSparkCanvas);
+
+  const SPARK_COLORS = ['#ffd700', '#ffc200', '#ffaa00', '#fff4a0'];
+  const SPARK_GRAVITY = 0.25;
+  const SPARK_COUNT = 20;
+
+  const spawnSparks = (clientX, clientY) => {
+    for (let i = 0; i < SPARK_COUNT; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 4.5;
+      sparks.push({
+        x: clientX,
+        y: clientY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.5,
+        life: 1,
+        decay: 0.018 + Math.random() * 0.018,
+        size: 1.5 + Math.random() * 2,
+        color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
+      });
+    }
+  };
+
   const header = document.querySelector('header');
   const footer = document.querySelector('footer');
 
@@ -343,8 +380,9 @@ const initializeBouncingWallabies = () => {
     const el = document.createElement('div');
     el.className = 'wallaby-bouncer';
 
+    const isAlbino = Math.random() < ALBINO_CHANCE;
     const img = document.createElement('img');
-    img.src = Math.random() < ALBINO_CHANCE ? WALLABY_ALBINO_IMG : WALLABY_IMG;
+    img.src = isAlbino ? WALLABY_ALBINO_IMG : WALLABY_IMG;
     img.alt = '';
     img.setAttribute('aria-hidden', 'true');
     el.appendChild(img);
@@ -368,6 +406,7 @@ const initializeBouncingWallabies = () => {
       vy: Math.sin(angle) * baseSpeed,
       rotation: Math.random() * 360,
       isSpinning: false,
+      isAlbino,
       activeTouchPointerId: null,
       el,
       img,
@@ -414,6 +453,10 @@ const initializeBouncingWallabies = () => {
     // Touch events
     el.addEventListener('pointerdown', (event) => {
       applyRandomTapImpulse(state);
+
+      if (state.isAlbino) {
+        spawnSparks(event.clientX, event.clientY);
+      }
 
       if (event.pointerType === 'mouse') {
         return;
@@ -523,8 +566,27 @@ const initializeBouncingWallabies = () => {
       s.img.style.transform = `rotate(${s.rotation}deg)`;
 
       const speed = getSpeed(s.vx, s.vy);
-      s.img.style.filter = calculateShadowFilter(speed);
+      const speedFilter = calculateShadowFilter(speed);
+      s.img.style.filter = s.isAlbino
+        ? `drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffd700) ${speedFilter}`
+        : speedFilter;
     });
+
+    // Update and draw sparks
+    sparkCtx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
+    sparks = sparks.filter((p) => p.life > 0);
+    sparks.forEach((p) => {
+      p.vy += SPARK_GRAVITY;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      sparkCtx.globalAlpha = Math.max(0, p.life);
+      sparkCtx.fillStyle = p.color;
+      sparkCtx.beginPath();
+      sparkCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      sparkCtx.fill();
+    });
+    sparkCtx.globalAlpha = 1;
 
     requestAnimationFrame(tick);
   };
