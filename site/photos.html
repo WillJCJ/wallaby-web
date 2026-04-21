@@ -16,6 +16,7 @@ title: Photos — Wallaby Fest
         src="/cdn-cgi/image/width=600,quality=80,format=auto/api/photos/{{ photo.id }}"
         alt="{{ photo.alt }}"
         loading="{% if forloop.index <= 12 %}eager{% else %}lazy{% endif %}"
+        fetchpriority="{% if forloop.index <= 4 %}high{% else %}auto{% endif %}"
         decoding="async"
       >
     </a>
