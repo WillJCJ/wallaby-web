@@ -201,14 +201,15 @@ body:has(.photo-item:target)::before {
 .lightbox-nav--next::before {
   content: '';
   display: block;
+
   /*
    * A square with two adjacent borders forms a right-angle chevron (">").
    * Width/height set the size of the chevron arms.
    */
   width: 0.55rem;
   height: 0.55rem;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
+  border-top: 2px solid currentcolor;
+  border-right: 2px solid currentcolor;
 }
 
 .lightbox-nav--prev::before {

@@ -1,5 +1,4 @@
 @media (width <= 640px) {
-
   .wallaby-grid {
     grid-template-columns: 1fr;
   }
