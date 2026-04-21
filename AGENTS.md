@@ -68,6 +68,7 @@ Rules:
 - Include a short summary and why the change was needed.
 - Confirm linting passes and run a quick manual smoke test.
 - Do not mix unrelated refactors with feature/fix work.
+- Create a merge commit when merging a PR, don't rebase or squash.
 
 ## Quality Gates Before Merge
 - Run lint and fix all errors.
