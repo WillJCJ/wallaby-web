@@ -91,6 +91,7 @@ npm test
 - Do not rewrite history on shared branches.
 - Prefer minimal, targeted changes over broad rewrites.
 - If uncertain, document assumptions in the PR description.
+- Don't generate text content leave that to the humands. Just use lorem ipsum or whatever.
 
 ## Coding Choice and Style
 
@@ -105,7 +106,7 @@ Prefer concise and elegant solutions.
 - Use British English spelling and grammar in all written content.
 - Use 24-hour time format (for example, 17:30, not 5:30 PM).
 - Never use month-first date formats.
-- Prefer unambiguous date formats such as YYYY-MM-DD or DD/MM/YYYY.
+- Wallaby Fest should never be called Wallabyfest it's two words always in title case.
 
 ## Optional Nice-to-Haves
 Teams often also define:

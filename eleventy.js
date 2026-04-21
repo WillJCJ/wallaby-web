@@ -1,7 +1,10 @@
 import CleanCSS from 'clean-css';
 import { minify } from 'html-minifier-next';
+import process from 'node:process';
 
 export default function (eleventyConfig) {
+  const runMinify = process.env.MINIFY !== 'false';
+
   eleventyConfig.setTemplateFormats([
     'md',
     'html',
@@ -31,7 +34,7 @@ export default function (eleventyConfig) {
   });
 
   eleventyConfig.addTransform('htmlMinify', function (content, outputPath) {
-    if (!outputPath.endsWith('.html')) {
+    if (!outputPath.endsWith('.html') || !runMinify) {
       return content;
     }
     const minified = minify(content, {
@@ -47,6 +50,11 @@ export default function (eleventyConfig) {
   eleventyConfig.addExtension('css', {
     outputFileExtension: 'css',
     compile: async (content) => {
+      if (!runMinify) {
+        return async () => {
+          return content;
+        };
+      }
       const result = new CleanCSS({}).minify(content)
       if (result.errors.length > 0 || result.warnings.length > 0) {
         throw new Error(

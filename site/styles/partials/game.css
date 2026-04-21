@@ -38,7 +38,7 @@
 
 .wallaby-game__canvas:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(245, 200, 66, 0.35);
+  box-shadow: 0 0 0 2px var(--shadow-soft);
 }
 
 .wallaby-game__hint {

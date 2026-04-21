@@ -5,14 +5,30 @@
 }
 
 :root {
-  --bg: #1a1a2e;
-  --bg-surface: #111827;
-  --bg-card: #1f2937;
-  --border: #2d2d3a;
-  --text: #e8e6df;
-  --text-muted: #9ca3af;
-  --text-faint: #6b7280;
-  --accent: #f5c842;
+  /* https://coolors.co/7b3c20-dbb957-605a57-683823-7abbae */
+  --saddle-brown: #7b3c20;
+  --metallic-gold: #dbb957;
+  --charcoal: #605a57;
+  --dark-walnut: #683823;
+  --muted-teal: #7abbae;
+  --neutral-light: #d1d5db;
+  --muted-teal-bright: #95d2c6;
+  --bg: var(--charcoal);
+  --bg-surface: var(--saddle-brown);
+  --bg-card: var(--dark-walnut);
+  --border: var(--saddle-brown);
+  --text: var(--neutral-light);
+  --text-muted: var(--neutral-light);
+  --text-faint: var(--neutral-light);
+  --text-strong: var(--metallic-gold);
+  --text-on-accent: var(--saddle-brown);
+  --accent: var(--metallic-gold);
+  --success: var(--charcoal);
+  --error: var(--saddle-brown);
+  --shadow-soft: rgba(123, 60, 32, 0.2);
+  --shadow-strong: rgba(123, 60, 32, 0.32);
+  --overlay-soft: rgba(123, 60, 32, 0.6);
+  --overlay-strong: rgba(123, 60, 32, 0.78);
   --radius: 10px;
 }
 

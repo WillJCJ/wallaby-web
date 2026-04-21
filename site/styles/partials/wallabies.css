@@ -1,12 +1,15 @@
 .page-intro {
   text-align: center;
   padding: 3rem 2rem 2rem;
+  position: relative;
+  z-index: 20;
+  pointer-events: none;
 }
 
 .page-intro h2 {
   font-size: 2rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-strong);
   margin-bottom: 0.5rem;
 }
 
@@ -52,7 +55,7 @@
 .wallaby-card-photo {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #374151;
+  background: var(--saddle-brown);
   padding: 0.65rem;
   border-radius: 11px 11px 0 0;
   transition: padding 0.18s ease;
@@ -120,7 +123,7 @@
 .wallaby-card-summary h3 {
   font-size: 1.15rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-strong);
   margin: 0;
 }
 
@@ -151,13 +154,13 @@
   border-top: 0;
   border-radius: 0 0 12px 12px;
   padding: 1.25rem;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 14px 28px var(--shadow-strong);
 }
 
 .wallaby-card[open] {
   z-index: 20;
   border-color: var(--accent);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 30px var(--shadow-strong);
   cursor: pointer;
 }
 
@@ -211,5 +214,5 @@
 .stat-value {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #fff;
+  color: var(--text-strong);
 }

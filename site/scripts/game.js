@@ -19,48 +19,174 @@
   const START_SPEED = 320;
   const MAX_SPEED = 720;
   const SPEED_GROWTH = 8;
+  const DAY_NIGHT_SCORE_CYCLE = 1000;
+  const HALF_DAY_NIGHT_CYCLE = DAY_NIGHT_SCORE_CYCLE / 2;
+  const MOON_PHASES = [
+    { kind: 'waxing', shadowOffsetRatio: 0.55 }, // waxing crescent
+    { kind: 'waxing', shadowOffsetRatio: 1.0 },  // first quarter (half)
+    { kind: 'waxing', shadowOffsetRatio: 1.45 }, // waxing gibbous
+    { kind: 'full' },                            // full moon
+    { kind: 'waning', shadowOffsetRatio: 1.45 }, // waning gibbous
+    { kind: 'waning', shadowOffsetRatio: 1.0 },  // last quarter (half)
+    { kind: 'waning', shadowOffsetRatio: 0.55 }, // waning crescent
+  ];
 
-  const COLOURS = {
-    sky: '#1a1a2e',
-    groundLine: '#1f3a20',
-    grass: '#2f6b32',
-    grassDark: '#244f26',
-    grassBlade: '#3f8a44',
-    wallabyBody: '#9d6620',
-    wallabyBelly: '#bb9864',
-    wallabyEar: '#7b3c20',
-    wallabyEye: '#111827',
-    goatBody: '#e8e6df',
-    goatBelly: '#f7f5ee',
-    goatHoof: '#2a2a33',
-    goatHorn: '#5a4a35',
-    goatFace: '#cdbfa6',
-    treeTrunk: '#3a2a1b',
-    treeCanopy: '#1f4a24',
-    treeCanopyDark: '#173619',
-    cloud: '#2d2d3a',
-    tentCanvas: '#b55a2a',
-    tentCanvasDark: '#8a3f1c',
-    tentPole: '#3a2a1b',
-    tentDoor: '#2a1810',
-    fireLog: '#3a2a1b',
-    fireOuter: '#f5a524',
-    fireInner: '#fde68a',
-    fireEmber: '#dc2626',
-    quailBody: '#7a5a3a',
-    quailBelly: '#d9c4a0',
-    quailHead: '#5a3f26',
-    quailBeak: '#2a1810',
-    quailPlume: '#2a1810',
-    chickenBody: '#f5f5f5',
-    chickenWing: '#d6d0c4',
+  const COLOURS_DAY = {
+    sky: '#79c8ff',
+    groundLine: '#4a8c42',
+    grass: '#6fbe4e',
+    grassDark: '#4a8c42',
+    grassBlade: '#88cf64',
+    wallabyBody: '#b87630',
+    wallabyBelly: '#d1ac7b',
+    wallabyEar: '#8f5a25',
+    wallabyEye: '#1f2937',
+    goatBody: '#f1f3f5',
+    goatBelly: '#ffffff',
+    goatHoof: '#4b5563',
+    goatHorn: '#8b7355',
+    goatFace: '#dbcdb6',
+    treeTrunk: '#7a4f2e',
+    treeCanopy: '#4f9b3d',
+    treeCanopyDark: '#3f7f32',
+    cloud: '#e5e7eb',
+    tentCanvas: '#d78748',
+    tentCanvasDark: '#b86a31',
+    tentPole: '#7a4f2e',
+    tentDoor: '#6a3e23',
+    fireLog: '#7a4f2e',
+    // Keep flames invisible in daytime; the night palette fades them in.
+    fireOuter: 'rgba(245, 165, 36, 0)',
+    fireInner: 'rgba(253, 230, 138, 0)',
+    fireEmber: 'rgba(220, 38, 38, 0)',
+    quailBody: '#9b734c',
+    quailBelly: '#e5cfaf',
+    quailHead: '#7b5638',
+    quailBeak: '#8a4b24',
+    quailPlume: '#5e3b25',
+    chickenBody: '#fafafa',
+    chickenWing: '#e2ddd3',
     chickenComb: '#dc2626',
     chickenBeak: '#f5a524',
     chickenLeg: '#f5a524',
-    chickenEye: '#111827',
-    text: '#e8e6df',
+    chickenEye: '#1f2937',
+    text: '#f9fafb',
     accent: '#f5c842',
+    sunGlow: 'rgba(255, 227, 145, 0.35)',
+    sunBody: '#ffd166',
+    moonBody: '#f2e3b0',
+    moonCraterA: '#ddcfa1',
+    moonCraterB: '#d2c392',
+    shadow: 'rgba(0, 0, 0, 0.35)',
+    shadowLight: 'rgba(0, 0, 0, 0.3)',
+    overlay: 'rgba(26, 26, 46, 0.72)',
   };
+
+  const COLOURS_NIGHT = {
+    sky: '#0b1f44',
+    groundLine: '#2b5730',
+    grass: '#2f6036',
+    grassDark: '#22482a',
+    grassBlade: '#3e7a45',
+    wallabyBody: '#8f5f2d',
+    wallabyBelly: '#b39268',
+    wallabyEar: '#714820',
+    wallabyEye: '#dbe7ff',
+    goatBody: '#d4dce8',
+    goatBelly: '#edf2fa',
+    goatHoof: '#344054',
+    goatHorn: '#7a6a57',
+    goatFace: '#c4b7a3',
+    treeTrunk: '#68452a',
+    treeCanopy: '#2f6738',
+    treeCanopyDark: '#224c2b',
+    cloud: '#8e99ad',
+    tentCanvas: '#e98a3c',
+    tentCanvasDark: '#975a2f',
+    tentPole: '#68452a',
+    tentDoor: '#57341f',
+    fireLog: '#7a4f2e',
+    fireOuter: '#e39423',
+    fireInner: '#f6d580',
+    fireEmber: '#bf2f2f',
+    // Quails fly away at night (despite being flightless I think?)
+    quailBody: 'rgba(125, 95, 67, 0)',
+    quailBelly: 'rgba(203, 185, 153, 0)',
+    quailHead: 'rgba(102, 73, 49, 0)',
+    quailBeak: 'rgba(117, 65, 31, 0)',
+    quailPlume: 'rgba(81, 51, 31, 0)',
+    chickenBody: '#e7ecf2',
+    chickenWing: '#d0d8e2',
+    chickenComb: '#b12a2a',
+    chickenBeak: '#dd9823',
+    chickenLeg: '#dd9823',
+    chickenEye: '#111827',
+    text: '#e8efff',
+    accent: '#e3c060',
+    sunGlow: 'rgba(255, 206, 120, 0.28)',
+    sunBody: '#f5c36f',
+    moonBody: '#eddca8',
+    moonCraterA: '#d5c594',
+    moonCraterB: '#cab986',
+    shadow: 'rgba(6, 15, 36, 0.45)',
+    shadowLight: 'rgba(6, 15, 36, 0.38)',
+    overlay: 'rgba(6, 15, 36, 0.78)',
+  };
+
+  const parseColour = (value) => {
+    if (value.startsWith('#')) {
+      const hex = value.slice(1);
+      if (hex.length === 3) {
+        return {
+          r: Number.parseInt(hex[0] + hex[0], 16),
+          g: Number.parseInt(hex[1] + hex[1], 16),
+          b: Number.parseInt(hex[2] + hex[2], 16),
+          a: 1,
+        };
+      }
+
+      return {
+        r: Number.parseInt(hex.slice(0, 2), 16),
+        g: Number.parseInt(hex.slice(2, 4), 16),
+        b: Number.parseInt(hex.slice(4, 6), 16),
+        a: 1,
+      };
+    }
+
+    const match = value.match(/rgba?\(([^)]+)\)/i);
+    if (!match) {
+      return { r: 0, g: 0, b: 0, a: 1 };
+    }
+
+    const parts = match[1].split(',').map((part) => Number.parseFloat(part.trim()));
+    return {
+      r: Number.isFinite(parts[0]) ? parts[0] : 0,
+      g: Number.isFinite(parts[1]) ? parts[1] : 0,
+      b: Number.isFinite(parts[2]) ? parts[2] : 0,
+      a: Number.isFinite(parts[3]) ? parts[3] : 1,
+    };
+  };
+
+  const interpolateColour = (dayValue, nightValue, blend) => {
+    const day = parseColour(dayValue);
+    const night = parseColour(nightValue);
+    const t = Math.max(0, Math.min(1, blend));
+    const r = Math.round(day.r + (night.r - day.r) * t);
+    const g = Math.round(day.g + (night.g - day.g) * t);
+    const b = Math.round(day.b + (night.b - day.b) * t);
+    const a = day.a + (night.a - day.a) * t;
+    return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
+  };
+
+  const buildActiveColours = (nightBlend) => {
+    const active = {};
+    Object.keys(COLOURS_DAY).forEach((key) => {
+      active[key] = interpolateColour(COLOURS_DAY[key], COLOURS_NIGHT[key], nightBlend);
+    });
+    return active;
+  };
+
+  let activeColours = buildActiveColours(0);
 
   const state = {
     status: 'ready', // ready | running | over
@@ -84,6 +210,9 @@
     quails: [],
     groundOffset: 0,
     nextObstacleIn: 0.8,
+    nightBlend: 0,
+    wasNight: false,
+    moonPhaseIndex: 0,
   };
 
   try {
@@ -194,6 +323,7 @@
     state.wallaby.legPhase = 0;
     state.groundOffset = 0;
     state.nextObstacleIn = 0.8;
+    state.nightBlend = 0;
     for (let i = 0; i < 3; i++) {
       spawnCloud(randomBetween(0, WIDTH));
     }
@@ -259,6 +389,17 @@
   );
 
   const update = (dt) => {
+    const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
+    const isNight = scorePhase > HALF_DAY_NIGHT_CYCLE;
+    if (isNight && !state.wasNight) {
+      state.moonPhaseIndex = (state.moonPhaseIndex + 1) % MOON_PHASES.length;
+    }
+    state.wasNight = isNight;
+
+    const targetNightBlend = isNight ? 1 : 0;
+    const blendStep = Math.min(1, dt * 4);
+    state.nightBlend += (targetNightBlend - state.nightBlend) * blendStep;
+
     if (state.status !== 'running') {
       // Drift scenery gently on the title/game-over screen.
       state.clouds.forEach((c) => { c.x -= c.speed * 0.3 * dt; });
@@ -358,7 +499,7 @@
     ctx.save();
     ctx.translate(cloud.x, cloud.y);
     ctx.scale(cloud.scale, cloud.scale);
-    ctx.fillStyle = COLOURS.cloud;
+    ctx.fillStyle = activeColours.cloud;
     ctx.beginPath();
     ctx.arc(0, 0, 10, 0, Math.PI * 2);
     ctx.arc(12, -4, 12, 0, Math.PI * 2);
@@ -368,25 +509,90 @@
     ctx.restore();
   };
 
+  const drawSkyBodies = (scorePhase) => {
+    const dayProgress = Math.max(0, Math.min(1, scorePhase / HALF_DAY_NIGHT_CYCLE));
+    const nightProgress = Math.max(0, Math.min(1, (scorePhase - HALF_DAY_NIGHT_CYCLE) / HALF_DAY_NIGHT_CYCLE));
+
+    const getArcPosition = (progress) => {
+      const x = -50 + (WIDTH + 100) * progress;
+      const arc = (progress - 0.5) * 2;
+      const y = 88 + arc * arc * 142;
+      return { x, y };
+    };
+
+    // Sun travels during the day half of the score cycle.
+    const sunPos = getArcPosition(dayProgress);
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 1 - state.nightBlend);
+    ctx.fillStyle = activeColours.sunGlow;
+    ctx.beginPath();
+    ctx.arc(sunPos.x, sunPos.y, 24, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = activeColours.sunBody;
+    ctx.beginPath();
+    ctx.arc(sunPos.x, sunPos.y, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Moon travels during the night half of the score cycle.
+    const moonPos = getArcPosition(nightProgress);
+    const moonRadius = 13;
+    const moonPhase = MOON_PHASES[state.moonPhaseIndex];
+    const litDirection = moonPhase.kind === 'full' ? 0 : moonPhase.kind === 'waxing' ? 1 : -1;
+
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, state.nightBlend);
+    ctx.fillStyle = activeColours.moonBody;
+    ctx.beginPath();
+    ctx.arc(moonPos.x, moonPos.y, moonRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Craters are offset toward the illuminated side so they remain on the bright face.
+    const craterOffsetX = litDirection * 3;
+    ctx.fillStyle = activeColours.moonCraterA;
+    ctx.beginPath();
+    ctx.arc(moonPos.x + craterOffsetX - 3, moonPos.y - 2, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = activeColours.moonCraterB;
+    ctx.beginPath();
+    ctx.arc(moonPos.x + craterOffsetX + 2.5, moonPos.y + 3, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (moonPhase.kind !== 'full') {
+      const direction = moonPhase.kind === 'waxing' ? -1 : 1;
+      const cutoutX = moonPos.x + direction * moonRadius * moonPhase.shadowOffsetRatio;
+      ctx.fillStyle = activeColours.sky;
+      ctx.beginPath();
+      ctx.arc(cutoutX, moonPos.y, moonRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  };
+
   const drawTree = (tree) => {
     ctx.save();
     ctx.translate(tree.x, tree.baseY);
     ctx.scale(tree.scale, tree.scale);
 
     // Trunk
-    ctx.fillStyle = COLOURS.treeTrunk;
+    ctx.fillStyle = activeColours.treeTrunk;
     ctx.fillRect(-3, -32, 6, 32);
 
     // Canopy (back layer)
-    ctx.fillStyle = COLOURS.treeCanopyDark;
+    ctx.fillStyle = activeColours.treeCanopyDark;
     ctx.beginPath();
-    ctx.arc(-8, -38, 14, 0, Math.PI * 2);
-    ctx.arc(10, -36, 13, 0, Math.PI * 2);
-    ctx.arc(0, -50, 15, 0, Math.PI * 2);
+    ctx.ellipse(-8, -38, 14, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(10, -36, 13, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(0, -50, 15, 15, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Canopy (front highlight)
-    ctx.fillStyle = COLOURS.treeCanopy;
+    ctx.fillStyle = activeColours.treeCanopy;
     if (tree.variant === 0) {
       ctx.beginPath();
       ctx.arc(-4, -44, 12, 0, Math.PI * 2);
@@ -410,13 +616,13 @@
     ctx.scale(camp.scale, camp.scale);
 
     // Tent shadow on the ground
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillStyle = activeColours.shadow;
     ctx.beginPath();
     ctx.ellipse(-4, 2, 34, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Tent body (triangle)
-    ctx.fillStyle = COLOURS.tentCanvas;
+    ctx.fillStyle = activeColours.tentCanvas;
     ctx.beginPath();
     ctx.moveTo(-26, 0);
     ctx.lineTo(0, -34);
@@ -425,7 +631,7 @@
     ctx.fill();
 
     // Shaded side
-    ctx.fillStyle = COLOURS.tentCanvasDark;
+    ctx.fillStyle = activeColours.tentCanvasDark;
     ctx.beginPath();
     ctx.moveTo(0, -34);
     ctx.lineTo(26, 0);
@@ -434,7 +640,7 @@
     ctx.fill();
 
     // Door flap
-    ctx.fillStyle = COLOURS.tentDoor;
+    ctx.fillStyle = activeColours.tentDoor;
     ctx.beginPath();
     ctx.moveTo(-6, 0);
     ctx.lineTo(0, -22);
@@ -443,17 +649,17 @@
     ctx.fill();
 
     // Ridge pole tip
-    ctx.strokeStyle = COLOURS.tentPole;
+    ctx.strokeStyle = activeColours.tentPole;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, -36);
     ctx.lineTo(0, -32);
     ctx.stroke();
 
-    // Campfire to the right of the tent
-    const fx = 38;
+    // Campfire to the left of the tent
+    const fx = -38;
     const fy = -2;
-    ctx.strokeStyle = COLOURS.fireLog;
+    ctx.strokeStyle = activeColours.fireLog;
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -465,7 +671,7 @@
     ctx.lineCap = 'butt';
 
     const flick = 1 + Math.sin(camp.flicker) * 0.12;
-    ctx.fillStyle = COLOURS.fireOuter;
+    ctx.fillStyle = activeColours.fireOuter;
     ctx.beginPath();
     ctx.moveTo(fx - 6, fy - 1);
     ctx.quadraticCurveTo(fx - 3, fy - 10 * flick, fx, fy - 14 * flick);
@@ -473,7 +679,7 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.fireInner;
+    ctx.fillStyle = activeColours.fireInner;
     ctx.beginPath();
     ctx.moveTo(fx - 3, fy - 1);
     ctx.quadraticCurveTo(fx - 1, fy - 6 * flick, fx, fy - 9 * flick);
@@ -481,7 +687,7 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.fireEmber;
+    ctx.fillStyle = activeColours.fireEmber;
     ctx.beginPath();
     ctx.arc(fx - 4, fy, 1.2, 0, Math.PI * 2);
     ctx.arc(fx + 5, fy + 1, 1, 0, Math.PI * 2);
@@ -496,29 +702,29 @@
     ctx.translate(quail.x, quail.baseY + bob);
     ctx.scale(quail.scale, quail.scale);
 
-    ctx.fillStyle = COLOURS.quailBody;
+    ctx.fillStyle = activeColours.quailBody;
     ctx.beginPath();
     ctx.ellipse(0, -5, 7, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.quailBelly;
+    ctx.fillStyle = activeColours.quailBelly;
     ctx.beginPath();
     ctx.ellipse(-1, -4, 4, 2.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.quailHead;
+    ctx.fillStyle = activeColours.quailHead;
     ctx.beginPath();
     ctx.arc(5, -9, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = COLOURS.quailPlume;
+    ctx.strokeStyle = activeColours.quailPlume;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(5, -12);
     ctx.quadraticCurveTo(3, -15, 4, -17);
     ctx.stroke();
 
-    ctx.fillStyle = COLOURS.quailBeak;
+    ctx.fillStyle = activeColours.quailBeak;
     ctx.beginPath();
     ctx.moveTo(7, -9);
     ctx.lineTo(9, -8);
@@ -526,7 +732,7 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.strokeStyle = COLOURS.quailBeak;
+    ctx.strokeStyle = activeColours.quailBeak;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(-2, 0);
@@ -546,27 +752,27 @@
     ctx.translate(o.x + o.width / 2, baseY);
 
     const shadowScale = Math.max(0.4, 1 - hop / 30);
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = activeColours.shadowLight;
     ctx.beginPath();
     ctx.ellipse(0, hop + 2, o.width * 0.4 * shadowScale, 3 * shadowScale, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.chickenBody;
+    ctx.fillStyle = activeColours.chickenBody;
     ctx.beginPath();
     ctx.ellipse(0, -o.height * 0.55, o.width * 0.4, o.height * 0.45, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.chickenWing;
+    ctx.fillStyle = activeColours.chickenWing;
     ctx.beginPath();
     ctx.ellipse(-o.width * 0.05, -o.height * 0.55, o.width * 0.22, o.height * 0.25, -0.2, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.chickenBody;
+    ctx.fillStyle = activeColours.chickenBody;
     ctx.beginPath();
     ctx.arc(o.width * 0.32, -o.height * 0.95, o.width * 0.18, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.chickenComb;
+    ctx.fillStyle = activeColours.chickenComb;
     ctx.beginPath();
     ctx.arc(o.width * 0.28, -o.height * 1.12, 2.2 * s, 0, Math.PI * 2);
     ctx.arc(o.width * 0.34, -o.height * 1.16, 2.4 * s, 0, Math.PI * 2);
@@ -577,7 +783,7 @@
     ctx.arc(o.width * 0.38, -o.height * 0.82, 1.8 * s, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.chickenBeak;
+    ctx.fillStyle = activeColours.chickenBeak;
     ctx.beginPath();
     ctx.moveTo(o.width * 0.48, -o.height * 0.93);
     ctx.lineTo(o.width * 0.56, -o.height * 0.9);
@@ -585,12 +791,12 @@
     ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = COLOURS.chickenEye;
+    ctx.fillStyle = activeColours.chickenEye;
     ctx.beginPath();
     ctx.arc(o.width * 0.38, -o.height * 0.96, 1.2 * s, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = COLOURS.chickenLeg;
+    ctx.strokeStyle = activeColours.chickenLeg;
     ctx.lineWidth = 2 * s;
     ctx.lineCap = 'round';
     const swing = Math.sin(o.legPhase) * 2 * s;
@@ -616,15 +822,15 @@
 
   const drawGround = () => {
     // Grass strip
-    ctx.fillStyle = COLOURS.grass;
+    ctx.fillStyle = activeColours.grass;
     ctx.fillRect(0, GROUND_Y, WIDTH, HEIGHT - GROUND_Y);
 
     // Darker band near the bottom for depth
-    ctx.fillStyle = COLOURS.grassDark;
+    ctx.fillStyle = activeColours.grassDark;
     ctx.fillRect(0, HEIGHT - 14, WIDTH, 14);
 
     // Horizon line
-    ctx.strokeStyle = COLOURS.groundLine;
+    ctx.strokeStyle = activeColours.groundLine;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, GROUND_Y + 0.5);
@@ -632,7 +838,7 @@
     ctx.stroke();
 
     // Scrolling grass tufts
-    ctx.strokeStyle = COLOURS.grassBlade;
+    ctx.strokeStyle = activeColours.grassBlade;
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     for (let x = -state.groundOffset; x < WIDTH; x += 20) {
@@ -656,31 +862,31 @@
     ctx.translate(o.x + o.width / 2, baseY);
 
     // Body
-    ctx.fillStyle = COLOURS.goatBody;
+    ctx.fillStyle = activeColours.goatBody;
     ctx.beginPath();
     ctx.ellipse(0, -o.height * 0.5, o.width * 0.45, o.height * 0.38, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Belly
-    ctx.fillStyle = COLOURS.goatBelly;
+    ctx.fillStyle = activeColours.goatBelly;
     ctx.beginPath();
     ctx.ellipse(-2, -o.height * 0.4, o.width * 0.28, o.height * 0.22, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Head
-    ctx.fillStyle = COLOURS.goatBody;
+    ctx.fillStyle = activeColours.goatBody;
     ctx.beginPath();
     ctx.ellipse(o.width * 0.42, -o.height * 0.75, o.width * 0.2, o.height * 0.22, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Snout
-    ctx.fillStyle = COLOURS.goatFace;
+    ctx.fillStyle = activeColours.goatFace;
     ctx.beginPath();
     ctx.ellipse(o.width * 0.56, -o.height * 0.68, o.width * 0.1, o.height * 0.1, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Horns
-    ctx.strokeStyle = COLOURS.goatHorn;
+    ctx.strokeStyle = activeColours.goatHorn;
     ctx.lineWidth = 2 * s;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -692,25 +898,25 @@
     ctx.lineCap = 'butt';
 
     // Ear
-    ctx.fillStyle = COLOURS.goatFace;
+    ctx.fillStyle = activeColours.goatFace;
     ctx.beginPath();
     ctx.ellipse(o.width * 0.3, -o.height * 0.88, 4 * s, 3 * s, 0.4, 0, Math.PI * 2);
     ctx.fill();
 
     // Eye
-    ctx.fillStyle = COLOURS.wallabyEye;
+    ctx.fillStyle = activeColours.wallabyEye;
     ctx.beginPath();
     ctx.arc(o.width * 0.48, -o.height * 0.76, 1.6 * s, 0, Math.PI * 2);
     ctx.fill();
 
     // Tail
-    ctx.fillStyle = COLOURS.goatBody;
+    ctx.fillStyle = activeColours.goatBody;
     ctx.beginPath();
     ctx.ellipse(-o.width * 0.42, -o.height * 0.7, 4 * s, 5 * s, 0.3, 0, Math.PI * 2);
     ctx.fill();
 
     // Legs (simple trotting animation)
-    ctx.fillStyle = COLOURS.goatBody;
+    ctx.fillStyle = activeColours.goatBody;
     const swing = Math.sin(o.legPhase) * 2 * s;
     const legW = 4 * s;
     const legH = o.height * 0.35;
@@ -720,7 +926,7 @@
     ctx.fillRect(-o.width * 0.3 - legW / 2 - swing, legTop, legW, legH);
     ctx.fillRect(-o.width * 0.2 - legW / 2 + swing, legTop, legW, legH);
     // Hooves
-    ctx.fillStyle = COLOURS.goatHoof;
+    ctx.fillStyle = activeColours.goatHoof;
     ctx.fillRect(o.width * 0.22 - legW / 2 + swing, -3, legW, 3);
     ctx.fillRect(o.width * 0.32 - legW / 2 - swing, -3, legW, 3);
     ctx.fillRect(-o.width * 0.3 - legW / 2 - swing, -3, legW, 3);
@@ -738,7 +944,7 @@
     ctx.translate(cx, footY);
 
     // Tail
-    ctx.fillStyle = COLOURS.wallabyBody;
+    ctx.fillStyle = activeColours.wallabyBody;
     ctx.beginPath();
     ctx.moveTo(-w.width / 2 + 4, -w.height * 0.45);
     ctx.quadraticCurveTo(-w.width / 2 - 16, -w.height * 0.1, -w.width / 2 - 22, -2);
@@ -747,19 +953,19 @@
     ctx.fill();
 
     // Body
-    ctx.fillStyle = COLOURS.wallabyBody;
+    ctx.fillStyle = activeColours.wallabyBody;
     ctx.beginPath();
     ctx.ellipse(-4, -w.height * 0.45, w.width * 0.42, w.height * 0.4, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Belly
-    ctx.fillStyle = COLOURS.wallabyBelly;
+    ctx.fillStyle = activeColours.wallabyBelly;
     ctx.beginPath();
     ctx.ellipse(-2, -w.height * 0.35, w.width * 0.22, w.height * 0.22, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Head
-    ctx.fillStyle = COLOURS.wallabyBody;
+    ctx.fillStyle = activeColours.wallabyBody;
     ctx.beginPath();
     ctx.ellipse(w.width * 0.28, -w.height * 0.75, w.width * 0.22, w.height * 0.25, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -770,7 +976,7 @@
     ctx.fill();
 
     // Ears
-    ctx.fillStyle = COLOURS.wallabyEar;
+    ctx.fillStyle = activeColours.wallabyEar;
     ctx.beginPath();
     ctx.ellipse(w.width * 0.22, -w.height * 0.98, 4, 10, -0.3, 0, Math.PI * 2);
     ctx.fill();
@@ -779,13 +985,13 @@
     ctx.fill();
 
     // Eye
-    ctx.fillStyle = COLOURS.wallabyEye;
+    ctx.fillStyle = activeColours.wallabyEye;
     ctx.beginPath();
     ctx.arc(w.width * 0.34, -w.height * 0.78, 2.2, 0, Math.PI * 2);
     ctx.fill();
 
     // Legs — animate when grounded
-    ctx.fillStyle = COLOURS.wallabyBody;
+    ctx.fillStyle = activeColours.wallabyBody;
     const legSwing = w.grounded ? Math.sin(w.legPhase) * 5 : -6;
     // Back leg (tucked bigger)
     ctx.beginPath();
@@ -804,7 +1010,7 @@
 
     // Subtle shadow under wallaby
     const shadowScale = Math.max(0.3, 1 - (GROUND_Y - footY) / 180);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillStyle = activeColours.shadow;
     ctx.beginPath();
     ctx.ellipse(cx, GROUND_Y + 2, 20 * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -812,29 +1018,32 @@
 
   const drawOverlay = () => {
     if (state.status === 'running') return;
-    ctx.fillStyle = 'rgba(26,26,46,0.72)';
+    ctx.fillStyle = activeColours.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    ctx.fillStyle = COLOURS.text;
+    ctx.fillStyle = activeColours.text;
     ctx.textAlign = 'center';
     ctx.font = '600 28px system-ui, -apple-system, sans-serif';
     if (state.status === 'ready') {
       ctx.fillText('Wallaby Run', WIDTH / 2, HEIGHT / 2 - 10);
       ctx.font = '16px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = COLOURS.accent;
+      ctx.fillStyle = activeColours.accent;
       ctx.fillText('Tap, click, or press space to start', WIDTH / 2, HEIGHT / 2 + 20);
     } else if (state.status === 'over') {
       ctx.fillText('Ouch!', WIDTH / 2, HEIGHT / 2 - 18);
       ctx.font = '16px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = COLOURS.text;
+      ctx.fillStyle = activeColours.text;
       ctx.fillText(`Score: ${Math.floor(state.score)}   Best: ${state.best}`, WIDTH / 2, HEIGHT / 2 + 8);
-      ctx.fillStyle = COLOURS.accent;
+      ctx.fillStyle = activeColours.accent;
       ctx.fillText('Tap or press space to run again', WIDTH / 2, HEIGHT / 2 + 32);
     }
   };
 
   const render = () => {
-    ctx.fillStyle = COLOURS.sky;
+    activeColours = buildActiveColours(state.nightBlend);
+    const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
+    ctx.fillStyle = activeColours.sky;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawSkyBodies(scorePhase);
     state.clouds.forEach(drawCloud);
     state.trees.forEach(drawTree);
     state.camps.forEach(drawCamp);
