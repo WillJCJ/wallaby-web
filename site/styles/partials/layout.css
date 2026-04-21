@@ -45,14 +45,14 @@ li::before {
 
 main a,
 main a:visited {
-  color: var(--muted-teal);
+  color: var(--tone-link);
   text-decoration: none;
 }
 
 main a:hover,
 main a:focus-visible,
 main a:active {
-  color: var(--muted-teal-bright);
+  color: var(--tone-link-hover);
   text-decoration: none;
 }
 

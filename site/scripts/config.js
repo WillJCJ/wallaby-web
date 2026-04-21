@@ -3,7 +3,9 @@
  */
 export const WALLABY_CONFIG = {
   // Wallaby bounce animation
-  WALLABY_IMG: '/images/wallaby-dark.svg',
+  WALLABY_IMG: '/images/wallaby.svg',
+  WALLABY_ALBINO_IMG: '/images/wallaby-albino.svg',
+  ALBINO_CHANCE: 0.01,
   COUNT: 10,
   SIZE: 60,
   BASE_FRAME_MS: 16,
@@ -20,6 +22,6 @@ export const WALLABY_CONFIG = {
   SHADOW_COLOR: 'rgba(244, 35, 139, 0.7)',
 
   // Opacity states
-  WALLABY_IDLE_OPACITY: 0.9,
-  WALLABY_ACTIVE_OPACITY: 1,
+  WALLABY_IDLE_OPACITY: 0.75,
+  WALLABY_ACTIVE_OPACITY: 0.9,
 };

@@ -5,26 +5,26 @@
 }
 
 :root {
-  /* https://coolors.co/7b3c20-dbb957-605a57-683823-7abbae */
-  --saddle-brown: #7b3c20;
-  --metallic-gold: #dbb957;
-  --charcoal: #605a57;
-  --dark-walnut: #683823;
-  --muted-teal: #7abbae;
-  --neutral-light: #d1d5db;
-  --muted-teal-bright: #95d2c6;
-  --bg: var(--charcoal);
-  --bg-surface: var(--saddle-brown);
-  --bg-card: var(--dark-walnut);
-  --border: var(--saddle-brown);
-  --text: var(--neutral-light);
-  --text-muted: var(--neutral-light);
-  --text-faint: var(--neutral-light);
-  --text-strong: var(--metallic-gold);
-  --text-on-accent: var(--saddle-brown);
-  --accent: var(--metallic-gold);
-  --success: var(--charcoal);
-  --error: var(--saddle-brown);
+  /* Match fallback to default colour scheme (minimalist). */
+  --tone-primary: #4b5563;
+  --tone-accent: #e74c3c;
+  --tone-ink: #2c3e50;
+  --tone-secondary: #34495e;
+  --tone-link: #95a5a6;
+  --tone-soft: #ecf0f1;
+  --tone-link-hover: #bdc3c7;
+  --bg: #ecf0f1;
+  --bg-surface: #4b5563;
+  --bg-card: #34495e;
+  --border: var(--bg-surface);
+  --text: #bdc3c7;
+  --text-muted: var(--text);
+  --text-faint: var(--text);
+  --text-strong: var(--accent);
+  --text-on-accent: #ecf0f1;
+  --accent: #e74c3c;
+  --success: var(--tone-ink);
+  --error: var(--tone-primary);
   --shadow-soft: rgba(123, 60, 32, 0.2);
   --shadow-strong: rgba(123, 60, 32, 0.32);
   --overlay-soft: rgba(123, 60, 32, 0.6);
