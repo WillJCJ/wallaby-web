@@ -18,7 +18,7 @@ const initializePhotosPage = () => {
 
 	let activeIndex = 0;
 
-	const photoUrl = (id) => `/api/photos/${encodeURIComponent(id)}`;
+	const photoUrl = (id) => `/cdn-cgi/image/width=1400,format=auto/api/photos/${encodeURIComponent(id)}`;
 
 	const dataForIndex = (index) => {
 		const tile = tiles[index];

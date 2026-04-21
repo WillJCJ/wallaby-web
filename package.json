@@ -23,6 +23,7 @@
     "build": "npm run build:clean && npm run build:html",
     "dev": "eleventy --config eleventy.js --input=site --output=dist --serve",
     "dev:wrangler": "MINIFY=false wrangler dev --live-reload",
+    "r2:sync-local": "node scripts/sync-r2-local.js",
     "test": "vitest run",
     "test:watch": "vitest"
   }

@@ -15,6 +15,25 @@ const makeEnv = (overrides = {}) => ({
 const makeRequest = (url, options = {}) => new Request(url, options);
 
 // ---------------------------------------------------------------------------
+// /cdn-cgi/image/ local dev shim
+// ---------------------------------------------------------------------------
+
+describe('router /cdn-cgi/image/ shim', () => {
+  it('strips the transform prefix and forwards to the underlying path', async () => {
+    const mockResponse = new Response('img-data', { status: 200 });
+    const mockFetch = vi.fn().mockResolvedValue(mockResponse);
+    vi.stubGlobal('fetch', mockFetch);
+
+    const req = makeRequest('http://localhost/cdn-cgi/image/width=400,format=auto/api/photos/photos/test.jpg');
+    const res = await router.fetch(req, makeEnv());
+
+    expect(res.status).toBe(200);
+    const calledUrl = mockFetch.mock.calls[0][0];
+    expect(new URL(calledUrl).pathname).toBe('/api/photos/photos/test.jpg');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Favicon routing
 // ---------------------------------------------------------------------------
 
