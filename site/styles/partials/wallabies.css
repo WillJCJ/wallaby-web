@@ -144,6 +144,7 @@
 }
 
 .wallaby-card-details {
+  display: none;
   position: relative;
   background: var(--bg-card);
   margin: -0.6rem -1px -1px;
@@ -178,6 +179,7 @@
 }
 
 .wallaby-card[open] .wallaby-card-details {
+  display: block;
   cursor: pointer;
 }
 
