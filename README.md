@@ -1,4 +1,4 @@
-# Wallaby Fest
+# WALLABY FEST
 
 A completely unnecessary website for my yearly birthday festival.
 
