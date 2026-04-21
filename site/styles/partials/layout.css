@@ -45,14 +45,14 @@ li::before {
 
 main a,
 main a:visited {
-  color: var(--muted-teal);
+  color: var(--tone-link);
   text-decoration: none;
 }
 
 main a:hover,
 main a:focus-visible,
 main a:active {
-  color: var(--muted-teal-bright);
+  color: var(--tone-link-hover);
   text-decoration: none;
 }
 
@@ -63,12 +63,99 @@ footer {
   border-top: 1px solid var(--border);
   color: var(--text-faint);
   font-size: 0.8rem;
+  position: relative;
+  overflow: visible;
 }
 
 #footer-version {
   margin-top: 0.4rem;
   font-size: 0.68rem;
   opacity: 0.85;
+}
+
+.colour-scheme-picker {
+  display: inline-block;
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.colour-scheme-picker__label {
+  cursor: pointer;
+  list-style: none;
+  color: var(--text);
+  font-size: 0.8rem;
+  user-select: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.25rem 0.6rem;
+  transition: background 0.15s, color 0.15s;
+  background: var(--bg-card);
+}
+
+.colour-scheme-picker__label::after {
+  content: ' ▲';
+  font-size: 0.6em;
+  opacity: 0.7;
+}
+
+.colour-scheme-picker[open] .colour-scheme-picker__label::after {
+  content: ' ▼';
+}
+
+.colour-scheme-picker__label:hover,
+.colour-scheme-picker__label:focus-visible {
+  background: var(--bg-card);
+  color: var(--text-strong);
+}
+
+.colour-scheme-picker__label::-webkit-details-marker {
+  display: none;
+}
+
+.colour-scheme-picker__list {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem 0;
+  list-style: none;
+  min-width: 180px;
+  z-index: 100;
+  box-shadow: 0 -4px 16px var(--shadow-strong);
+}
+
+.colour-scheme-picker__list li {
+  padding: 0;
+}
+
+.colour-scheme-picker__list li::before {
+  display: none;
+}
+
+.colour-scheme-picker__list button {
+  width: 100%;
+  padding: 0.45rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.colour-scheme-picker__list button:hover,
+.colour-scheme-picker__list button:focus-visible {
+  background: var(--bg-surface);
+  color: var(--text-strong);
+  outline: none;
+}
+
+.colour-scheme-picker__list button[aria-current="true"] {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 @keyframes flash-drop {

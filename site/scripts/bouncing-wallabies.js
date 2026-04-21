@@ -129,6 +129,8 @@ const applyRandomTapImpulse = (state) => {
 const initializeBouncingWallabies = () => {
   const {
     WALLABY_IMG,
+    WALLABY_ALBINO_IMG,
+    ALBINO_CHANCE,
     COUNT,
     SIZE,
     BASE_FRAME_MS,
@@ -342,7 +344,7 @@ const initializeBouncingWallabies = () => {
     el.className = 'wallaby-bouncer';
 
     const img = document.createElement('img');
-    img.src = WALLABY_IMG;
+    img.src = Math.random() < ALBINO_CHANCE ? WALLABY_ALBINO_IMG : WALLABY_IMG;
     img.alt = '';
     img.setAttribute('aria-hidden', 'true');
     el.appendChild(img);

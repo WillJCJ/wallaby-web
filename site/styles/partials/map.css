@@ -6,7 +6,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--charcoal);
+  background: color-mix(in srgb, var(--bg) 88%, #000 12%);
 }
 
 .site-map {

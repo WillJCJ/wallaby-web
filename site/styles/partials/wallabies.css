@@ -4,6 +4,7 @@
   position: relative;
   z-index: 20;
   pointer-events: none;
+  color: var(--tone-ink);
 }
 
 .page-intro h2 {
@@ -11,6 +12,10 @@
   font-weight: 600;
   color: var(--text-strong);
   margin-bottom: 0.5rem;
+}
+
+.page-intro p {
+  color: var(--tone-ink);
 }
 
 .page-intro-tagline {
@@ -55,7 +60,7 @@
 .wallaby-card-photo {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: var(--saddle-brown);
+  background: var(--tone-primary);
   padding: 0.65rem;
   border-radius: 11px 11px 0 0;
   transition: padding 0.18s ease;
