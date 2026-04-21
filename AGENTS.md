@@ -101,7 +101,7 @@ before involving javascript.
 Prefer concise and elegant solutions.
 
 ## Writing Style
-- Use direct present-tense wording when describing behavior.
+- Use direct present-tense wording when describing behaviour.
 - Avoid temporal framing like "now includes", "new feature", or "recently added".
 - Apply the same tone in README text, PR descriptions, comments, and user-facing copy.
 - Use British English spelling and grammar in all written content.
