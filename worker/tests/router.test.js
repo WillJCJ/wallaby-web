@@ -31,6 +31,19 @@ describe('router /cdn-cgi/image/ shim', () => {
     const calledUrl = mockFetch.mock.calls[0][0];
     expect(new URL(calledUrl).pathname).toBe('/api/photos/photos/test.jpg');
   });
+
+  it('redirects small-width photo requests to the blur/ key prefix', async () => {
+    const mockResponse = new Response('blur-data', { status: 200 });
+    const mockFetch = vi.fn().mockResolvedValue(mockResponse);
+    vi.stubGlobal('fetch', mockFetch);
+
+    const req = makeRequest('http://localhost/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/photos/test.jpg');
+    const res = await router.fetch(req, makeEnv());
+
+    expect(res.status).toBe(200);
+    const calledUrl = mockFetch.mock.calls[0][0];
+    expect(new URL(calledUrl).pathname).toBe('/api/photos/blur/photos/test.jpg');
+  });
 });
 
 // ---------------------------------------------------------------------------

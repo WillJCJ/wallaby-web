@@ -19,6 +19,22 @@ Or to run the worker as well:
 npm run dev:wrangler
 ```
 
+### Photos in local dev
+
+Photos are stored in Cloudflare R2 and are not included in the repository. To populate the local Wrangler R2 cache so photos load during `dev:wrangler`, run:
+
+```bash
+npm run r2:sync-local
+```
+
+This requires Cloudflare account access. Authenticate first with:
+
+```bash
+npx wrangler login
+```
+
+The script downloads every photo listed in `site/_data/photos.json` from the remote bucket, compresses them for fast local use, generates blurry LQIP placeholders, and writes all of it into `.wrangler/state/`. The local state persists between dev sessions.
+
 Useful commands:
 
 - `npm run lint`

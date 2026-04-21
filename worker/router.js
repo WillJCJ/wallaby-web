@@ -8,11 +8,25 @@ export default {
 
     // /cdn-cgi/image/ is handled by Cloudflare's edge in production and never
     // reaches the Worker. Locally, Wrangler passes it through, so we strip the
-    // transform options and serve the underlying resource as-is.
+    // transform options and serve the underlying resource directly.
+    // For small-width requests (width <= 60, i.e. LQIP placeholders) pointing at
+    // photo API paths, we serve the pre-generated blur/{key} from local R2 instead.
     if (url.pathname.startsWith('/cdn-cgi/image/')) {
-      const stripped = url.pathname.replace(/^\/cdn-cgi\/image\/[^/]+\//, '/');
+      const afterPrefix = url.pathname.slice('/cdn-cgi/image/'.length);
+      const slashIdx = afterPrefix.indexOf('/');
+      const opts = slashIdx === -1 ? afterPrefix : afterPrefix.slice(0, slashIdx);
+      const innerPath = slashIdx === -1 ? '/' : '/' + afterPrefix.slice(slashIdx + 1);
+
       const inner = new URL(request.url);
-      inner.pathname = stripped;
+      const widthMatch = opts.match(/width=(\d+)/);
+      const width = widthMatch ? parseInt(widthMatch[1], 10) : Infinity;
+
+      if (width <= 60 && innerPath.startsWith('/api/photos/')) {
+        inner.pathname = `/api/photos/blur/${innerPath.slice('/api/photos/'.length)}`;
+      } else {
+        inner.pathname = innerPath;
+      }
+
       return fetch(inner, request);
     }
 

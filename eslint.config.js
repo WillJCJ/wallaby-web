@@ -7,6 +7,10 @@ export default [
         ignores: ['dist/**', '.wrangler/**']
     },
     { languageOptions: { globals: globals.browser } },
+    {
+        files: ['scripts/**/*.js'],
+        languageOptions: { globals: globals.node }
+    },
     pluginJs.configs.recommended,
     {
         plugins: {
