@@ -161,10 +161,12 @@ body:has(.photo-item:target)::before {
   background: rgb(255 255 255 / 15%);
   backdrop-filter: blur(4px);
   color: #fff;
-  font-size: 2.2rem;
-  line-height: 1;
+  font-size: 1.8rem;
+  line-height: 0;
+  padding-bottom: 0.4em;
   text-decoration: none;
   transition: background 0.15s;
+  user-select: none;
 }
 
 .lightbox-nav:hover {
@@ -174,6 +176,11 @@ body:has(.photo-item:target)::before {
 .lightbox-nav:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.lightbox-nav--disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 
 .lightbox-nav--prev {
@@ -199,7 +206,7 @@ body:has(.photo-item:target)::before {
   .lightbox-nav {
     width: 2.5rem;
     height: 2.5rem;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 
   .lightbox-nav--prev {
