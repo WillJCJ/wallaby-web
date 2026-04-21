@@ -4,39 +4,49 @@ title: Photos — Wallaby Fest
 ---
 <div class="page-intro">
   <h2>Photos</h2>
-  <p>Festival highlights. Select a tile to expand it, then use arrows to move through the gallery.</p>
+  <p>Previous festival highlights.</p>
 </div>
 
-<section class="photos-section">
-  <article class="photos-feature" id="photos-feature" tabindex="0" aria-label="Selected photo">
-    <button type="button" class="photo-nav photo-nav--prev" id="photos-prev" aria-label="Previous photo">◀</button>
-    <img id="photos-feature-image" src="" alt="" loading="eager" decoding="async">
-    <p class="photos-feature-caption" id="photos-feature-caption"></p>
-    <button type="button" class="photo-nav photo-nav--next" id="photos-next" aria-label="Next photo">▶</button>
-  </article>
+<section class="photos-gallery" id="photos-top">
+  {% for photo in photos %}
+  <article id="photo-{{ forloop.index }}" class="photo-item" style="--lqip: url('/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/{{ photo.id }}')">  
 
-  <div class="photos-grid" id="photos-grid" role="list" aria-label="Festival photo thumbnails">
-    {% for photo in photos %}
-    <article class="photo-tile" role="listitem" data-index="{{ loop.index0 }}">
-      <button
-        type="button"
-        class="photo-thumb"
-        data-photo-id="{{ photo.id }}"
-        data-photo-alt="{{ photo.alt }}"
-        data-photo-caption="{{ photo.caption }}"
-        aria-label="Open photo {{ loop.index }}: {{ photo.caption }}"
+    <a href="#photo-{{ forloop.index }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
+      <img
+        src="/cdn-cgi/image/width=600,quality=80,format=auto/api/photos/{{ photo.id }}"
+        alt="{{ photo.alt }}"
+        loading="{% if forloop.index <= 12 %}eager{% else %}lazy{% endif %}"
+        fetchpriority="{% if forloop.index <= 4 %}high{% else %}auto{% endif %}"
+        decoding="async"
       >
-        <img
-          src="/cdn-cgi/image/width=400,format=auto/api/photos/{{ photo.id }}"
-          alt="{{ photo.alt }}"
-          loading="lazy"
-          decoding="async"
-        >
-        <span class="photo-caption">{{ photo.caption }}</span>
-      </button>
-    </article>
-    {% endfor %}
-  </div>
-</section>
+    </a>
 
-<script type="module" src="/scripts/photos.js" defer></script>
+    <div class="photo-lightbox">
+      <a href="#photos-top" class="lightbox-close" aria-label="Close"></a>
+      <figure class="lightbox-figure">
+        <div class="lightbox-img-wrap">
+          <img
+            src="/cdn-cgi/image/width=2000,quality=85,format=auto/api/photos/{{ photo.id }}"
+            alt="{{ photo.alt }}"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
+        {% if photo.caption %}<figcaption class="lightbox-caption">{{ photo.caption }}</figcaption>{% endif %}
+      </figure>
+      {% if forloop.first %}
+      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo">&#8249;</a>
+      {% else %}
+      <a href="#photo-{{ forloop.index | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo">&#8249;</a>
+      {% endif %}
+      {% if forloop.last %}
+      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo">&#8250;</a>
+      {% else %}
+      <a href="#photo-{{ forloop.index | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo">&#8250;</a>
+      {% endif %}
+    </div>
+
+  </article>
+  {% endfor %}
+</section>
+<script src="/scripts/photos.js" defer></script>

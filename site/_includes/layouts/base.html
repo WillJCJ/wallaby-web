@@ -12,6 +12,22 @@
     <script src="/scripts/auth-utils.js" defer></script>
     <script src="/scripts/base.js" defer></script>
     <link rel="stylesheet" href="/styles/main.css" type="text/css">
+    {% for photo in photos %}<link rel="prefetch" href="/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/{{ photo.id }}" as="image">
+    {% endfor %}
+    <script type="speculationrules">
+    {
+      "prefetch": [{
+        "source": "document",
+        "where": { "href_matches": "/*" },
+        "eagerness": "moderate"
+      }],
+      "prerender": [{
+        "source": "document",
+        "where": { "href_matches": "/*" },
+        "eagerness": "conservative"
+      }]
+    }
+    </script>
 </head>
 
 <body>

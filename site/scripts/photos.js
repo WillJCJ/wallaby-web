@@ -1,91 +1,39 @@
-const initializePhotosPage = () => {
-	const section = document.querySelector('.photos-section');
-	const grid = document.getElementById('photos-grid');
-	const feature = document.getElementById('photos-feature');
-	const featureImage = document.getElementById('photos-feature-image');
-	const featureCaption = document.getElementById('photos-feature-caption');
-	const prevButton = document.getElementById('photos-prev');
-	const nextButton = document.getElementById('photos-next');
+// Keyboard and swipe navigation for the :target lightbox.
+(() => {
+  const getOpenIndex = () => {
+    const m = location.hash.match(/^#photo-(\d+)$/);
+    return m ? parseInt(m[1], 10) : null;
+  };
 
-	if (!section || !grid || !feature || !featureImage || !featureCaption || !prevButton || !nextButton) {
-		return;
-	}
+  const total = () => document.querySelectorAll('.photo-item').length;
 
-	const tiles = Array.from(grid.querySelectorAll('.photo-tile'));
-	if (tiles.length === 0) {
-		return;
-	}
+  const goTo = (n) => { location.hash = `#photo-${n}`; };
+  const close = () => { location.hash = '#photos-top'; };
 
-	let activeIndex = 0;
+  // ── Keyboard ──
+  document.addEventListener('keydown', (e) => {
+    const i = getOpenIndex();
+    if (i === null) return;
+    if (e.key === 'Escape')           { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowLeft'  && i > 1)        { e.preventDefault(); goTo(i - 1); }
+    else if (e.key === 'ArrowRight' && i < total())  { e.preventDefault(); goTo(i + 1); }
+  });
 
-	const photoUrl = (id) => `/cdn-cgi/image/width=1400,format=auto/api/photos/${encodeURIComponent(id)}`;
+  // ── Touch swipe ──
+  let touchStartX = null;
+  document.addEventListener('touchstart', (e) => {
+    if (getOpenIndex() === null) return;
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
 
-	const dataForIndex = (index) => {
-		const tile = tiles[index];
-		const thumb = tile?.querySelector('.photo-thumb');
-		if (!thumb) {
-			return null;
-		}
-
-		return {
-			id: thumb.dataset.photoId || '',
-			alt: thumb.dataset.photoAlt || '',
-			caption: thumb.dataset.photoCaption || '',
-		};
-	};
-
-	const setActive = (index) => {
-		activeIndex = (index + tiles.length) % tiles.length;
-		tiles.forEach((tile, tileIndex) => {
-			tile.dataset.active = tileIndex === activeIndex ? 'true' : 'false';
-		});
-
-		const photo = dataForIndex(activeIndex);
-		if (!photo || !photo.id) {
-			return;
-		}
-
-		featureImage.src = photoUrl(photo.id);
-		featureImage.alt = photo.alt;
-		featureCaption.textContent = photo.caption;
-	};
-
-	setActive(activeIndex);
-
-	tiles.forEach((tile, index) => {
-		const trigger = tile.querySelector('.photo-thumb');
-
-		trigger?.addEventListener('click', () => {
-			setActive(index);
-			feature.focus();
-		});
-	});
-
-	prevButton.addEventListener('click', () => {
-		setActive(activeIndex - 1);
-		feature.focus();
-	});
-
-	nextButton.addEventListener('click', () => {
-		setActive(activeIndex + 1);
-		feature.focus();
-	});
-
-	section.addEventListener('keydown', (event) => {
-		if (event.key === 'ArrowRight') {
-			event.preventDefault();
-			setActive(activeIndex + 1);
-		}
-
-		if (event.key === 'ArrowLeft') {
-			event.preventDefault();
-			setActive(activeIndex - 1);
-		}
-	});
-};
-
-if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', initializePhotosPage);
-} else {
-	initializePhotosPage();
-}
+  document.addEventListener('touchend', (e) => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    touchStartX = null;
+    if (Math.abs(dx) < 50) return;
+    const i = getOpenIndex();
+    if (i === null) return;
+    if (dx > 0 && i > 1)       goTo(i - 1);
+    else if (dx < 0 && i < total()) goTo(i + 1);
+  }, { passive: true });
+})();
