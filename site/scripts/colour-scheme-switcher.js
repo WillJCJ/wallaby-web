@@ -30,15 +30,13 @@ function initializeColourScheme() {
   const savedScheme = localStorage.getItem(STORAGE_KEY) || DEFAULT_SCHEME;
   applyColourScheme(savedScheme);
 
-  // Bind click to the whole brand element (logo + title), preventing navigation
+  // Bind click to the logo button to cycle the colour scheme
   const brand = document.querySelector('.site-brand--interactive');
   if (brand) {
-    brand.addEventListener('click', (e) => {
-      e.preventDefault();
+    brand.addEventListener('click', () => {
       cycleColourScheme();
     });
     brand.setAttribute('title', 'Click to change colour scheme');
-    brand.style.cursor = 'pointer';
   }
 
   // Populate footer picker list

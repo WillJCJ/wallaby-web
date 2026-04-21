@@ -1,13 +1,4 @@
 @media (width <= 640px) {
-  header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-  }
-
-  nav a:first-child {
-    margin-left: 0;
-  }
 
   .wallaby-grid {
     grid-template-columns: 1fr;
