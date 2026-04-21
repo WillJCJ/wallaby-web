@@ -1,6 +1,9 @@
 .page-intro {
   text-align: center;
   padding: 3rem 2rem 2rem;
+  position: relative;
+  z-index: 20;
+  pointer-events: none;
 }
 
 .page-intro h2 {
