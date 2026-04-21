@@ -130,13 +130,16 @@ function cycleColourScheme() {
 function showSchemeChangeNotification(scheme) {
   const displayName = schemeDisplayName(scheme);
 
+  const header = document.querySelector('header');
+  const topOffset = header ? (header.offsetHeight + 8) : 80;
+
   // Create notification element
   const notification = document.createElement('div');
   notification.className = 'colour-scheme-notification';
   notification.textContent = `Colour scheme: ${displayName}`;
   notification.style.cssText = `
     position: fixed;
-    top: 80px;
+    top: ${topOffset}px;
     left: 50%;
     transform: translateX(-50%);
     padding: 0.75rem 1.5rem;

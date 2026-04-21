@@ -24,12 +24,14 @@ title: Photos — Wallaby Fest
     <div class="photo-lightbox">
       <a href="#photos-top" class="lightbox-close" aria-label="Close"></a>
       <figure class="lightbox-figure">
-        <img
-          src="/cdn-cgi/image/width=2000,quality=85,format=auto/api/photos/{{ photo.id }}"
-          alt="{{ photo.alt }}"
-          loading="lazy"
-          decoding="async"
-        >
+        <div class="lightbox-img-wrap">
+          <img
+            src="/cdn-cgi/image/width=2000,quality=85,format=auto/api/photos/{{ photo.id }}"
+            alt="{{ photo.alt }}"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
         {% if photo.caption %}<figcaption class="lightbox-caption">{{ photo.caption }}</figcaption>{% endif %}
       </figure>
       {% unless forloop.first %}
