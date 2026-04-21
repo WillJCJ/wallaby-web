@@ -21,45 +21,48 @@
   const SPEED_GROWTH = 8;
 
   const COLOURS = {
-    sky: '#1a1a2e',
-    groundLine: '#1f3a20',
-    grass: '#2f6b32',
-    grassDark: '#244f26',
-    grassBlade: '#3f8a44',
-    wallabyBody: '#9d6620',
-    wallabyBelly: '#bb9864',
+    sky: '#7abbae',
+    groundLine: '#7b3c20',
+    grass: '#a36d90',
+    grassDark: '#7b3c20',
+    grassBlade: '#cc7e85',
+    wallabyBody: '#7b3c20',
+    wallabyBelly: '#dbb957',
     wallabyEar: '#7b3c20',
-    wallabyEye: '#111827',
-    goatBody: '#e8e6df',
-    goatBelly: '#f7f5ee',
-    goatHoof: '#2a2a33',
-    goatHorn: '#5a4a35',
-    goatFace: '#cdbfa6',
-    treeTrunk: '#3a2a1b',
-    treeCanopy: '#1f4a24',
-    treeCanopyDark: '#173619',
-    cloud: '#2d2d3a',
-    tentCanvas: '#b55a2a',
-    tentCanvasDark: '#8a3f1c',
-    tentPole: '#3a2a1b',
-    tentDoor: '#2a1810',
-    fireLog: '#3a2a1b',
-    fireOuter: '#f5a524',
-    fireInner: '#fde68a',
-    fireEmber: '#dc2626',
-    quailBody: '#7a5a3a',
-    quailBelly: '#d9c4a0',
-    quailHead: '#5a3f26',
-    quailBeak: '#2a1810',
-    quailPlume: '#2a1810',
-    chickenBody: '#f5f5f5',
-    chickenWing: '#d6d0c4',
-    chickenComb: '#dc2626',
-    chickenBeak: '#f5a524',
-    chickenLeg: '#f5a524',
-    chickenEye: '#111827',
-    text: '#e8e6df',
-    accent: '#f5c842',
+    wallabyEye: '#7b3c20',
+    goatBody: '#7abbae',
+    goatBelly: '#dbb957',
+    goatHoof: '#7b3c20',
+    goatHorn: '#a36d90',
+    goatFace: '#cc7e85',
+    treeTrunk: '#7b3c20',
+    treeCanopy: '#a36d90',
+    treeCanopyDark: '#7b3c20',
+    cloud: '#cc7e85',
+    tentCanvas: '#cc7e85',
+    tentCanvasDark: '#a36d90',
+    tentPole: '#7b3c20',
+    tentDoor: '#7b3c20',
+    fireLog: '#7b3c20',
+    fireOuter: '#dbb957',
+    fireInner: '#7abbae',
+    fireEmber: '#cc7e85',
+    quailBody: '#a36d90',
+    quailBelly: '#dbb957',
+    quailHead: '#7b3c20',
+    quailBeak: '#7b3c20',
+    quailPlume: '#7b3c20',
+    chickenBody: '#7abbae',
+    chickenWing: '#cc7e85',
+    chickenComb: '#cc7e85',
+    chickenBeak: '#dbb957',
+    chickenLeg: '#dbb957',
+    chickenEye: '#7b3c20',
+    text: '#dbb957',
+    accent: '#dbb957',
+    shadow: 'rgba(123, 60, 32, 0.35)',
+    shadowLight: 'rgba(123, 60, 32, 0.3)',
+    overlay: 'rgba(123, 60, 32, 0.72)',
   };
 
   const state = {
@@ -410,7 +413,7 @@
     ctx.scale(camp.scale, camp.scale);
 
     // Tent shadow on the ground
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillStyle = COLOURS.shadow;
     ctx.beginPath();
     ctx.ellipse(-4, 2, 34, 4, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -546,7 +549,7 @@
     ctx.translate(o.x + o.width / 2, baseY);
 
     const shadowScale = Math.max(0.4, 1 - hop / 30);
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = COLOURS.shadowLight;
     ctx.beginPath();
     ctx.ellipse(0, hop + 2, o.width * 0.4 * shadowScale, 3 * shadowScale, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -804,7 +807,7 @@
 
     // Subtle shadow under wallaby
     const shadowScale = Math.max(0.3, 1 - (GROUND_Y - footY) / 180);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillStyle = COLOURS.shadow;
     ctx.beginPath();
     ctx.ellipse(cx, GROUND_Y + 2, 20 * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -812,7 +815,7 @@
 
   const drawOverlay = () => {
     if (state.status === 'running') return;
-    ctx.fillStyle = 'rgba(26,26,46,0.72)';
+    ctx.fillStyle = COLOURS.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = COLOURS.text;
     ctx.textAlign = 'center';
