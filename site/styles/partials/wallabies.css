@@ -10,6 +10,11 @@
   margin-bottom: 0.5rem;
 }
 
+.page-intro-tagline {
+  color: var(--accent);
+  padding-block: 0.5rem;
+}
+
 .page-intro-actions {
   margin-top: 0.75rem;
 }
@@ -21,6 +26,7 @@
 .wallaby-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: start;
   gap: 1.5rem;
   max-width: 960px;
   margin: 0 auto;
@@ -108,6 +114,10 @@
 }
 
 .wallaby-card-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 6.1rem;
   padding: 1.25rem;
 }
 
@@ -115,12 +125,13 @@
   font-size: 1.15rem;
   font-weight: 600;
   color: #fff;
-  margin-bottom: 0.25rem;
+  margin: 0;
 }
 
 .wallaby-alias {
   font-size: 0.85rem;
   color: var(--accent);
+  margin: 0;
 }
 
 .wallaby-alias-wrapper {
@@ -137,11 +148,9 @@
 }
 
 .wallaby-card-details {
-  position: absolute;
-  top: calc(100% - 0.6rem);
-  left: -1px;
-  right: -1px;
+  position: relative;
   background: var(--bg-card);
+  margin: -0.6rem -1px -1px;
   border: 1px solid var(--accent);
   border-top: 0;
   border-radius: 0 0 12px 12px;
@@ -153,6 +162,7 @@
   z-index: 20;
   border-color: var(--accent);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
 }
 
 .wallaby-card[open] .wallaby-card-photo {
@@ -169,6 +179,10 @@
 
 .wallaby-card[open] .wallaby-card-image-full {
   opacity: 1;
+}
+
+.wallaby-card[open] .wallaby-card-details {
+  cursor: pointer;
 }
 
 .wallaby-desc {

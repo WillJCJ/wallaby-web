@@ -12,10 +12,6 @@
   .wallaby-grid {
     grid-template-columns: 1fr;
   }
-
-  .wallaby-card-details {
-    top: calc(100% - 0.4rem);
-  }
 }
 
 @media (hover: none) {
