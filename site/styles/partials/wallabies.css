@@ -10,6 +10,11 @@
   margin-bottom: 0.5rem;
 }
 
+.page-intro-tagline {
+  color: var(--accent);
+  padding-block: 0.5rem;
+}
+
 .page-intro-actions {
   margin-top: 0.75rem;
 }
@@ -17,6 +22,7 @@
 .wallaby-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: start;
   gap: 1.5rem;
   max-width: 960px;
   margin: 0 auto;
@@ -34,7 +40,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
   pointer-events: auto;
 }
@@ -89,8 +95,13 @@
   color: inherit;
   text-align: left;
   padding: 0;
-  cursor: default;
+  cursor: pointer;
   border-radius: 11px;
+  list-style: none;
+}
+
+.wallaby-card-toggle::-webkit-details-marker {
+  display: none;
 }
 
 .wallaby-card-toggle:focus-visible {
@@ -99,6 +110,10 @@
 }
 
 .wallaby-card-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 6.1rem;
   padding: 1.25rem;
 }
 
@@ -106,12 +121,13 @@
   font-size: 1.15rem;
   font-weight: 600;
   color: #fff;
-  margin-bottom: 0.25rem;
+  margin: 0;
 }
 
 .wallaby-alias {
   font-size: 0.85rem;
   color: var(--accent);
+  margin: 0;
 }
 
 .wallaby-alias-wrapper {
@@ -128,57 +144,41 @@
 }
 
 .wallaby-card-details {
-  position: static;
+  position: relative;
   background: var(--bg-card);
-  border-top: 1px solid var(--border);
-  border-radius: 0 0 12px 12px;
-  padding: 1.25rem;
-  box-shadow: none;
-}
-
-.js .wallaby-card {
-  overflow: visible;
-}
-
-.js .wallaby-card-toggle {
-  cursor: pointer;
-}
-
-.js .wallaby-card.is-open {
-  z-index: 20;
-  border-color: var(--accent);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-}
-
-.js .wallaby-card.is-open .wallaby-card-photo {
-  padding: 0;
-}
-
-.js .wallaby-card.is-open .wallaby-card-image-frame {
-  border-radius: 11px 11px 0 0;
-}
-
-.js .wallaby-card.is-open .wallaby-card-image-thumb {
-  opacity: 0;
-}
-
-.js .wallaby-card.is-open .wallaby-card-image-full {
-  opacity: 1;
-}
-
-.js .wallaby-card-details {
-  display: none;
-  position: absolute;
-  top: calc(100% - 0.6rem);
-  left: -1px;
-  right: -1px;
+  margin: -0.6rem -1px -1px;
   border: 1px solid var(--accent);
   border-top: 0;
+  border-radius: 0 0 12px 12px;
+  padding: 1.25rem;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
 }
 
-.js .wallaby-card.is-open .wallaby-card-details {
-  display: block;
+.wallaby-card[open] {
+  z-index: 20;
+  border-color: var(--accent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.wallaby-card[open] .wallaby-card-photo {
+  padding: 0;
+}
+
+.wallaby-card[open] .wallaby-card-image-frame {
+  border-radius: 11px 11px 0 0;
+}
+
+.wallaby-card[open] .wallaby-card-image-thumb {
+  opacity: 0;
+}
+
+.wallaby-card[open] .wallaby-card-image-full {
+  opacity: 1;
+}
+
+.wallaby-card[open] .wallaby-card-details {
+  cursor: pointer;
 }
 
 .wallaby-desc {

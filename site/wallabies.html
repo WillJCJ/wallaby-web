@@ -4,7 +4,8 @@ title: Meet the Wallabies — WallabyFest
 ---
 <div class="page-intro">
   <h2>Meet the Wallabies</h2>
-  <p>Our current roster. Click a card to learn more.</p>
+  <p class="page-intro-tagline">Click a card to learn more.</p>
+  <p>Our current roster.</p>
   <p>Why does Jackie have five wallabies hopping around her home? Well if you ask her she'd say "Well we used to have wallabies 20 years ago so..."</p>
   <p>So that obviously doesn't explain it but we're all glad they're here!</p>
 </div>
@@ -13,13 +14,8 @@ title: Meet the Wallabies — WallabyFest
   {% for wallaby in wallabies %}
   {% assign thumbnailYOffset = wallaby.thumbnailYOffset | default: '0px' %}
   {% assign imgYOffset = wallaby.imgYOffset | default: '0px' %}
-  <div class="wallaby-card" style="--wallaby-thumbnail-offset-y: {{ thumbnailYOffset }}; --wallaby-image-offset-y: {{ imgYOffset }};">
-    <button
-      class="wallaby-card-toggle"
-      type="button"
-      aria-expanded="false"
-      aria-controls="wallaby-details-{{ loop.index }}"
-    >
+  <details class="wallaby-card" name="wallaby-accordion" style="--wallaby-thumbnail-offset-y: {{ thumbnailYOffset }}; --wallaby-image-offset-y: {{ imgYOffset }};">
+    <summary class="wallaby-card-toggle">
       <div class="wallaby-card-photo">
         <div class="wallaby-card-image-frame">
           <img
@@ -44,8 +40,8 @@ title: Meet the Wallabies — WallabyFest
         </div>
         {% endif %}
       </div>
-    </button>
-    <div id="wallaby-details-{{ loop.index }}" class="wallaby-card-details">
+    </summary>
+    <div class="wallaby-card-details">
       <p class="wallaby-desc">{{ wallaby.desc }}</p>
       <div class="wallaby-stats">
         {% for stat in wallaby.stats %}
@@ -61,9 +57,9 @@ title: Meet the Wallabies — WallabyFest
         {% endfor %}
       </div>
     </div>
-  </div>
+  </details>
   {% endfor %}
 </div>
 
-<script type="module" src="/scripts/card-interactions.js" defer></script>
+<script type="module" src="/scripts/wallaby-cards.js" defer></script>
 <script type="module" src="/scripts/bouncing-wallabies.js" defer></script>
