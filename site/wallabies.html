@@ -12,20 +12,24 @@ title: Meet the Wallabies — WallabyFest
 
 <div class="wallaby-grid">
   {% for wallaby in wallabies %}
-  {% assign thumbnailYOffset = wallaby.thumbnailYOffset | default: '0px' %}
-  {% assign imgYOffset = wallaby.imgYOffset | default: '0px' %}
-  <details class="wallaby-card" name="wallaby-accordion" style="--wallaby-thumbnail-offset-y: {{ thumbnailYOffset }}; --wallaby-image-offset-y: {{ imgYOffset }};">
+  {% assign thumbBase = wallaby.thumbnail | remove: '.webp' %}
+  {% assign imgBase = wallaby.img | remove: '.webp' %}
+  <details class="wallaby-card" name="wallaby-accordion">
     <summary class="wallaby-card-toggle">
       <div class="wallaby-card-photo">
         <div class="wallaby-card-image-frame">
           <img
             class="wallaby-card-image wallaby-card-image-thumb"
-            src="{{ wallaby.thumbnail }}"
+            src="{{ thumbBase }}-960w.webp"
+            srcset="{{ thumbBase }}-480w.webp 480w, {{ thumbBase }}-960w.webp 960w"
+            sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
             alt="{{ wallaby.name }}"
           />
           <img
             class="wallaby-card-image wallaby-card-image-full"
-            src="{{ wallaby.img }}"
+            src="{{ imgBase }}-960w.webp"
+            srcset="{{ imgBase }}-480w.webp 480w, {{ imgBase }}-960w.webp 960w"
+            sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
             alt=""
             aria-hidden="true"
           />
@@ -35,7 +39,7 @@ title: Meet the Wallabies — WallabyFest
         <h3>{{ wallaby.name }}</h3>
         {% if wallaby.alias %}
         <div class="wallaby-alias-wrapper">
-          <div class="wallaby-alias-label">Alias</div>
+          <div class="wallaby-alias-label label-caption">Alias</div>
           <p class="wallaby-alias">{{ wallaby.alias }}</p>
         </div>
         {% endif %}
@@ -47,10 +51,10 @@ title: Meet the Wallabies — WallabyFest
         {% for stat in wallaby.stats %}
         <div class="stat">
           {% if stat[0] == "DoB" %}
-          <div class="stat-label">Age</div>
+          <div class="stat-label label-caption">Age</div>
           <div class="stat-value">{{ stat[1] | age }}</div>
           {% else %}
-          <div class="stat-label">{{ stat[0] }}</div>
+          <div class="stat-label label-caption">{{ stat[0] }}</div>
           <div class="stat-value">{{ stat[1] }}</div>
           {% endif %}
         </div>

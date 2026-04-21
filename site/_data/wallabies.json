@@ -5,7 +5,6 @@
     "alias": "Andy",
     "tagline": "The OG",
     "thumbnail": "/images/wallabies/andrew-thumbnail.webp",
-    "thumbnailYOffset": "-20%",
     "img": "/images/wallabies/andrew-feature.webp",
     "desc": "Unwitting star of The Yorkshire Vet, Andrew first came to The Firs as 'Kathleen' along with Kevin<sup>†</sup> in 2020. His brief stint as Kathleen ended on a hot summers day when it was discovered he had a big pair of balls to match his fieldmate.<br>These balls became a problem though after he fathered 3 joeys in two years. So, in October 2025, the vet came round with a dart gun and poor Andrew woke up missing the aforementioned balls.<br>He got the last laugh though because Jackie let him back in with his girls too soon so there are two more babies for 2026.",
     "stats": {
@@ -21,7 +20,6 @@
     "alias": "Annie",
     "tagline": "Mary-Anne to her mum",
     "thumbnail": "/images/wallabies/annie-thumbnail.webp",
-    "thumbnailYOffset": "-10%",
     "img": "/images/wallabies/annie-feature.webp",
     "desc": "Annie joined Jackie's meagerie in 2022 as a replacement for Kevin<sup>†</sup>.<br>She enjoys socialising with Tony and Heidi the goats or hopping about with her daugher Kathleen.",
     "stats": {
@@ -36,9 +34,7 @@
     "name": "Kathleen",
     "tagline": "Smol",
     "thumbnail": "/images/wallabies/kathleen-thumbnail.webp",
-    "thumbnailYOffset": "25%",
     "img": "/images/wallabies/kathleen-feature.webp",
-    "imgYOffset": "-10%",
     "desc": "Kathleen enjoys seeing everyone come to visit The Firs but requests that they keep the noise down a bit. She's got a young joey to raise and could do without all this racket.<br>Kathleen will still gladly accept a biscuit here and there though. She might even eat it out your hand if you're gentle.",
     "stats": {
       "DoB": "2023-04-01",
@@ -66,9 +62,7 @@
     "alias": "Perky",
     "tagline": "Name TBC. Maybe a naming competition at Wallaby Fest??",
     "thumbnail": "/images/wallabies/joey-thumbnail.webp",
-    "thumbnailYOffset": "-10%",
     "img": "/images/wallabies/joey-thumbnail.webp",
-    "imgYOffset": "-10%",
     "desc": "The as-yet-unnamed baby of Kathleen, we'll call them Joey for now.<br>Joey asks that you don't look too closely at their family tree or you will see Andrew appear twice.<br>Joey hopes that they turn out to be a girl wallaby so their balls don't suffer the same fate as Andrew's",
     "stats": {
       "DoB": "2026-02-01",

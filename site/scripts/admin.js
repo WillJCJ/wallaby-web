@@ -1,3 +1,5 @@
+import { apiFetch } from '/scripts/api-utils.js';
+
 (() => {
   const status = document.getElementById('guest-admin-status');
   const form = document.getElementById('guest-admin-form');
@@ -78,29 +80,14 @@
   };
 
   const fetchGuests = async () => {
-    const response = await fetch('/api/private/guests', {
-      method: 'GET',
-      credentials: 'same-origin',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.error || 'Unable to load guests right now.');
-    }
-
-    const data = await response.json();
+    const data = await (await apiFetch('/api/private/guests')).json();
     return Array.isArray(data?.guests) ? data.guests : [];
   };
 
   const addGuest = async () => {
-    const response = await fetch('/api/private/guests', {
+    return (await apiFetch('/api/private/guests', {
       method: 'POST',
-      credentials: 'same-origin',
-      cache: 'no-store',
-      headers: {
-        'content-type': 'application/json',
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         name: fields.name.value.trim(),
         email: fields.email.value.trim(),
@@ -109,14 +96,7 @@
         dietaryRequirements: fields.dietaryRequirements.value.trim(),
         rsvpMessage: fields.rsvpMessage.value.trim(),
       }),
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.error || 'Unable to add guest right now.');
-    }
-
-    return response.json();
+    })).json();
   };
 
   const resetForm = () => {
