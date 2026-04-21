@@ -1,44 +1,59 @@
 import { WALLABY_CONFIG } from './config.js';
 
+// ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+
 /**
- * Calculate the velocity magnitude (speed) of a wallaby
- * @param {number} vx - Horizontal velocity
- * @param {number} vy - Vertical velocity
- * @returns {number} Speed magnitude
+ * Return the magnitude of a 2D velocity vector.
+ * @param {number} vx
+ * @param {number} vy
+ * @returns {number}
  */
 const getSpeed = (vx, vy) => Math.hypot(vx, vy);
 
 /**
- * Calculate drop-shadow filter value based on wallaby speed
- * @param {number} speed - Current speed of the wallaby
- * @returns {string} CSS filter value
+ * Resolve page-space coordinates from a pointer event.
+ * Falls back to clientX/Y + scroll offset when pageX/Y are absent.
+ * @param {PointerEvent} event
+ * @returns {{ x: number, y: number }}
+ */
+const getPagePos = (event) => ({
+  x: event.pageX ?? event.clientX + window.scrollX,
+  y: event.pageY ?? event.clientY + window.scrollY,
+});
+
+// ---------------------------------------------------------------------------
+// Physics helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Calculate a CSS drop-shadow filter string scaled by wallaby speed.
+ * @param {number} speed
+ * @returns {string}
  */
 const calculateShadowFilter = (speed) => {
   const { SHADOW_MIN_SPEED, SHADOW_MAX_RADIUS, MAX_SPEED, SHADOW_COLOR } = WALLABY_CONFIG;
-  const shadowProgress = Math.max(
-    0,
-    Math.min(1, (speed - SHADOW_MIN_SPEED) / (MAX_SPEED - SHADOW_MIN_SPEED))
-  );
-  const shadowRadius = SHADOW_MAX_RADIUS * shadowProgress;
-  return `drop-shadow(0px 0px ${shadowRadius}px ${SHADOW_COLOR})`;
+  const progress = Math.max(0, Math.min(1, (speed - SHADOW_MIN_SPEED) / (MAX_SPEED - SHADOW_MIN_SPEED)));
+  return `drop-shadow(0px 0px ${SHADOW_MAX_RADIUS * progress}px ${SHADOW_COLOR})`;
 };
 
 /**
- * Clamp velocity to maximum speed
- * @param {object} state - Wallaby state object
+ * Clamp a wallaby's linear speed to MAX_SPEED.
+ * @param {object} state
  */
 const clampVelocity = (state) => {
   const speed = getSpeed(state.vx, state.vy);
-
-  if (speed <= WALLABY_CONFIG.MAX_SPEED) {
-    return;
-  }
-
+  if (speed <= WALLABY_CONFIG.MAX_SPEED) return;
   const scale = WALLABY_CONFIG.MAX_SPEED / speed;
   state.vx *= scale;
   state.vy *= scale;
 };
 
+/**
+ * Clamp a wallaby's angular speed to ±MAX_ANGULAR_SPEED.
+ * @param {object} state
+ */
 const clampAngularVelocity = (state) => {
   const { MAX_ANGULAR_SPEED } = WALLABY_CONFIG;
   if (Math.abs(state.omega) > MAX_ANGULAR_SPEED) {
@@ -46,14 +61,16 @@ const clampAngularVelocity = (state) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Geometry helpers
+// ---------------------------------------------------------------------------
+
 /**
- * Get bounding rectangles for all wallaby cards on the page
- * Coordinates are in scroll-aware document space
- * @returns {Array} Array of bound objects with left, right, top, bottom
+ * Return bounding boxes for all `.wallaby-card` elements in document space.
+ * @returns {Array<{ left: number, right: number, top: number, bottom: number }>}
  */
-const getCardBounds = () => {
-  const cardElements = Array.from(document.querySelectorAll('.wallaby-card'));
-  return cardElements.map((card) => {
+const getCardBounds = () =>
+  Array.from(document.querySelectorAll('.wallaby-card')).map((card) => {
     const rect = card.getBoundingClientRect();
     return {
       left: rect.left + window.scrollX,
@@ -62,108 +79,103 @@ const getCardBounds = () => {
       bottom: rect.bottom + window.scrollY,
     };
   });
-};
 
 /**
- * Check if a wallaby at position (x, y) intersects any card
- * @param {number} x - X position
- * @param {number} y - Y position
- * @param {Array} cardBounds - Array of card bounds
- * @returns {boolean} True if intersection detected
+ * Return true if the wallaby box at (x, y) overlaps any card.
+ * @param {number} x
+ * @param {number} y
+ * @param {Array} cardBounds
+ * @returns {boolean}
  */
 const intersectsAnyCard = (x, y, cardBounds) => {
   const { SIZE } = WALLABY_CONFIG;
   return cardBounds.some(
-    (bounds) =>
-      x < bounds.right && x + SIZE > bounds.left && y < bounds.bottom && y + SIZE > bounds.top
+    (b) => x < b.right && x + SIZE > b.left && y < b.bottom && y + SIZE > b.top
   );
 };
 
+// ---------------------------------------------------------------------------
+// Pointer interaction helpers
+// ---------------------------------------------------------------------------
+
 /**
- * Apply hover/push force from pointer to wallaby state
- * @param {object} state - Wallaby state object
- * @param {PointerEvent} event - Pointer event
+ * Push a wallaby away from the pointer using a distance-falloff impulse.
+ * @param {object} state
+ * @param {PointerEvent} event
  */
 const applyHoverPush = (state, event) => {
   const { SIZE, HOVER_PUSH_IMPULSE, HOVER_PUSH_RADIUS } = WALLABY_CONFIG;
-  const pointerX = event.pageX ?? event.clientX + window.scrollX;
-  const pointerY = event.pageY ?? event.clientY + window.scrollY;
+  const pos = getPagePos(event);
   const centerX = state.x + SIZE / 2;
   const centerY = state.y + SIZE / 2;
-  let offsetX = centerX - pointerX;
-  let offsetY = centerY - pointerY;
-  let distance = Math.hypot(offsetX, offsetY);
+  let dx = centerX - pos.x;
+  let dy = centerY - pos.y;
+  let dist = Math.hypot(dx, dy);
 
-  if (distance >= HOVER_PUSH_RADIUS) {
-    return;
+  if (dist >= HOVER_PUSH_RADIUS) return;
+
+  if (dist < 1) {
+    dx = 0;
+    dy = -1;
+    dist = 1;
   }
 
-  if (distance < 1) {
-    offsetX = 0;
-    offsetY = -1;
-    distance = 1;
-  }
-
-  const distanceFalloff = 1 - distance / HOVER_PUSH_RADIUS;
-  const pushStrength = HOVER_PUSH_IMPULSE * distanceFalloff * distanceFalloff;
-  const normalizedX = offsetX / distance;
-  const normalizedY = offsetY / distance;
-
-  state.vx += normalizedX * pushStrength;
-  state.vy += normalizedY * pushStrength;
+  const falloff = 1 - dist / HOVER_PUSH_RADIUS;
+  const strength = HOVER_PUSH_IMPULSE * falloff * falloff;
+  state.vx += (dx / dist) * strength;
+  state.vy += (dy / dist) * strength;
   clampVelocity(state);
 };
 
 /**
- * Apply a rotational impulse based on pointer orbit around the wallaby.
+ * Add a rotational impulse based on pointer orbit around the wallaby.
  * Projects pointer movement onto the tangent of the circle, converting
  * tangential pointer velocity into angular momentum.
- * @param {object} state - Wallaby state object
- * @param {PointerEvent} event - Pointer event
+ * @param {object} state
+ * @param {PointerEvent} event
  */
 const applyHoverSpin = (state, event) => {
   const { SIZE, HOVER_ANGULAR_SCALE } = WALLABY_CONFIG;
-  const ptrX = event.pageX ?? event.clientX + window.scrollX;
-  const ptrY = event.pageY ?? event.clientY + window.scrollY;
+  const pos = getPagePos(event);
 
   if (state.hoverPtrX === null) {
-    state.hoverPtrX = ptrX;
-    state.hoverPtrY = ptrY;
+    state.hoverPtrX = pos.x;
+    state.hoverPtrY = pos.y;
     return;
   }
 
   const centerX = state.x + SIZE / 2;
   const centerY = state.y + SIZE / 2;
-  // Radius vector from wallaby centre to last pointer position
+  // Radius vector from wallaby centre to last known pointer position.
   const dx = state.hoverPtrX - centerX;
   const dy = state.hoverPtrY - centerY;
   const r = Math.hypot(dx, dy);
 
   if (r > 1) {
-    const moveDx = ptrX - state.hoverPtrX;
-    const moveDy = ptrY - state.hoverPtrY;
-    // Project pointer movement onto the unit tangent (-dy/r, dx/r)
-    const tangentialVelocity = (moveDx * -dy + moveDy * dx) / r;
-    state.omega += tangentialVelocity * HOVER_ANGULAR_SCALE;
+    const moveDx = pos.x - state.hoverPtrX;
+    const moveDy = pos.y - state.hoverPtrY;
+    // Project movement onto the unit tangent (-dy/r, dx/r).
+    const tangential = (moveDx * -dy + moveDy * dx) / r;
+    state.omega += tangential * HOVER_ANGULAR_SCALE;
     clampAngularVelocity(state);
   }
 
-  state.hoverPtrX = ptrX;
-  state.hoverPtrY = ptrY;
+  state.hoverPtrX = pos.x;
+  state.hoverPtrY = pos.y;
 };
 
 /**
- * Apply a random directional impulse to a wallaby state.
- * @param {object} state - Wallaby state object
+ * Apply a tap impulse directed away from the click point relative to the wallaby centre.
+ * @param {object} state
+ * @param {PointerEvent} event
  */
 const applyTapImpulse = (state, event) => {
   const { SIZE, CLICK_IMPULSE } = WALLABY_CONFIG;
-  const ptrX = event.pageX ?? event.clientX + window.scrollX;
-  const ptrY = event.pageY ?? event.clientY + window.scrollY;
+  const pos = getPagePos(event);
   const centerX = state.x + SIZE / 2;
   const centerY = state.y + SIZE / 2;
-  let dx = centerX - ptrX;
-  let dy = centerY - ptrY;
+  let dx = centerX - pos.x;
+  let dy = centerY - pos.y;
   const dist = Math.hypot(dx, dy);
 
   // If the pointer is exactly on the centre, fall back to a random direction.
@@ -181,12 +193,15 @@ const applyTapImpulse = (state, event) => {
   clampVelocity(state);
 };
 
-/**
- * Initialize bouncing wallaby animation
- * Creates a layer of bouncing wallabies with physics simulation,
- * collision detection, and pointer interaction
- */
+// ---------------------------------------------------------------------------
+// Main initialisation
+// ---------------------------------------------------------------------------
 
+/**
+ * Initialise the bouncing wallaby animation.
+ * Creates a physics-simulated layer of wallabies with collision detection
+ * and pointer interaction.
+ */
 const initializeBouncingWallabies = () => {
   const {
     WALLABY_IMG,
@@ -195,24 +210,34 @@ const initializeBouncingWallabies = () => {
     SIZE,
     BASE_FRAME_MS,
     MAX_FRAME_MS,
+    MAX_SPEED,
+    MAX_ANGULAR_SPEED,
     ANGULAR_DAMPING,
     COLLISION_FRICTION,
     WALLABY_IDLE_OPACITY,
     WALLABY_ACTIVE_OPACITY,
   } = WALLABY_CONFIG;
 
+  // --- DOM layout layer ---
+
   const layer = document.createElement('div');
   layer.className = 'wallaby-bouncer-layer';
   document.body.appendChild(layer);
 
-  // Spark particle canvas — fixed overlay, always on top
+  const syncLayerHeight = () => {
+    layer.style.height = `${document.documentElement.scrollHeight}px`;
+  };
+  syncLayerHeight();
+  window.addEventListener('resize', syncLayerHeight);
+
+  // --- Spark / indicator canvas ---
+
   const sparkCanvas = document.createElement('canvas');
   sparkCanvas.setAttribute('aria-hidden', 'true');
   sparkCanvas.style.cssText =
     'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999';
   document.body.appendChild(sparkCanvas);
   const sparkCtx = sparkCanvas.getContext('2d');
-  let sparks = [];
 
   const resizeSparkCanvas = () => {
     sparkCanvas.width = window.innerWidth;
@@ -224,7 +249,9 @@ const initializeBouncingWallabies = () => {
   const SPARK_COLORS = ['#ffd700', '#ffc200', '#ffaa00', '#fff4a0'];
   const SPARK_GRAVITY = 0.25;
   const SPARK_COUNT = 20;
+  let sparks = [];
 
+  /** Spawn gold spark particles at a client-space coordinate. */
   const spawnSparks = (clientX, clientY) => {
     for (let i = 0; i < SPARK_COUNT; i += 1) {
       const angle = Math.random() * Math.PI * 2;
@@ -242,31 +269,87 @@ const initializeBouncingWallabies = () => {
     }
   };
 
-  const header = document.querySelector('header');
-  const footer = document.querySelector('footer');
+  /**
+   * Spawn sparks at a page-space position, converting to client coords.
+   * All collision handlers work in page space; this is the single conversion point.
+   */
+  const spawnSparksAtPage = (pageX, pageY) => {
+    spawnSparks(pageX - window.scrollX, pageY - window.scrollY);
+  };
+
+  /** Update and draw live spark particles onto the canvas. */
+  const drawSparks = () => {
+    sparks = sparks.filter((p) => p.life > 0);
+    sparks.forEach((p) => {
+      p.vy += SPARK_GRAVITY;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      sparkCtx.globalAlpha = Math.max(0, p.life);
+      sparkCtx.fillStyle = p.color;
+      sparkCtx.beginPath();
+      sparkCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      sparkCtx.fill();
+    });
+    sparkCtx.globalAlpha = 1;
+  };
+
+  /**
+   * Draw a gold edge-glow indicator for any albino wallaby outside the viewport.
+   * Casts a ray from the viewport centre to the wallaby, finds where it
+   * intersects the screen edge, and paints a radial gradient glow there.
+   * @param {Array} states
+   */
+  const drawAlbinoIndicators = (states) => {
+    const W = sparkCanvas.width;
+    const H = sparkCanvas.height;
+    const midX = W / 2;
+    const midY = H / 2;
+
+    states.forEach((s) => {
+      if (!s.isAlbino) return;
+
+      const clientX = s.x + SIZE / 2 - window.scrollX;
+      const clientY = s.y + SIZE / 2 - window.scrollY;
+      if (clientX >= 0 && clientX <= W && clientY >= 0 && clientY <= H) return;
+
+      // Parametric ray from screen centre toward wallaby; t = scale to reach the nearest edge.
+      const dx = clientX - midX;
+      const dy = clientY - midY;
+      let t = Infinity;
+      if (dx > 0) t = Math.min(t, (W - midX) / dx);
+      if (dx < 0) t = Math.min(t, -midX / dx);
+      if (dy > 0) t = Math.min(t, (H - midY) / dy);
+      if (dy < 0) t = Math.min(t, -midY / dy);
+
+      const edgeX = midX + dx * t;
+      const edgeY = midY + dy * t;
+      const glowRadius = 110;
+      const grad = sparkCtx.createRadialGradient(edgeX, edgeY, 0, edgeX, edgeY, glowRadius);
+      grad.addColorStop(0, 'rgba(255,215,0,0.85)');
+      grad.addColorStop(0.4, 'rgba(255,180,0,0.45)');
+      grad.addColorStop(1, 'rgba(255,140,0,0)');
+      sparkCtx.fillStyle = grad;
+      sparkCtx.beginPath();
+      sparkCtx.arc(edgeX, edgeY, glowRadius, 0, Math.PI * 2);
+      sparkCtx.fill();
+    });
+  };
+
+  // --- Collision resolution ---
 
   // Converts a tangential sliding velocity into a signed angular impulse (deg/s).
-  // Derivation: torque = lever * Jt, Δω = Jt * (2 / radius), converted to degrees.
+  // Derivation: torque = lever × Jt, Δω = Jt × (2 / radius), converted to degrees.
   const spinFactor = COLLISION_FRICTION * (2 / (SIZE / 2)) * (180 / Math.PI);
 
   /**
-   * Sync the animation layer height to document height
-   * Called on resize and initialization
-   */
-  const syncLayerHeight = () => {
-    layer.style.height = `${document.documentElement.scrollHeight}px`;
-  };
-
-  syncLayerHeight();
-  window.addEventListener('resize', syncLayerHeight);
-
-  /**
-   * Resolve collision between wallaby and all cards
-   * Updates wallaby position and velocity to bounce off cards
-   * @param {object} state - Wallaby state
-   * @param {number} prevX - Previous X position
-   * @param {number} prevY - Previous Y position
-   * @param {Array} cardBounds - Array of card bounds
+   * Bounce a wallaby off any card it is overlapping.
+   * Uses the previous-frame position to determine which face was hit, applying
+   * a velocity reflection and a friction torque from the tangential sliding speed.
+   * @param {object} state
+   * @param {number} prevX
+   * @param {number} prevY
+   * @param {Array} cardBounds
    */
   const resolveCardCollisions = (state, prevX, prevY, cardBounds) => {
     cardBounds.forEach((bounds) => {
@@ -276,31 +359,23 @@ const initializeBouncingWallabies = () => {
         state.y < bounds.bottom &&
         state.y + SIZE > bounds.top;
 
-      if (!overlaps) {
-        return;
-      }
+      if (!overlaps) return;
 
-      const prevLeft = prevX;
-      const prevRight = prevX + SIZE;
-      const prevTop = prevY;
-      const prevBottom = prevY + SIZE;
-
-      // Determine collision side and bounce accordingly.
-      // Each face also imparts a rotational impulse from the tangential sliding velocity:
-      //   vertical faces (left/right): tangential = vy; left → sign −1, right → sign +1
-      //   horizontal faces (top/bottom): tangential = vx; top → sign +1, bottom → sign −1
-      // Helper: emit sparks at a page-space point if this wallaby is albino.
-      const spark = (pageX, pageY) => {
-        if (state.isAlbino) {
-          spawnSparks(pageX - window.scrollX, pageY - window.scrollY);
-        }
-      };
-
-      // Contact point helpers per face (page-space centre of near edge of wallaby).
       const cx = state.x + SIZE / 2;
       const cy = state.y + SIZE / 2;
 
-      if (prevRight <= bounds.left) {
+      // Emit sparks at a page-space point if this wallaby is albino.
+      const spark = (pageX, pageY) => {
+        if (state.isAlbino) spawnSparksAtPage(pageX, pageY);
+      };
+
+      // Use the previous-frame position to determine which face was crossed.
+      // Tangential spin factor signs:
+      //   left face:   tangential = vy, sign −1
+      //   right face:  tangential = vy, sign +1
+      //   top face:    tangential = vx, sign +1
+      //   bottom face: tangential = vx, sign −1
+      if (prevX + SIZE <= bounds.left) {
         state.x = bounds.left - SIZE;
         state.omega += -state.vy * spinFactor;
         clampAngularVelocity(state);
@@ -309,7 +384,7 @@ const initializeBouncingWallabies = () => {
         return;
       }
 
-      if (prevLeft >= bounds.right) {
+      if (prevX >= bounds.right) {
         state.x = bounds.right;
         state.omega += state.vy * spinFactor;
         clampAngularVelocity(state);
@@ -318,7 +393,7 @@ const initializeBouncingWallabies = () => {
         return;
       }
 
-      if (prevBottom <= bounds.top) {
+      if (prevY + SIZE <= bounds.top) {
         state.y = bounds.top - SIZE;
         state.omega += state.vx * spinFactor;
         clampAngularVelocity(state);
@@ -327,7 +402,7 @@ const initializeBouncingWallabies = () => {
         return;
       }
 
-      if (prevTop >= bounds.bottom) {
+      if (prevY >= bounds.bottom) {
         state.y = bounds.bottom;
         state.omega += -state.vx * spinFactor;
         clampAngularVelocity(state);
@@ -336,7 +411,8 @@ const initializeBouncingWallabies = () => {
         return;
       }
 
-      // If previous position doesn't help, use minimum overlap
+      // Previous position was already inside the card (e.g. on spawn or after teleport).
+      // Fall back to minimum-overlap resolution.
       const overlapLeft = state.x + SIZE - bounds.left;
       const overlapRight = bounds.right - state.x;
       const overlapTop = state.y + SIZE - bounds.top;
@@ -349,44 +425,38 @@ const initializeBouncingWallabies = () => {
         clampAngularVelocity(state);
         state.vx = -Math.abs(state.vx);
         spark(cx + SIZE / 2, cy);
-        return;
-      }
-
-      if (minOverlap === overlapRight) {
+      } else if (minOverlap === overlapRight) {
         state.x = bounds.right;
         state.omega += state.vy * spinFactor;
         clampAngularVelocity(state);
         state.vx = Math.abs(state.vx);
         spark(cx - SIZE / 2, cy);
-        return;
-      }
-
-      if (minOverlap === overlapTop) {
+      } else if (minOverlap === overlapTop) {
         state.y = bounds.top - SIZE;
         state.omega += state.vx * spinFactor;
         clampAngularVelocity(state);
         state.vy = -Math.abs(state.vy);
         spark(cx, cy + SIZE / 2);
-        return;
+      } else {
+        state.y = bounds.bottom;
+        state.omega += -state.vx * spinFactor;
+        clampAngularVelocity(state);
+        state.vy = Math.abs(state.vy);
+        spark(cx, cy - SIZE / 2);
       }
-
-      state.omega += -state.vx * spinFactor;
-      clampAngularVelocity(state);
-      state.y = bounds.bottom;
-      state.vy = Math.abs(state.vy);
-      spark(cx, cy - SIZE / 2);
     });
   };
 
   /**
-   * Resolve pairwise wallaby collisions.
-   * Treat wallabies as equal-mass circles for stable bounce behavior.
-   * @param {Array} states - Array of wallaby state objects
+   * Resolve pairwise wallaby–wallaby collisions.
+   * Treats wallabies as equal-mass circles for stable elastic bounces,
+   * then applies a tangential friction impulse to impart counter-rotation.
+   * @param {Array} states
    */
   const resolveWallabyCollisions = (states) => {
     const radius = SIZE / 2;
-    const minDistance = radius * 2;
-    const minDistanceSq = minDistance * minDistance;
+    const minDist = radius * 2;
+    const minDistSq = minDist * minDist;
 
     for (let i = 0; i < states.length; i += 1) {
       const a = states[i];
@@ -400,65 +470,57 @@ const initializeBouncingWallabies = () => {
         const by = b.y + radius;
         let dx = bx - ax;
         let dy = by - ay;
-        let distanceSq = dx * dx + dy * dy;
+        let distSq = dx * dx + dy * dy;
 
-        if (distanceSq > minDistanceSq) {
-          continue;
-        }
+        if (distSq > minDistSq) continue;
 
         // Avoid division by zero if two wallabies are exactly on top of each other.
-        if (distanceSq < 0.0001) {
-          const randomAngle = Math.random() * Math.PI * 2;
-          dx = Math.cos(randomAngle);
-          dy = Math.sin(randomAngle);
-          distanceSq = 1;
+        if (distSq < 0.0001) {
+          const angle = Math.random() * Math.PI * 2;
+          dx = Math.cos(angle);
+          dy = Math.sin(angle);
+          distSq = 1;
         }
 
-        const distance = Math.sqrt(distanceSq);
-        const nx = dx / distance;
-        const ny = dy / distance;
+        const dist = Math.sqrt(distSq);
+        const nx = dx / dist;
+        const ny = dy / dist;
 
         // Separate overlapping wallabies so they cannot stick together.
-        const overlap = minDistance - distance;
+        const overlap = minDist - dist;
         if (overlap > 0) {
-          const separation = overlap / 2;
-          a.x -= nx * separation;
-          a.y -= ny * separation;
-          b.x += nx * separation;
-          b.y += ny * separation;
+          const sep = overlap / 2;
+          a.x -= nx * sep;
+          a.y -= ny * sep;
+          b.x += nx * sep;
+          b.y += ny * sep;
         }
 
-        const relativeVelocityX = b.vx - a.vx;
-        const relativeVelocityY = b.vy - a.vy;
-        const velocityAlongNormal = relativeVelocityX * nx + relativeVelocityY * ny;
+        const relVx = b.vx - a.vx;
+        const relVy = b.vy - a.vy;
+        const velAlongNormal = relVx * nx + relVy * ny;
 
-        if (velocityAlongNormal >= 0) {
-          continue;
-        }
+        if (velAlongNormal >= 0) continue;
 
-        // Equal-mass elastic collision along the collision normal.
-        const impulse = -velocityAlongNormal;
+        // Equal-mass elastic impulse along the collision normal.
+        const impulse = -velAlongNormal;
         a.vx -= impulse * nx;
         a.vy -= impulse * ny;
         b.vx += impulse * nx;
         b.vy += impulse * ny;
-
         clampVelocity(a);
         clampVelocity(b);
 
         // Spawn sparks at the contact point for albino wallabies.
-        // Contact point = centre of A + radius in the normal direction, converted to client coords.
+        // Contact point = centre of A + radius in the normal direction.
         if (a.isAlbino || b.isAlbino) {
-          const contactX = (a.x + radius) + nx * radius - window.scrollX;
-          const contactY = (a.y + radius) + ny * radius - window.scrollY;
-          spawnSparks(contactX, contactY);
+          spawnSparksAtPage((a.x + radius) + nx * radius, (a.y + radius) + ny * radius);
         }
 
-        // Tangential (friction) impulse — imparts opposite spin on each wallaby.
-        // Tangent is perpendicular to normal: (-ny, nx).
-        // Lever arm = radius; moment of inertia factor gives Δω = Jt * 2/radius.
-        const vRelTangential =
-          relativeVelocityX * -ny + relativeVelocityY * nx;
+        // Tangential friction impulse — imparts opposite spin on each wallaby.
+        // Tangent is perpendicular to the normal: (−ny, nx).
+        // Lever arm = radius; Δω = Jt × (2/radius), converted to degrees.
+        const vRelTangential = relVx * -ny + relVy * nx;
         const Jt = COLLISION_FRICTION * -vRelTangential;
         const deltaOmegaDeg = Jt * (2 / radius) * (180 / Math.PI);
         a.omega += deltaOmegaDeg;
@@ -469,11 +531,16 @@ const initializeBouncingWallabies = () => {
     }
   };
 
+  // --- Wallaby lifecycle ---
+
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
+
   /**
-   * Find a valid spawn position for a new wallaby
-   * Tries 40 random positions before falling back to top of viewport
-   * @param {Function} getYBounds - Function to get Y bounds
-   * @returns {object} Position {x, y}
+   * Find a collision-free spawn position, trying 40 random locations before
+   * falling back to the top of the scrollable area.
+   * @param {Function} getYBounds
+   * @returns {{ x: number, y: number }}
    */
   const getSpawnPosition = (getYBounds) => {
     const cardBounds = getCardBounds();
@@ -483,20 +550,19 @@ const initializeBouncingWallabies = () => {
     for (let attempt = 0; attempt < 40; attempt += 1) {
       const x = Math.random() * Math.max(0, window.innerWidth - SIZE);
       const y = yMin + Math.random() * Math.max(0, boundedYMax - yMin);
-
-      if (!intersectsAnyCard(x, y, cardBounds)) {
-        return { x, y };
-      }
+      if (!intersectsAnyCard(x, y, cardBounds)) return { x, y };
     }
 
-    return {
-      x: Math.random() * Math.max(0, window.innerWidth - SIZE),
-      y: yMin,
-    };
+    return { x: Math.random() * Math.max(0, window.innerWidth - SIZE), y: yMin };
+  };
+
+  /** Set a wallaby element's opacity based on whether it is active (hovered/touched). */
+  const setOpacity = (el, active) => {
+    el.style.opacity = active ? WALLABY_ACTIVE_OPACITY : WALLABY_IDLE_OPACITY;
   };
 
   /**
-   * Create a wallaby state object with physics and interaction
+   * Create and attach a single wallaby with its physics state and pointer handlers.
    * @returns {object} Wallaby state
    */
   const createWallaby = () => {
@@ -520,16 +586,15 @@ const initializeBouncingWallabies = () => {
       return { yMin, yMax };
     };
 
-    const spawnPosition = getSpawnPosition(getYBounds);
+    const spawn = getSpawnPosition(getYBounds);
 
     const state = {
-      x: spawnPosition.x,
-      y: spawnPosition.y,
+      x: spawn.x,
+      y: spawn.y,
       vx: Math.cos(angle) * baseSpeed,
       vy: Math.sin(angle) * baseSpeed,
       rotation: Math.random() * 360,
       omega: 0,
-      isSpinning: false,
       isAlbino,
       activeTouchPointerId: null,
       hoverPtrX: null,
@@ -539,33 +604,28 @@ const initializeBouncingWallabies = () => {
       getYBounds,
     };
 
-    el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
+    setOpacity(el, false);
 
-    // Pointer events: mouse hover
+    // Mouse hover — push and spin while cursor is over the element.
     el.addEventListener('pointerenter', (event) => {
-      if (event.pointerType !== 'mouse') {
-        return;
-      }
-
-      state.isSpinning = true;
-      el.style.opacity = `${WALLABY_ACTIVE_OPACITY}`;
+      if (event.pointerType !== 'mouse') return;
+      setOpacity(el, true);
       applyHoverPush(state, event);
-      // Seed hover pointer position so the first pointermove has a reference
-      state.hoverPtrX = event.pageX ?? event.clientX + window.scrollX;
-      state.hoverPtrY = event.pageY ?? event.clientY + window.scrollY;
+      const pos = getPagePos(event);
+      state.hoverPtrX = pos.x;
+      state.hoverPtrY = pos.y;
     });
 
     el.addEventListener('pointermove', (event) => {
       if (event.pointerType === 'mouse') {
-        if (state.isSpinning) {
+        // hoverPtrX is non-null while the mouse is over the element.
+        if (state.hoverPtrX !== null) {
           applyHoverPush(state, event);
           applyHoverSpin(state, event);
         }
-
         return;
       }
 
-      // Touch movement
       if (state.activeTouchPointerId === event.pointerId) {
         applyHoverPush(state, event);
         applyHoverSpin(state, event);
@@ -573,45 +633,32 @@ const initializeBouncingWallabies = () => {
     });
 
     el.addEventListener('pointerleave', (event) => {
-      if (event.pointerType !== 'mouse') {
-        return;
-      }
-
-      state.isSpinning = false;
-      el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
+      if (event.pointerType !== 'mouse') return;
+      setOpacity(el, false);
       state.hoverPtrX = null;
       state.hoverPtrY = null;
     });
 
-    // Touch events
+    // Touch — tap impulse on contact; push/spin while dragging.
     el.addEventListener('pointerdown', (event) => {
       applyTapImpulse(state, event);
 
-      if (event.pointerType === 'mouse') {
-        return;
-      }
+      if (event.pointerType === 'mouse') return;
 
       state.activeTouchPointerId = event.pointerId;
-      state.isSpinning = true;
-      el.style.opacity = `${WALLABY_ACTIVE_OPACITY}`;
+      setOpacity(el, true);
       el.setPointerCapture(event.pointerId);
-      // Seed hover pointer position for touch orbit spin
-      state.hoverPtrX = event.pageX ?? event.clientX + window.scrollX;
-      state.hoverPtrY = event.pageY ?? event.clientY + window.scrollY;
+      const pos = getPagePos(event);
+      state.hoverPtrX = pos.x;
+      state.hoverPtrY = pos.y;
     });
 
     const stopTouchInteraction = (event) => {
-      if (event.pointerType === 'mouse') {
-        return;
-      }
-
-      if (state.activeTouchPointerId !== event.pointerId) {
-        return;
-      }
+      if (event.pointerType === 'mouse') return;
+      if (state.activeTouchPointerId !== event.pointerId) return;
 
       state.activeTouchPointerId = null;
-      state.isSpinning = false;
-      el.style.opacity = `${WALLABY_IDLE_OPACITY}`;
+      setOpacity(el, false);
       state.hoverPtrX = null;
       state.hoverPtrY = null;
     };
@@ -623,11 +670,12 @@ const initializeBouncingWallabies = () => {
     return state;
   };
 
-  // One wallaby per 90px of screen width — more room, more wallabies.
+  // --- Animation loop ---
+
+  // One wallaby per 90 px of screen width.
   const count = Math.max(1, Math.floor(window.innerWidth / 90));
   const wallabies = Array.from({ length: count }, createWallaby);
 
-  // Animation loop
   let lastTime = null;
 
   const tick = (now) => {
@@ -641,24 +689,22 @@ const initializeBouncingWallabies = () => {
       const prevX = s.x;
       const prevY = s.y;
 
-      // Update position
+      // Integrate position.
       s.x += s.vx * (dt / BASE_FRAME_MS);
       s.y += s.vy * (dt / BASE_FRAME_MS);
 
-      // Angular damping and rotation update
+      // Apply angular damping then update rotation.
       s.omega *= ANGULAR_DAMPING ** (dt / BASE_FRAME_MS);
-      // Couple maximum spin to linear speed. Without this, the tangential friction
-      // impulse injects angular energy without removing linear energy, so omega can
-      // accumulate to the point where a slow-moving wallaby appears to orbit.
+      // Couple maximum spin to linear speed. Without this, tangential friction
+      // injects angular energy without removing linear energy, so slow-moving
+      // wallabies can accumulate enough omega to appear to orbit.
       // At max speed the full MAX_ANGULAR_SPEED cap applies; at rest, omega → 0.
-      const currentSpeed = getSpeed(s.vx, s.vy);
-      const omegaCap = currentSpeed * (WALLABY_CONFIG.MAX_ANGULAR_SPEED / WALLABY_CONFIG.MAX_SPEED);
-      if (Math.abs(s.omega) > omegaCap) {
-        s.omega = Math.sign(s.omega) * omegaCap;
-      }
+      const speed = getSpeed(s.vx, s.vy);
+      const omegaCap = speed * (MAX_ANGULAR_SPEED / MAX_SPEED);
+      if (Math.abs(s.omega) > omegaCap) s.omega = Math.sign(s.omega) * omegaCap;
       s.rotation = ((s.rotation + s.omega * (dt / 1000)) % 360 + 360) % 360;
 
-      // Boundary clamping
+      // Viewport boundary bounces.
       const { yMin, yMax } = s.getYBounds();
       const boundedYMax = Math.max(yMin, yMax);
 
@@ -667,36 +713,34 @@ const initializeBouncingWallabies = () => {
         s.omega += -s.vy * spinFactor;
         clampAngularVelocity(s);
         s.vx = Math.abs(s.vx);
+        if (s.isAlbino) spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
       }
       if (s.x >= w - SIZE) {
         s.x = w - SIZE;
         s.omega += s.vy * spinFactor;
         clampAngularVelocity(s);
         s.vx = -Math.abs(s.vx);
+        if (s.isAlbino) spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
       }
       if (s.y <= yMin) {
         s.y = yMin;
         s.omega += s.vx * spinFactor;
         clampAngularVelocity(s);
         s.vy = Math.abs(s.vy);
+        if (s.isAlbino) spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
       }
       if (s.y >= boundedYMax) {
         s.y = boundedYMax;
         s.omega += -s.vx * spinFactor;
         clampAngularVelocity(s);
         s.vy = -Math.abs(s.vy);
+        if (s.isAlbino) spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
       }
 
-      // Collision resolution
       resolveCardCollisions(s, prevX, prevY, cardBounds);
 
-      // Keep wallabies within horizontal bounds after collision corrections.
-      if (s.x <= 0) {
-        s.x = 0;
-      }
-      if (s.x >= w - SIZE) {
-        s.x = w - SIZE;
-      }
+      // Re-clamp x after card collision corrections.
+      s.x = Math.max(0, Math.min(w - SIZE, s.x));
     });
 
     resolveWallabyCollisions(wallabies);
@@ -705,82 +749,22 @@ const initializeBouncingWallabies = () => {
       const { yMin, yMax } = s.getYBounds();
       const boundedYMax = Math.max(yMin, yMax);
 
-      if (s.y <= yMin) {
-        s.y = yMin;
-      }
-      if (s.y >= boundedYMax) {
-        s.y = boundedYMax;
-      }
+      s.y = Math.max(yMin, Math.min(boundedYMax, s.y));
 
-      // Apply transforms and effects.
-      // Rotation is combined onto the same element as translation so there is
-      // a single transform-origin (50% 50% of el = the collision circle centre).
-      // Nested transforms on separate elements risk sub-pixel pivot drift under
-      // browser compositing with will-change: transform.
+      // Combined translate+rotate on a single element preserves the transform-origin
+      // at the collision circle centre, avoiding sub-pixel pivot drift under GPU compositing.
       s.el.style.transform = `translate(${s.x}px,${s.y}px) rotate(${s.rotation}deg)`;
 
-      const speed = getSpeed(s.vx, s.vy);
-      const speedFilter = calculateShadowFilter(speed);
-      // Albinos use only the gold outline — no pink speed glow.
+      // Albinos use only the gold drop-shadow — no pink speed glow.
       s.img.style.filter = s.isAlbino
         ? 'drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffd700)'
-        : speedFilter;
+        : calculateShadowFilter(getSpeed(s.vx, s.vy));
     });
 
-    // Update and draw sparks
+    // Draw canvas overlays.
     sparkCtx.clearRect(0, 0, sparkCanvas.width, sparkCanvas.height);
-
-    // Draw off-screen indicators for albino wallabies.
-    // For each albino that is outside the viewport, find where the ray from the
-    // screen centre to the wallaby intersects the screen edge and paint a pulsing
-    // gold radial gradient glow there, bleeding inward from the edge.
-    const W = sparkCanvas.width;
-    const H = sparkCanvas.height;
-    wallabies.forEach((s) => {
-      if (!s.isAlbino) return;
-      const clientX = s.x + SIZE / 2 - window.scrollX;
-      const clientY = s.y + SIZE / 2 - window.scrollY;
-      if (clientX >= 0 && clientX <= W && clientY >= 0 && clientY <= H) return;
-
-      // Parametric ray from screen centre toward wallaby; t = smallest positive
-      // scale that reaches any edge.
-      const midX = W / 2;
-      const midY = H / 2;
-      const dx = clientX - midX;
-      const dy = clientY - midY;
-      let t = Infinity;
-      if (dx > 0) t = Math.min(t, (W - midX) / dx);
-      if (dx < 0) t = Math.min(t, -midX / dx);
-      if (dy > 0) t = Math.min(t, (H - midY) / dy);
-      if (dy < 0) t = Math.min(t, -midY / dy);
-
-      const edgeX = midX + dx * t;
-      const edgeY = midY + dy * t;
-
-      const glowRadius = 110;
-      const grad = sparkCtx.createRadialGradient(edgeX, edgeY, 0, edgeX, edgeY, glowRadius);
-      grad.addColorStop(0, 'rgba(255,215,0,0.85)');
-      grad.addColorStop(0.4, 'rgba(255,180,0,0.45)');
-      grad.addColorStop(1, 'rgba(255,140,0,0)');
-      sparkCtx.fillStyle = grad;
-      sparkCtx.beginPath();
-      sparkCtx.arc(edgeX, edgeY, glowRadius, 0, Math.PI * 2);
-      sparkCtx.fill();
-    });
-
-    sparks = sparks.filter((p) => p.life > 0);
-    sparks.forEach((p) => {
-      p.vy += SPARK_GRAVITY;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= p.decay;
-      sparkCtx.globalAlpha = Math.max(0, p.life);
-      sparkCtx.fillStyle = p.color;
-      sparkCtx.beginPath();
-      sparkCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      sparkCtx.fill();
-    });
-    sparkCtx.globalAlpha = 1;
+    drawAlbinoIndicators(wallabies);
+    drawSparks();
 
     requestAnimationFrame(tick);
   };
