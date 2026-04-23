@@ -19,22 +19,19 @@
     else if (e.key === 'ArrowRight' && i < total())  { e.preventDefault(); goTo(i + 1); }
   });
 
-  // ── Thumbnail placeholder while hi-res loads ──
-  // When a photo lightbox opens, immediately show the already-loaded thumbnail
-  // while the full-resolution image fetches in the background.
+  // ── Hi-res upgrade ──
+  // The lightbox img starts at thumbnail quality (already loaded).
+  // When a photo opens, upgrade to hi-res in the background and swap when ready.
   window.addEventListener('hashchange', () => {
     const i = getOpenIndex();
     if (i === null) return;
-    const item = document.getElementById(`photo-${i}`);
-    if (!item) return;
-    const thumbImg = item.querySelector('.photo-thumb-link img');
-    const lightboxImg = item.querySelector('.photo-lightbox img');
-    if (!thumbImg || !lightboxImg || lightboxImg.complete) return;
-    const hiresSrc = lightboxImg.src;
-    lightboxImg.src = thumbImg.src;
+    const img = document.getElementById(`photo-${i}`)?.querySelector('.photo-lightbox img');
+    if (!img) return;
+    const hires = img.dataset.hires;
+    if (!hires || img.src === new URL(hires, location.href).href) return;
     const loader = new Image();
-    loader.onload = () => { lightboxImg.src = hiresSrc; };
-    loader.src = hiresSrc;
+    loader.onload = () => { img.src = hires; };
+    loader.src = hires;
   });
 
   // ── Close on click outside the image ──
