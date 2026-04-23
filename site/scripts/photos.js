@@ -7,7 +7,13 @@
 
   const total = () => document.querySelectorAll('.photo-item').length;
 
-  const goTo = (n) => { location.hash = `#photo-${n}`; };
+  const goTo = (n) => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => { location.hash = `#photo-${n}`; });
+    } else {
+      location.hash = `#photo-${n}`;
+    }
+  };
   const close = () => { location.hash = '#photos-top'; };
 
   // ── Keyboard ──
