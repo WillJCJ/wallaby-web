@@ -20,46 +20,4 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001s !important;
   }
-
-  ::view-transition-old(root) {
-    animation: none;
-  }
-
-  ::view-transition-new(root) {
-    animation: none;
-  }
-}
-
-@view-transition {
-  navigation: auto;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
-    animation: fade-out 0.25s ease-out forwards;
-  }
-
-  ::view-transition-new(root) {
-    animation: fade-in 0.25s ease-in forwards;
-  }
-
-  @keyframes fade-out {
-    from {
-      opacity: 1;
-    }
-
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
 }
