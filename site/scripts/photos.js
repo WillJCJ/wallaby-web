@@ -69,9 +69,20 @@
     const dx = e.changedTouches[0].clientX - touchStartX;
     touchStartX = null;
     if (isPinch) { isPinch = false; return; }
-    if (Math.abs(dx) < 50) return;
     const i = getOpenIndex();
     if (i === null) return;
+    if (Math.abs(dx) < 50) {
+      // Tap — close if the touch landed outside the image and nav controls.
+      const touch = e.changedTouches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target &&
+          !target.closest('.lightbox-img-wrap') &&
+          !target.closest('.lightbox-nav') &&
+          !target.closest('.lightbox-close-btn')) {
+        close();
+      }
+      return;
+    }
     if (dx > 0 && i > 1)       goTo(i - 1);
     else if (dx < 0 && i < total()) goTo(i + 1);
   }, { passive: true });
