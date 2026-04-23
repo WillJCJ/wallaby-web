@@ -7,26 +7,28 @@ export default {
     const url = new URL(request.url);
 
     // /cdn-cgi/image/ is handled by Cloudflare's edge in production and never
-    // reaches the Worker. Locally, Wrangler passes it through, so we strip the
-    // transform options and serve the underlying resource directly.
-    // For small-width requests (width <= 60, i.e. LQIP placeholders) pointing at
-    // photo API paths, we serve the pre-generated blur/{key} from local R2 instead.
+    // reaches the Worker. In preview and local, Wrangler passes it through, so
+    // we intercept it here. Small-width requests (LQIP placeholders) return a
+    // tiny solid SVG immediately. All other requests strip the transform options
+    // and re-dispatch to the underlying path.
     if (url.pathname.startsWith('/cdn-cgi/image/')) {
       const afterPrefix = url.pathname.slice('/cdn-cgi/image/'.length);
       const slashIdx = afterPrefix.indexOf('/');
       const opts = slashIdx === -1 ? afterPrefix : afterPrefix.slice(0, slashIdx);
       const innerPath = slashIdx === -1 ? '/' : '/' + afterPrefix.slice(slashIdx + 1);
 
-      const inner = new URL(request.url);
       const widthMatch = opts.match(/width=(\d+)/);
       const width = widthMatch ? parseInt(widthMatch[1], 10) : Infinity;
 
-      if (width <= 60 && innerPath.startsWith('/api/photos/')) {
-        inner.pathname = `/api/photos/blur/${innerPath.slice('/api/photos/'.length)}`;
-      } else {
-        inner.pathname = innerPath;
+      if (width <= 60) {
+        return new Response(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
+          { status: 200, headers: { 'content-type': 'image/svg+xml', 'cache-control': 'public, max-age=3600' } }
+        );
       }
 
+      const inner = new URL(request.url);
+      inner.pathname = innerPath;
       return fetch(inner, request);
     }
 
@@ -35,10 +37,11 @@ export default {
         return new Response('Photos bucket is not configured', { status: 503 });
       }
 
-      const key = decodeURIComponent(url.pathname.slice('/api/photos/'.length));
-      if (!key) {
+      const segment = decodeURIComponent(url.pathname.slice('/api/photos/'.length));
+      if (!segment) {
         return new Response('Photo key is required', { status: 400 });
       }
+      const key = `photos/${segment}`;
 
       const object = await env.PHOTOS_BUCKET.get(key);
       if (!object) {

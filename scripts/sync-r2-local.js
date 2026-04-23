@@ -22,11 +22,6 @@ const BUCKET = 'wallaby-web';
 const MAX_PX = 1200;
 const JPEG_QUALITY = 55;
 
-// Blur placeholders — tiny images stored as blur/{id} in local R2.
-// The router shim serves these for CDN requests with width <= 60.
-const BLUR_PX = 40;
-const BLUR_QUALITY = 5;
-
 const tmpDir = join(tmpdir(), `r2-sync-${randomBytes(4).toString('hex')}`);
 mkdirSync(tmpDir, { recursive: true });
 
@@ -34,10 +29,9 @@ let ok = 0;
 let fail = 0;
 
 for (const { id } of photos) {
-    const rawFile = join(tmpDir, `raw_${id.replaceAll('/', '_')}`);
-    const compressedFile = join(tmpDir, `compressed_${id.replaceAll('/', '_')}`);
-    const blurFile = join(tmpDir, `blur_${id.replaceAll('/', '_')}`);
-    const objectPath = `${BUCKET}/${id}`;
+    const rawFile = join(tmpDir, `raw_${id}`);
+    const compressedFile = join(tmpDir, `compressed_${id}`);
+    const objectPath = `${BUCKET}/photos/${id}`;
 
     try {
         process.stdout.write(`  ${id} ... `);
@@ -51,15 +45,8 @@ for (const { id } of photos) {
             .jpeg({ quality: JPEG_QUALITY, mozjpeg: true })
             .toFile(compressedFile);
 
-        // Blur placeholder: tiny image for LQIP blur-up effect
-        await sharp(rawFile)
-            .resize(BLUR_PX, BLUR_PX, { fit: 'inside', withoutEnlargement: true })
-            .jpeg({ quality: BLUR_QUALITY, mozjpeg: true })
-            .toFile(blurFile);
-
-        // Write both to local R2
+        // Write to local R2
         execSync(`npx wrangler r2 object put "${objectPath}" --local --file "${compressedFile}"`, { cwd: root, stdio: 'pipe' });
-        execSync(`npx wrangler r2 object put "${BUCKET}/blur/${id}" --local --file "${blurFile}"`, { cwd: root, stdio: 'pipe' });
 
         console.log('ok');
         ok++;

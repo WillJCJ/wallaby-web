@@ -24,25 +24,24 @@ describe('router /cdn-cgi/image/ shim', () => {
     const mockFetch = vi.fn().mockResolvedValue(mockResponse);
     vi.stubGlobal('fetch', mockFetch);
 
-    const req = makeRequest('http://localhost/cdn-cgi/image/width=400,format=auto/api/photos/photos/test.jpg');
+    const req = makeRequest('http://localhost/cdn-cgi/image/width=400,format=auto/api/photos/test.jpg');
     const res = await router.fetch(req, makeEnv());
 
     expect(res.status).toBe(200);
     const calledUrl = mockFetch.mock.calls[0][0];
-    expect(new URL(calledUrl).pathname).toBe('/api/photos/photos/test.jpg');
+    expect(new URL(calledUrl).pathname).toBe('/api/photos/test.jpg');
   });
 
-  it('redirects small-width photo requests to the blur/ key prefix', async () => {
-    const mockResponse = new Response('blur-data', { status: 200 });
-    const mockFetch = vi.fn().mockResolvedValue(mockResponse);
+  it('returns an SVG placeholder for small-width (LQIP) requests without fetching', async () => {
+    const mockFetch = vi.fn();
     vi.stubGlobal('fetch', mockFetch);
 
-    const req = makeRequest('http://localhost/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/photos/test.jpg');
+    const req = makeRequest('http://localhost/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/test.jpg');
     const res = await router.fetch(req, makeEnv());
 
     expect(res.status).toBe(200);
-    const calledUrl = mockFetch.mock.calls[0][0];
-    expect(new URL(calledUrl).pathname).toBe('/api/photos/blur/photos/test.jpg');
+    expect(res.headers.get('content-type')).toBe('image/svg+xml');
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });
 
@@ -191,14 +190,13 @@ describe('router /api/photos/*', () => {
 
   it('returns photo content and metadata from R2', async () => {
     const req = makeRequest('https://example.com/api/photos/sample.jpg');
+    const mockGet = vi.fn().mockResolvedValue({
+      body: 'photo-bytes',
+      httpMetadata: { contentType: 'image/jpeg' },
+      httpEtag: '"etag-123"',
+    });
     const env = makeEnv({
-      PHOTOS_BUCKET: {
-        get: vi.fn().mockResolvedValue({
-          body: 'photo-bytes',
-          httpMetadata: { contentType: 'image/jpeg' },
-          httpEtag: '"etag-123"',
-        }),
-      },
+      PHOTOS_BUCKET: { get: mockGet },
     });
 
     const res = await router.fetch(req, env);
@@ -207,5 +205,6 @@ describe('router /api/photos/*', () => {
     expect(res.headers.get('content-type')).toBe('image/jpeg');
     expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
     expect(res.headers.get('etag')).toBe('"etag-123"');
+    expect(mockGet).toHaveBeenCalledWith('photos/sample.jpg');
   });
 });
