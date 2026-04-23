@@ -9,11 +9,11 @@ title: Photos - Wallaby Fest
 
 <section class="photos-gallery" id="photos-top">
   {% for photo in photos %}
-  <article id="photo-{{ forloop.index }}" class="photo-item" style="--lqip: url('/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/{{ photo.id }}')">  
+  <article id="photo-{{ forloop.index }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5')">  
 
     <a href="#photo-{{ forloop.index }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
       <img
-        src="/cdn-cgi/image/width=600,quality=80,format=auto/api/photos/{{ photo.id }}"
+        src="/api/photos/{{ photo.id }}?w=600&q=80"
         alt="{{ photo.alt }}"
         loading="{% if forloop.index <= 12 %}eager{% else %}lazy{% endif %}"
         fetchpriority="{% if forloop.index <= 4 %}high{% else %}auto{% endif %}"
@@ -27,7 +27,7 @@ title: Photos - Wallaby Fest
       <figure class="lightbox-figure">
         <div class="lightbox-img-wrap">
           <img
-            src="/cdn-cgi/image/width=2000,quality=85,format=auto/api/photos/{{ photo.id }}"
+            src="/api/photos/{{ photo.id }}?w=2000&q=85"
             alt="{{ photo.alt }}"
             loading="lazy"
             decoding="async"
