@@ -233,5 +233,7 @@ terraform.rc
 
 *.env
 .wrangler
+.dev.vars
+.dev.vars.*
 
 .vscode/*

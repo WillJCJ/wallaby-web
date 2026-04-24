@@ -71,6 +71,20 @@ describe('resolveAuthenticatedEmail', () => {
     const resolved = resolveAuthenticatedEmail(req, { DEV_AUTH_ENABLED: 'true' });
     expect(resolved).toBe('friend@example.com');
   });
+
+  it('never uses dev-auth cookie on preview hosts even when explicitly configured', () => {
+    const req = new Request('https://wallaby-web-preview.workers.dev/api/private/details', {
+      headers: {
+        cookie: 'wallabyfest-dev-auth-email=friend%40example.com',
+      },
+    });
+
+    const resolved = resolveAuthenticatedEmail(req, {
+      DEV_AUTH_ENABLED: 'true',
+      DEV_AUTH_ALLOWED_HOSTS: 'wallaby-web-preview.workers.dev,localhost',
+    });
+    expect(resolved).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

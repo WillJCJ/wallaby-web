@@ -24,6 +24,11 @@ const exampleRow = {
   additional_guests: 1,
   dietary_requirements: 'vegan',
   rsvp_message: 'Looking forward to it!',
+  access_enabled: 0,
+  invited_at: null,
+  last_synced_at: null,
+  sync_status: 'never',
+  sync_error: '',
   created_at: '2024-01-01T10:00:00Z',
   updated_at: '2024-01-01T10:00:00Z',
   updated_by: 'admin@example.com',
@@ -88,6 +93,8 @@ describe('handleGuestsApi GET /api/private/guests', () => {
     const body = await res.json();
     expect(Array.isArray(body.guests)).toBe(true);
     expect(body.guests[0].name).toBe('Jane Doe');
+    expect(body.guests[0].accessEnabled).toBe(false);
+    expect(body.guests[0].syncStatus).toBe('never');
   });
 });
 
@@ -287,5 +294,148 @@ describe('handleGuestsApi unknown route', () => {
     const req = makeRequest('GET');
     const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/1/extra/stuff');
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/private/guests/:id/access/enable|disable
+// ---------------------------------------------------------------------------
+
+describe('handleGuestsApi access toggle routes', () => {
+  it('enables access and returns failed sync when Cloudflare config is missing', async () => {
+    const req = makeRequest('POST');
+    const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/1/access/enable');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.sync.status).toBe('failed');
+  });
+
+  it('disables access and returns failed sync when Cloudflare config is missing', async () => {
+    const req = makeRequest('POST');
+    const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/1/access/disable');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(true);
+    expect(body.sync.status).toBe('failed');
+  });
+
+  it('returns 405 for non-POST toggle requests', async () => {
+    const req = makeRequest('GET');
+    const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/1/access/enable');
+    expect(res.status).toBe(405);
+  });
+
+  it('returns 400 for non-numeric guest id on toggle routes', async () => {
+    const req = makeRequest('POST');
+    const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/abc/access/enable');
+    expect(res.status).toBe(400);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/private/guests/sync
+// ---------------------------------------------------------------------------
+
+describe('handleGuestsApi sync route', () => {
+  it('supports dry-run mode', async () => {
+    const req = makeRequest('POST', { mode: 'dry-run' });
+    const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/sync');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(false);
+    expect(body.dryRun).toBe(true);
+    expect(Array.isArray(body.desiredEmails)).toBe(true);
+    expect(Array.isArray(body.errors)).toBe(true);
+    expect(body.errors.length).toBe(1);
+  });
+
+  it('returns sync errors in full mode when Cloudflare config is missing', async () => {
+    const req = makeRequest('POST', { mode: 'full' });
+    const res = await handleGuestsApi(req, makeEnv(), '/api/private/guests/sync');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.ok).toBe(false);
+    expect(Array.isArray(body.errors)).toBe(true);
+    expect(body.errors.length).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/private/guests/sync-status
+// ---------------------------------------------------------------------------
+
+describe('handleGuestsApi sync-status route', () => {
+  it('returns aggregate sync status summary', async () => {
+    const statusDb = {
+      prepare: vi.fn((sql) => {
+        if (sql.includes('GROUP BY sync_status')) {
+          return {
+            all: vi.fn().mockResolvedValue({
+              results: [
+                { sync_status: 'in_sync', count: 2 },
+                { sync_status: 'failed', count: 1 },
+                { sync_status: 'pending', count: 1 },
+              ],
+            }),
+          };
+        }
+
+        if (sql.includes('WHERE access_enabled = 1')) {
+          return {
+            all: vi.fn().mockResolvedValue({
+              results: [{ email: 'jane@example.com' }, { email: 'friend@example.com' }],
+            }),
+          };
+        }
+
+        if (sql.includes('MAX(last_synced_at)')) {
+          return {
+            first: vi.fn().mockResolvedValue({ last_synced_at: '2024-01-01T12:00:00Z' }),
+          };
+        }
+
+        return {
+          all: vi.fn().mockResolvedValue({ results: [] }),
+        };
+      }),
+    };
+
+    const originalFetch = globalThis.fetch;
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      result: {
+        id: 'policy-id',
+        include: [{ email: { email: 'jane@example.com' } }],
+      },
+    }), { status: 200 })));
+
+    const req = makeRequest('GET');
+    try {
+      const res = await handleGuestsApi(
+        req,
+        {
+          ADMIN_EMAILS: 'admin@example.com',
+          GUESTS_DB: statusDb,
+          CF_ACCOUNT_ID: 'acc',
+          CF_ACCESS_API_TOKEN: 'token',
+          CF_ACCESS_POLICY_ID: 'policy',
+        },
+        '/api/private/guests/sync-status'
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.ok).toBe(true);
+      expect(body.summary.inSync).toBe(2);
+      expect(body.summary.failed).toBe(1);
+      expect(body.summary.pending).toBe(1);
+      expect(body.summary.drift).toBe(true);
+      expect(body.summary.lastSyncAt).toBe('2024-01-01T12:00:00Z');
+      expect(Array.isArray(body.summary.desiredEmails)).toBe(true);
+      expect(Array.isArray(body.summary.policyEmails)).toBe(true);
+    } finally {
+      vi.stubGlobal('fetch', originalFetch);
+    }
   });
 });

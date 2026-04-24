@@ -56,6 +56,10 @@
   gap: 0.65rem;
 }
 
+.guest-profile-form[hidden] {
+  display: none;
+}
+
 .guest-profile-form h3 {
   font-size: 1rem;
   color: var(--text-strong);

@@ -158,6 +158,18 @@ describe('router /api/dev-auth/*', () => {
     expect(body.enabled).toBe(true);
     expect(body.email).toBe('friend@example.com');
   });
+
+  it('returns 403 on preview hosts even if dev auth flags are set', async () => {
+    const req = makeRequest('https://wallaby-web-preview.workers.dev/api/dev-auth/status', {
+      headers: { cookie: 'wallabyfest-dev-auth-email=friend%40example.com' },
+    });
+
+    const res = await router.fetch(req, makeEnv({
+      DEV_AUTH_ENABLED: 'true',
+      DEV_AUTH_ALLOWED_HOSTS: 'wallaby-web-preview.workers.dev,localhost',
+    }));
+    expect(res.status).toBe(403);
+  });
 });
 
 // ---------------------------------------------------------------------------

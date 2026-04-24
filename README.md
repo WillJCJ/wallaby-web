@@ -19,6 +19,17 @@ Or to run the worker as well:
 npm run dev:wrangler
 ```
 
+### Local guest data
+
+Run D1 migrations and seed local guests before using private/admin routes in local worker mode:
+
+```bash
+npm run d1:migrate:local
+npm run d1:seed:local
+```
+
+The admin page includes guest access controls and policy sync actions that call `/api/private/guests/*` endpoints.
+
 ### Photos in local dev
 
 Photos are stored in Cloudflare R2 and are not included in the repository. To populate the local Wrangler R2 cache so photos load during `dev:wrangler`, run:

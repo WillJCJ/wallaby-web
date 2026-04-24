@@ -99,3 +99,40 @@ export const validateGuestSelfPayload = (payload, existingGuest) => {
     },
   };
 };
+
+export const validateGuestAccessTogglePayload = (payload) => {
+  if (payload == null) {
+    return { value: {} };
+  }
+
+  if (typeof payload !== 'object' || Array.isArray(payload)) {
+    return { error: 'payload must be an object' };
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(payload, 'accessEnabled')) {
+    return { error: 'accessEnabled is required' };
+  }
+
+  if (typeof payload.accessEnabled !== 'boolean') {
+    return { error: 'accessEnabled must be a boolean' };
+  }
+
+  return { value: { accessEnabled: payload.accessEnabled } };
+};
+
+export const validateGuestsSyncPayload = (payload) => {
+  if (payload == null) {
+    return { value: { mode: 'full' } };
+  }
+
+  if (typeof payload !== 'object' || Array.isArray(payload)) {
+    return { error: 'payload must be an object' };
+  }
+
+  const rawMode = payload.mode == null ? 'full' : String(payload.mode).trim().toLowerCase();
+  if (rawMode !== 'full' && rawMode !== 'dry-run') {
+    return { error: 'mode must be one of: full, dry-run' };
+  }
+
+  return { value: { mode: rawMode } };
+};

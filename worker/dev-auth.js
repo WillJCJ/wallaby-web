@@ -50,6 +50,11 @@ const getAllowedHosts = (env) => {
 };
 
 export const isDevAuthEnabled = (env, request) => {
+  const host = normalizeHost(new URL(request.url).hostname);
+  if (!LOCALHOSTS.has(host)) {
+    return false;
+  }
+
   const flag = String(env?.DEV_AUTH_ENABLED || '').trim().toLowerCase();
 
   if (flag === 'false') {
@@ -60,7 +65,6 @@ export const isDevAuthEnabled = (env, request) => {
     return true;
   }
 
-  const host = normalizeHost(new URL(request.url).hostname);
   return LOCALHOSTS.has(host);
 };
 

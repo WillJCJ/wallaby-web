@@ -4,6 +4,8 @@ import {
   toInteger,
   normalizeRsvp,
   validateGuestPayload,
+  validateGuestAccessTogglePayload,
+  validateGuestsSyncPayload,
   validateGuestSelfPayload,
 } from '../validation.js';
 
@@ -218,5 +220,66 @@ describe('validateGuestSelfPayload', () => {
     );
     expect(result.value.dietaryRequirements).toBe('vegan');
     expect(result.value.rsvpMessage).toBe('hi');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateGuestAccessTogglePayload
+// ---------------------------------------------------------------------------
+
+describe('validateGuestAccessTogglePayload', () => {
+  it('accepts a valid boolean payload', () => {
+    const result = validateGuestAccessTogglePayload({ accessEnabled: true });
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ accessEnabled: true });
+  });
+
+  it('accepts null payload for bodyless endpoints', () => {
+    const result = validateGuestAccessTogglePayload(null);
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({});
+  });
+
+  it('rejects non-object payloads', () => {
+    const result = validateGuestAccessTogglePayload('oops');
+    expect(result.error).toBe('payload must be an object');
+  });
+
+  it('rejects missing accessEnabled field', () => {
+    const result = validateGuestAccessTogglePayload({});
+    expect(result.error).toBe('accessEnabled is required');
+  });
+
+  it('rejects non-boolean accessEnabled', () => {
+    const result = validateGuestAccessTogglePayload({ accessEnabled: 'yes' });
+    expect(result.error).toBe('accessEnabled must be a boolean');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateGuestsSyncPayload
+// ---------------------------------------------------------------------------
+
+describe('validateGuestsSyncPayload', () => {
+  it('defaults to full mode when payload is null', () => {
+    const result = validateGuestsSyncPayload(null);
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ mode: 'full' });
+  });
+
+  it('accepts dry-run mode', () => {
+    const result = validateGuestsSyncPayload({ mode: 'dry-run' });
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ mode: 'dry-run' });
+  });
+
+  it('rejects non-object payloads', () => {
+    const result = validateGuestsSyncPayload('bad');
+    expect(result.error).toBe('payload must be an object');
+  });
+
+  it('rejects invalid mode values', () => {
+    const result = validateGuestsSyncPayload({ mode: 'incremental' });
+    expect(result.error).toBe('mode must be one of: full, dry-run');
   });
 });
