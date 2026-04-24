@@ -1,5 +1,12 @@
 // Keyboard, swipe navigation and lightbox enhancements for the :target lightbox.
 (() => {
+  // ── Mark already-loaded thumbnails ──
+  // Handles images already in cache when the script runs (complete before load fires).
+  const markLoaded = (img) => img.classList.add('loaded');
+  document.querySelectorAll('.photo-thumb-link img').forEach(img => {
+    if (img.complete) markLoaded(img);
+    else img.addEventListener('load', () => markLoaded(img), { once: true });
+  });
   const getOpenIndex = () => {
     const m = location.hash.match(/^#photo-(\d+)$/);
     return m ? parseInt(m[1], 10) : null;
@@ -8,47 +15,128 @@
   const total = () => document.querySelectorAll('.photo-item').length;
 
   const goTo = (n) => {
-    if (document.startViewTransition) {
-      document.startViewTransition(() => { location.hash = `#photo-${n}`; });
-    } else {
+    const current = getOpenIndex();
+    if (!document.startViewTransition || current === null) {
       location.hash = `#photo-${n}`;
+      return;
     }
+
+    const direction = n > current ? 'forward' : 'back';
+    const currentWrap = document.getElementById(`photo-${current}`)?.querySelector('.lightbox-img-wrap');
+    const nextWrap = document.getElementById(`photo-${n}`)?.querySelector('.lightbox-img-wrap');
+
+    // Set the named transition on the outgoing element only before the snapshot.
+    if (currentWrap) currentWrap.style.viewTransitionName = 'lightbox-photo';
+    document.documentElement.dataset.navDirection = direction;
+
+    document.startViewTransition(() => {
+      // Swap names: old is captured, transfer the name to the incoming element.
+      if (currentWrap) currentWrap.style.viewTransitionName = '';
+      if (nextWrap) nextWrap.style.viewTransitionName = 'lightbox-photo';
+      location.hash = `#photo-${n}`;
+    }).finished.then(() => {
+      if (nextWrap) nextWrap.style.viewTransitionName = '';
+      delete document.documentElement.dataset.navDirection;
+    });
   };
-  const close = () => { location.hash = '#photos-top'; };
+  const openPhoto = (n) => {
+    if (!document.startViewTransition) {
+      location.hash = `#photo-${n}`;
+      return;
+    }
+    const thumbImg = document.getElementById(`photo-${n}`)?.querySelector('.photo-thumb-link img');
+    const lightboxImg = document.getElementById(`photo-${n}`)?.querySelector('.lightbox-img-wrap img');
+    if (thumbImg) thumbImg.style.viewTransitionName = 'photo-zoom';
+    document.startViewTransition(() => {
+      if (thumbImg) thumbImg.style.viewTransitionName = '';
+      if (lightboxImg) lightboxImg.style.viewTransitionName = 'photo-zoom';
+      location.hash = `#photo-${n}`;
+    }).finished.then(() => {
+      if (lightboxImg) lightboxImg.style.viewTransitionName = '';
+    });
+  };
+
+  const closePhoto = () => {
+    const i = getOpenIndex();
+    if (!document.startViewTransition || i === null) {
+      location.hash = '#photos-top';
+      return;
+    }
+    const thumbImg = document.getElementById(`photo-${i}`)?.querySelector('.photo-thumb-link img');
+    const lightboxImg = document.getElementById(`photo-${i}`)?.querySelector('.lightbox-img-wrap img');
+    if (lightboxImg) lightboxImg.style.viewTransitionName = 'photo-zoom';
+    document.startViewTransition(() => {
+      if (lightboxImg) lightboxImg.style.viewTransitionName = '';
+      if (thumbImg) thumbImg.style.viewTransitionName = 'photo-zoom';
+      location.hash = '#photos-top';
+    }).finished.then(() => {
+      if (thumbImg) thumbImg.style.viewTransitionName = '';
+    });
+  };
 
   // ── Keyboard ──
   document.addEventListener('keydown', (e) => {
     const i = getOpenIndex();
     if (i === null) return;
-    if (e.key === 'Escape')           { e.preventDefault(); close(); }
+    if (e.key === 'Escape')           { e.preventDefault(); closePhoto(); }
     else if (e.key === 'ArrowLeft'  && i > 1)        { e.preventDefault(); goTo(i - 1); }
     else if (e.key === 'ArrowRight' && i < total())  { e.preventDefault(); goTo(i + 1); }
   });
 
-  // ── Hi-res upgrade ──
-  // The lightbox img starts at thumbnail quality (already loaded).
-  // When a photo opens, upgrade to hi-res in the background and swap when ready.
+  // ── Loading placeholder + hi-res upgrade ──
+  // Shows the thumbnail blurred with a loading logo while hi-res fetches,
+  // then swaps in the full image atomically once it's completely loaded.
   window.addEventListener('hashchange', () => {
     const i = getOpenIndex();
     if (i === null) return;
-    const img = document.getElementById(`photo-${i}`)?.querySelector('.photo-lightbox img');
-    if (!img) return;
+    const item = document.getElementById(`photo-${i}`);
+    if (!item) return;
+    const img = item.querySelector('.photo-lightbox img');
+    const wrap = item.querySelector('.lightbox-img-wrap');
+    if (!img || !wrap) return;
+
+    const setLoading = (loading) => wrap.classList.toggle('is-loading', loading);
+
     const hires = img.dataset.hires;
-    if (!hires || img.src === new URL(hires, location.href).href) return;
+    if (!hires || img.src === new URL(hires, location.href).href) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
     const loader = new Image();
-    loader.onload = () => { img.src = hires; };
+    loader.onload = () => { img.src = hires; setLoading(false); };
     loader.src = hires;
   });
 
-  // ── Close on click outside the image ──
-  // Handles tapping outside the figure on mobile (including iOS Safari, which
-  // sometimes doesn't fire click on transparent backdrop anchors).
+  // ── Thumbnail clicks → zoom open ──
+  document.addEventListener('click', (e) => {
+    const thumb = e.target.closest('.photo-thumb-link');
+    if (!thumb) return;
+    e.preventDefault();
+    const m = thumb.getAttribute('href')?.match(/#photo-(\d+)/);
+    if (m) openPhoto(parseInt(m[1], 10));
+  });
+
+  // ── Nav arrow clicks → directional slide ──
+  document.addEventListener('click', (e) => {
+    const nav = e.target.closest('.lightbox-nav');
+    if (!nav || nav.classList.contains('lightbox-nav--disabled')) return;
+    e.preventDefault();
+    const m = nav.getAttribute('href')?.match(/#photo-(\d+)/);
+    if (m) goTo(parseInt(m[1], 10));
+  });
+
+  // ── Close → zoom back to thumbnail ──
   document.addEventListener('click', (e) => {
     if (getOpenIndex() === null) return;
-    if (!e.target.closest('.lightbox-figure') &&
-        !e.target.closest('.lightbox-nav') &&
-        !e.target.closest('.lightbox-close-btn')) {
-      close();
+    if (e.target.closest('.lightbox-close') || e.target.closest('.lightbox-close-btn')) {
+      e.preventDefault();
+      closePhoto();
+      return;
+    }
+    if (!e.target.closest('.lightbox-figure') && !e.target.closest('.lightbox-nav')) {
+      closePhoto();
     }
   });
 
@@ -82,7 +170,7 @@
           !target.closest('.lightbox-img-wrap') &&
           !target.closest('.lightbox-nav') &&
           !target.closest('.lightbox-close-btn')) {
-        close();
+        closePhoto();
       }
       return;
     }
