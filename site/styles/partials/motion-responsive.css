@@ -22,6 +22,13 @@
   }
 }
 
+/* hires-load: morph blurry thumbnail to full-res image in lightbox.
+   Group handles position/size expansion; old/new crossfade blurry → sharp. */
+
+::view-transition-group(hires-load) {
+  animation-duration: 0.45s;
+}
+
 /* Root transition is instant — only named elements animate */
 ::view-transition-old(root),
 ::view-transition-new(root) {

@@ -128,11 +128,14 @@ body:has(.photo-item:target)::before {
   line-height: 0;
 }
 
+/* Smooth unblur when is-loading is removed — transition must live on the base selector */
+.lightbox-img-wrap img {
+  transition: filter 0.45s ease, transform 0.45s ease;
+}
+
 /* While hi-res loads: blur the thumbnail underneath and show the loading logo */
 .lightbox-img-wrap.is-loading img {
   filter: blur(20px);
-  transform: scale(1.08); /* prevent blurred edges showing */
-  transition: filter 0.2s ease, transform 0.2s ease;
 }
 
 .lightbox-img-wrap.is-loading::after {

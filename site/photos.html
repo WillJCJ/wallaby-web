@@ -13,7 +13,7 @@ title: Photos - Wallaby Fest
 
     <a href="#photo-{{ forloop.index }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
       <img
-        src="/api/photos/{{ photo.id }}?w=600&q=80"
+        src="/api/photos/{{ photo.id }}?w=400&q=80"
         alt="{{ photo.alt }}"
         loading="{% if forloop.index <= 12 %}eager{% else %}lazy{% endif %}"
         fetchpriority="{% if forloop.index <= 4 %}high{% else %}auto{% endif %}"
@@ -27,7 +27,7 @@ title: Photos - Wallaby Fest
       <figure class="lightbox-figure">
         <div class="lightbox-img-wrap">
           <img
-            src="/api/photos/{{ photo.id }}?w=600&q=80"
+            src="/api/photos/{{ photo.id }}?w=400&q=80"
             data-hires="/api/photos/{{ photo.id }}?w=2000&q=85"
             alt="{{ photo.alt }}"
             loading="lazy"

@@ -105,7 +105,22 @@
 
     setLoading(true);
     const loader = new Image();
-    loader.onload = () => { img.src = hires; setLoading(false); };
+    loader.onload = () => {
+      if (document.startViewTransition) {
+        img.style.viewTransitionName = 'hires-load';
+        document.startViewTransition(() => {
+          img.src = hires;
+          setLoading(false);
+        }).finished.then(() => {
+          img.style.viewTransitionName = '';
+        }).catch(() => {
+          img.style.viewTransitionName = '';
+        });
+      } else {
+        img.src = hires;
+        setLoading(false);
+      }
+    };
     loader.src = hires;
   });
 
