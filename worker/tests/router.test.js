@@ -37,7 +37,7 @@ describe('router favicon routing', () => {
     const req = makeRequest('https://my-app-preview.workers.dev/favicon.ico');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/images/logos/logo_orangey.svg');
+    expect(res.headers.get('location')).toBe('/images/logos/logo_red.svg');
   });
 
   it('sets cache-control: no-store on favicon responses', async () => {

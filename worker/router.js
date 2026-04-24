@@ -88,7 +88,7 @@ export default {
       const faviconPath = isLocal
         ? '/images/logos/logo_greyscale_red_eyes.svg'
         : isPreview
-          ? '/images/logos/logo_orangey.svg'
+          ? '/images/logos/logo_red.svg'
           : '/images/logos/logo.svg';
 
       return new Response(null, {
