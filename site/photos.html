@@ -7,9 +7,10 @@ title: Photos - Wallaby Fest
   <p>Previous festival highlights.</p>
 </div>
 
+<p class="sr-only" id="lightbox-status" aria-live="polite" aria-atomic="true"></p>
 <section class="photos-gallery" id="photos-top">
   {% for photo in photos %}
-  <article id="photo-{{ forloop.index }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5')">  
+  <article id="photo-{{ forloop.index }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5')">
 
     <a href="#photo-{{ forloop.index }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
       <img
@@ -21,9 +22,10 @@ title: Photos - Wallaby Fest
       >
     </a>
 
-    <div class="photo-lightbox">
-      <a href="#photos-top" class="lightbox-close" aria-label="Close"></a>
+    <div class="photo-lightbox" role="dialog" aria-modal="true" aria-label="{{ photo.alt }}">
+      <a href="#photos-top" class="lightbox-close" aria-label="Close lightbox"></a>
       <a href="#photos-top" class="lightbox-close-btn" aria-label="Close photo"></a>
+      <span class="lightbox-counter" aria-hidden="true">{{ forloop.index }} / {{ photos | size }}</span>
       <figure class="lightbox-figure">
         <div class="lightbox-img-wrap">
           <img
@@ -33,8 +35,8 @@ title: Photos - Wallaby Fest
             loading="lazy"
             decoding="async"
           >
+          {% if photo.alt %}<figcaption class="lightbox-caption">{{ photo.alt }}</figcaption>{% endif %}
         </div>
-        {% if photo.caption %}<figcaption class="lightbox-caption">{{ photo.caption }}</figcaption>{% endif %}
       </figure>
       {% if forloop.first %}
       <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo"></a>

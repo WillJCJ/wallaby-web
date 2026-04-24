@@ -7,6 +7,19 @@
     if (img.complete) markLoaded(img);
     else img.addEventListener('load', () => markLoaded(img), { once: true });
   });
+  // Tracks whether a view transition is currently animating.
+  // Uses a symbol token so that if a second transition interrupts the first,
+  // the first transition's rejected .finished doesn't clear the guard prematurely.
+  let transitionToken = null;
+  const svt = (fn) => {
+    const token = Symbol();
+    transitionToken = token;
+    return document.startViewTransition(fn).finished
+      .then(() => { if (transitionToken === token) transitionToken = null; })
+      .catch(() => { if (transitionToken === token) transitionToken = null; });
+  };
+  const transitionActive = () => transitionToken !== null;
+
   const getOpenIndex = () => {
     const m = location.hash.match(/^#photo-(\d+)$/);
     return m ? parseInt(m[1], 10) : null;
@@ -29,12 +42,12 @@
     if (currentWrap) currentWrap.style.viewTransitionName = 'lightbox-photo';
     document.documentElement.dataset.navDirection = direction;
 
-    document.startViewTransition(() => {
+    svt(() => {
       // Swap names: old is captured, transfer the name to the incoming element.
       if (currentWrap) currentWrap.style.viewTransitionName = '';
       if (nextWrap) nextWrap.style.viewTransitionName = 'lightbox-photo';
       location.hash = `#photo-${n}`;
-    }).finished.then(() => {
+    }).then(() => {
       if (nextWrap) nextWrap.style.viewTransitionName = '';
       delete document.documentElement.dataset.navDirection;
     });
@@ -47,12 +60,13 @@
     const thumbImg = document.getElementById(`photo-${n}`)?.querySelector('.photo-thumb-link img');
     const lightboxImg = document.getElementById(`photo-${n}`)?.querySelector('.lightbox-img-wrap img');
     if (thumbImg) thumbImg.style.viewTransitionName = 'photo-zoom';
-    document.startViewTransition(() => {
+    svt(() => {
       if (thumbImg) thumbImg.style.viewTransitionName = '';
       if (lightboxImg) lightboxImg.style.viewTransitionName = 'photo-zoom';
       location.hash = `#photo-${n}`;
-    }).finished.then(() => {
+    }).then(() => {
       if (lightboxImg) lightboxImg.style.viewTransitionName = '';
+      document.getElementById(`photo-${n}`)?.querySelector('.lightbox-close-btn')?.focus();
     });
   };
 
@@ -65,12 +79,15 @@
     const thumbImg = document.getElementById(`photo-${i}`)?.querySelector('.photo-thumb-link img');
     const lightboxImg = document.getElementById(`photo-${i}`)?.querySelector('.lightbox-img-wrap img');
     if (lightboxImg) lightboxImg.style.viewTransitionName = 'photo-zoom';
-    document.startViewTransition(() => {
+    svt(() => {
       if (lightboxImg) lightboxImg.style.viewTransitionName = '';
       if (thumbImg) thumbImg.style.viewTransitionName = 'photo-zoom';
       location.hash = '#photos-top';
-    }).finished.then(() => {
+    }).then(() => {
       if (thumbImg) thumbImg.style.viewTransitionName = '';
+      document.getElementById(`photo-${i}`)?.querySelector('.photo-thumb-link')?.focus();
+      const status = document.getElementById('lightbox-status');
+      if (status) status.textContent = '';
     });
   };
 
@@ -89,6 +106,10 @@
   window.addEventListener('hashchange', () => {
     const i = getOpenIndex();
     if (i === null) return;
+
+    const status = document.getElementById('lightbox-status');
+    if (status) status.textContent = `Photo ${i} of ${total()}`;
+
     const item = document.getElementById(`photo-${i}`);
     if (!item) return;
     const img = item.querySelector('.photo-lightbox img');
@@ -106,15 +127,20 @@
     setLoading(true);
     const loader = new Image();
     loader.onload = () => {
+      // By the time hi-res loads, the user may have navigated away. If so,
+      // update src silently so it's cached but skip the view transition — a
+      // stale svt() call would interrupt the current slide animation.
+      if (getOpenIndex() !== i) {
+        img.src = hires;
+        return;
+      }
       if (document.startViewTransition) {
-        img.style.viewTransitionName = 'hires-load';
-        document.startViewTransition(() => {
+        wrap.style.viewTransitionName = 'hires-load';
+        svt(() => {
           img.src = hires;
           setLoading(false);
-        }).finished.then(() => {
-          img.style.viewTransitionName = '';
-        }).catch(() => {
-          img.style.viewTransitionName = '';
+        }).then(() => {
+          wrap.style.viewTransitionName = '';
         });
       } else {
         img.src = hires;
@@ -144,7 +170,7 @@
 
   // ── Close → zoom back to thumbnail ──
   document.addEventListener('click', (e) => {
-    if (getOpenIndex() === null) return;
+    if (getOpenIndex() === null || transitionActive()) return;
     if (e.target.closest('.lightbox-close') || e.target.closest('.lightbox-close-btn')) {
       e.preventDefault();
       closePhoto();
@@ -179,6 +205,7 @@
     if (i === null) return;
     if (Math.abs(dx) < 50) {
       // Tap — close if the touch landed outside the image and nav controls.
+      if (transitionActive()) return;
       const touch = e.changedTouches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
       if (target &&

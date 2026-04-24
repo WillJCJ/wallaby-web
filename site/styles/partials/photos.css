@@ -67,13 +67,18 @@
 
 /* ── Lightbox ── */
 
+/* Lock body scroll while lightbox is open */
+body:has(.photo-item:target) {
+  overflow: hidden;
+}
+
 /* Persistent dark backdrop — stays visible when navigating between photos */
 body:has(.photo-item:target)::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 99;
-  background: color-mix(in srgb, var(--tone-primary) 60%, transparent);
+  background: rgb(0 0 0 / 88%);
   animation: lightbox-in 0.2s ease;
 }
 
@@ -96,7 +101,6 @@ body:has(.photo-item:target)::before {
 }
 
 /* Backdrop — click anywhere not on the image/arrows to close */
-
 .lightbox-close {
   position: absolute;
   inset: 0;
@@ -105,8 +109,21 @@ body:has(.photo-item:target)::before {
   cursor: zoom-out;
 }
 
-/* Figure — z-index 2 so it sits above the close backdrop */
+/* Counter — top-left, z-index 4 so it sits above figure */
+.lightbox-counter {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 4;
+  color: #fff;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+}
 
+/* Figure — z-index 2 so it sits above the close backdrop */
 .lightbox-figure {
   position: relative;
   z-index: 2;
@@ -114,10 +131,11 @@ body:has(.photo-item:target)::before {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 100dvw;
+  width: 100dvw;
   height: 100dvh;
+  padding: 2.5rem 5rem;
+  box-sizing: border-box;
   margin: 0;
-  animation: lightbox-in 0.15s ease;
 }
 
 /* Wrapper constrains the image to its bounds */
@@ -146,8 +164,8 @@ body:has(.photo-item:target)::before {
 }
 
 .lightbox-figure img {
-  max-width: 100dvw;
-  max-height: 100dvh;
+  max-width: 100%;
+  max-height: calc(100dvh - 5rem);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -156,17 +174,18 @@ body:has(.photo-item:target)::before {
 }
 
 .lightbox-caption {
-  display: none; /* Don't show the caption for now */
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 0 1rem;
-  color: var(--text);
-  opacity: 0.75;
-  font-size: 0.85rem;
+  padding: 2.5rem 1rem 0.75rem;
+  background: linear-gradient(transparent, rgb(0 0 0 / 65%));
+  color: #fff;
+  font-size: 0.875rem;
   text-align: center;
   margin: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* Navigation arrows — z-index 3 so they sit above the figure */
@@ -299,6 +318,14 @@ body:has(.photo-item:target)::before {
   .photos-gallery {
     grid-template-columns: repeat(3, 1fr);
     gap: 2px;
+  }
+
+  .lightbox-figure {
+    padding: 1.5rem 0;
+  }
+
+  .lightbox-figure img {
+    max-height: calc(100dvh - 3rem);
   }
 
   .lightbox-nav {
