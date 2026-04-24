@@ -48,9 +48,43 @@
   text-align: center;
 }
 
+.wallaby-game__jump-btn {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.9rem 1.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #5ba83d;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  transform: translateY(0);
+  box-shadow: 0 6px 0 #3a7225;
+  transition: transform 60ms ease, box-shadow 60ms ease;
+}
+
+.wallaby-game__jump-btn.is-pressed {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 #3a7225;
+}
+
+.wallaby-game__jump-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 @media (width <= 640px) {
   .wallaby-game {
     margin-left: -1rem;
     margin-right: -1rem;
+  }
+
+  .wallaby-game__jump-btn {
+    max-width: none;
   }
 }

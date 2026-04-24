@@ -3,6 +3,8 @@
   const scoreEl = document.getElementById('wallaby-game-score');
   const bestEl = document.getElementById('wallaby-game-best');
   const hintEl = document.getElementById('wallaby-game-hint');
+  const jumpBtn = document.getElementById('wallaby-game-jump-btn');
+  let btnHeld = false;
 
   if (!canvas || !canvas.getContext) {
     return;
@@ -342,6 +344,10 @@
     resetRun();
     state.status = 'running';
     hintEl.textContent = 'Hop the goats. Good luck!';
+    if (jumpBtn) {
+      jumpBtn.textContent = 'Jump';
+      jumpBtn.setAttribute('aria-label', 'Jump');
+    }
     jump();
   };
 
@@ -358,6 +364,10 @@
       }
     }
     hintEl.textContent = 'Crashed! Tap or press space to run again.';
+    if (jumpBtn) {
+      jumpBtn.textContent = 'Restart';
+      jumpBtn.setAttribute('aria-label', 'Restart game');
+    }
   };
 
   const handleInput = (event) => {
@@ -371,7 +381,29 @@
     }
   };
 
-  canvas.addEventListener('pointerdown', handleInput);
+  const pressInput = (e) => {
+    if (e) e.preventDefault();
+    btnHeld = true;
+    if (jumpBtn) jumpBtn.classList.add('is-pressed');
+    if (state.status !== 'running' || state.wallaby.grounded) {
+      handleInput(e);
+    }
+  };
+
+  const releaseInput = () => {
+    btnHeld = false;
+    if (jumpBtn) jumpBtn.classList.remove('is-pressed');
+  };
+
+  canvas.addEventListener('pointerdown', pressInput);
+  canvas.addEventListener('pointerup', releaseInput);
+  canvas.addEventListener('pointercancel', releaseInput);
+  if (jumpBtn) {
+    jumpBtn.addEventListener('pointerdown', pressInput);
+    jumpBtn.addEventListener('pointerup', releaseInput);
+    jumpBtn.addEventListener('pointercancel', releaseInput);
+    jumpBtn.addEventListener('pointerleave', releaseInput);
+  }
   canvas.addEventListener('keydown', (event) => {
     if (event.key === ' ' || event.key === 'ArrowUp' || event.key === 'Enter') {
       handleInput(event);
@@ -428,6 +460,10 @@
       w.y = GROUND_Y;
       w.vy = 0;
       w.grounded = true;
+      if (btnHeld) {
+        jump();
+        if (jumpBtn) jumpBtn.classList.add('is-pressed');
+      }
     }
     if (w.grounded) {
       w.legPhase = (w.legPhase + dt * state.speed * 0.04) % (Math.PI * 2);
