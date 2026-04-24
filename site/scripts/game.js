@@ -13,7 +13,7 @@
 
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
-  const GROUND_Y = HEIGHT - 40;
+  const GROUND_Y = HEIGHT - 65;
   const GRAVITY = 2200;
   const JUMP_VELOCITY = -720;
   const START_SPEED = 320;
