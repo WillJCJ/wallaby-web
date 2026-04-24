@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   getAuthenticatedEmail,
+  resolveAuthenticatedEmail,
   parseAdminEmails,
   requireAuthenticatedEmail,
   requireAdmin,
@@ -22,6 +23,53 @@ describe('getAuthenticatedEmail', () => {
   it('returns null when the header is absent', () => {
     const req = new Request('http://example.com');
     expect(getAuthenticatedEmail(req)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveAuthenticatedEmail
+// ---------------------------------------------------------------------------
+
+describe('resolveAuthenticatedEmail', () => {
+  it('uses the CF header before considering dev-auth cookie fallback', () => {
+    const req = new Request('http://localhost/api/private/details', {
+      headers: {
+        'CF-Access-Authenticated-User-Email': 'header@example.com',
+        cookie: 'wallabyfest-dev-auth-email=cookie%40example.com',
+      },
+    });
+    const resolved = resolveAuthenticatedEmail(req, { DEV_AUTH_ENABLED: 'true' });
+    expect(resolved).toBe('header@example.com');
+  });
+
+  it('uses dev-auth cookie on localhost when enabled', () => {
+    const req = new Request('http://localhost/api/private/details', {
+      headers: {
+        cookie: 'wallabyfest-dev-auth-email=friend%40example.com',
+      },
+    });
+    const resolved = resolveAuthenticatedEmail(req, { DEV_AUTH_ENABLED: 'true' });
+    expect(resolved).toBe('friend@example.com');
+  });
+
+  it('does not use dev-auth cookie when host is not allowed', () => {
+    const req = new Request('https://example.com/api/private/details', {
+      headers: {
+        cookie: 'wallabyfest-dev-auth-email=friend%40example.com',
+      },
+    });
+    const resolved = resolveAuthenticatedEmail(req, { DEV_AUTH_ENABLED: 'true' });
+    expect(resolved).toBeNull();
+  });
+
+  it('accepts bracketed IPv6 localhost hostnames', () => {
+    const req = new Request('http://[::1]/api/private/details', {
+      headers: {
+        cookie: 'wallabyfest-dev-auth-email=friend%40example.com',
+      },
+    });
+    const resolved = resolveAuthenticatedEmail(req, { DEV_AUTH_ENABLED: 'true' });
+    expect(resolved).toBe('friend@example.com');
   });
 });
 
@@ -76,6 +124,17 @@ describe('requireAuthenticatedEmail', () => {
     expect(result.error.status).toBe(401);
     const body = await result.error.json();
     expect(body.error).toBe('Unauthorized');
+  });
+
+  it('authenticates with dev-auth cookie when enabled for localhost', () => {
+    const req = new Request('http://localhost/api/private/details', {
+      headers: {
+        cookie: 'wallabyfest-dev-auth-email=tester%40example.com',
+      },
+    });
+    const result = requireAuthenticatedEmail(req, { DEV_AUTH_ENABLED: 'true' });
+    expect(result.email).toBe('tester@example.com');
+    expect(result.error).toBeUndefined();
   });
 });
 

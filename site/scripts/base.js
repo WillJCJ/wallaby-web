@@ -140,6 +140,32 @@ const setupLogout = (logoutLink) => {
 		return;
 	}
 
+	const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+
+	if (isLocalHost) {
+		logoutLink.href = '#';
+		logoutLink.addEventListener('click', async (event) => {
+			event.preventDefault();
+
+			try {
+				await auth?.devLogout?.();
+			} catch {
+				// Ignore logout failures and still clear local state.
+			}
+
+			setStoredAuthEmail(null);
+			try {
+				window.sessionStorage.setItem(FLASH_STORAGE_KEY, 'logout-success');
+			} catch {
+				// Ignore sessionStorage access failures.
+			}
+
+			window.location.replace('/');
+		});
+
+		return;
+	}
+
 	const logoutUrl = new URL('/cdn-cgi/access/logout', window.location.origin);
 	logoutUrl.searchParams.set('returnTo', `${window.location.origin}/`);
 	logoutLink.href = logoutUrl.toString();

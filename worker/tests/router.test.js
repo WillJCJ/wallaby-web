@@ -111,6 +111,53 @@ describe('router /api/private/details', () => {
     const body = await res.json();
     expect(body.address).toBe('1 Test Lane');
   });
+
+  it('accepts localhost dev-auth cookie fallback when enabled', async () => {
+    const req = makeRequest('http://localhost/api/private/details', {
+      headers: { cookie: 'wallabyfest-dev-auth-email=dev%40example.com' },
+    });
+
+    const res = await router.fetch(req, makeEnv({ DEV_AUTH_ENABLED: 'true' }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.viewer).toBe('dev@example.com');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// /api/dev-auth/*
+// ---------------------------------------------------------------------------
+
+describe('router /api/dev-auth/*', () => {
+  it('returns 403 when dev auth is explicitly disabled', async () => {
+    const req = makeRequest('http://localhost/api/dev-auth/status');
+    const res = await router.fetch(req, makeEnv({ DEV_AUTH_ENABLED: 'false' }));
+    expect(res.status).toBe(403);
+  });
+
+  it('sets dev auth cookie on login', async () => {
+    const req = makeRequest('http://localhost/api/dev-auth/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'friend@example.com' }),
+    });
+
+    const res = await router.fetch(req, makeEnv({ DEV_AUTH_ENABLED: 'true' }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('set-cookie')).toContain('wallabyfest-dev-auth-email=friend%40example.com');
+  });
+
+  it('reports current dev auth identity from cookie', async () => {
+    const req = makeRequest('http://localhost/api/dev-auth/status', {
+      headers: { cookie: 'wallabyfest-dev-auth-email=friend%40example.com' },
+    });
+
+    const res = await router.fetch(req, makeEnv({ DEV_AUTH_ENABLED: 'true' }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.enabled).toBe(true);
+    expect(body.email).toBe('friend@example.com');
+  });
 });
 
 // ---------------------------------------------------------------------------

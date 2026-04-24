@@ -1,4 +1,5 @@
 import { handleAuthStatus } from './auth-status.js';
+import { handleDevAuthApi } from './dev-auth.js';
 import { handlePrivateDetails } from './details.js';
 import { handleGuestsApi } from './guests.js';
 
@@ -107,9 +108,13 @@ export default {
       return handleGuestsApi(request, env, url.pathname);
     }
 
+    if (url.pathname.startsWith('/api/dev-auth/')) {
+      return handleDevAuthApi(request, env, url.pathname);
+    }
+
     switch (url.pathname) {
       case '/api/auth/status':
-        return handleAuthStatus(request);
+        return handleAuthStatus(request, env);
 
       case '/api/env':
         {

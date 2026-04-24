@@ -231,7 +231,7 @@ const handleGuestSelf = async (request, env, authenticatedEmail) => {
 };
 
 export const handleGuestsApi = async (request, env, pathname) => {
-  const authResult = requireAuthenticatedEmail(request);
+  const authResult = requireAuthenticatedEmail(request, env);
 
   if (authResult.error) {
     return authResult.error;

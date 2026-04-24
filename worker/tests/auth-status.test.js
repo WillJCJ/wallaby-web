@@ -11,6 +11,18 @@ const makeRequest = (cookie = '') =>
   });
 
 describe('handleAuthStatus', () => {
+  it('returns dev-auth identity on localhost when dev auth is enabled', async () => {
+    const req = new Request('http://localhost/api/auth/status', {
+      headers: { cookie: 'wallabyfest-dev-auth-email=local%40example.com' },
+    });
+
+    const res = await handleAuthStatus(req, { DEV_AUTH_ENABLED: 'true' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.signedIn).toBe(true);
+    expect(body.email).toBe('local@example.com');
+  });
+
   it('returns signedIn: true with the email when identity lookup succeeds', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ email: 'user@example.com' }), { status: 200 })

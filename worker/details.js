@@ -10,7 +10,7 @@ export const handlePrivateDetails = (request, env) => {
     );
   }
 
-  const authResult = requireAuthenticatedEmail(request);
+  const authResult = requireAuthenticatedEmail(request, env);
 
   if (authResult.error) {
     return authResult.error;
