@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40.66 -21.468 367.895 320.8">
+  <style>
+    /* duration (1.2s) = stagger (0.12s) × 10 elements → seamless looping wave.
+       Pulse occupies first 60% of keyframe so ~6 elements overlap at once.
+       --grey and --col on each animated element drive the shared colour keyframe. */
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      17%  { transform: scale(1.18); }
+      60%  { transform: scale(1); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes colour {
+      0%   { fill: var(--grey); }
+      17%  { fill: var(--col); }
+      60%  { fill: var(--grey); }
+      100% { fill: var(--grey); }
+    }
+
+    path {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: pulse 1.2s ease-in-out infinite, colour 1.2s ease-in-out infinite;
+    }
+
+    /* Static: nose, mouth, eyes */
+    #mouth, #noseLower, #noseUpper, #eyeL, #eyeR {
+      animation: none;
+    }
+
+    /* Clockwise from top */
+    #Forehead    { animation-delay: 0s; }
+    #headUpperR  { animation-delay: 0.12s; }
+    #earLowerR   { animation-delay: 0.24s; }
+    #earUpperR   { animation-delay: 0.36s; }
+    #cheekR      { animation-delay: 0.48s; }
+    #chin        { animation-delay: 0.60s; }
+    #cheekL      { animation-delay: 0.72s; }
+    #earUpperL   { animation-delay: 0.84s; }
+    #earLowerL   { animation-delay: 0.96s; }
+    #headUpperL  { animation-delay: 1.08s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      path { animation: none; }
+    }
+  </style>
+
+  <!-- Static elements: nose, mouth, red eyes -->
+  <path d="M 221.411 261.665 L 242.949 275.29 L 199.873 275.29 L 221.411 261.665 Z" style="fill: #8b8b8b" id="mouth"/>
+  <path d="M 221.412 255.780016 L 238.624 235.033016 L 204.199 235.033016 L 221.412 255.780016 Z" style="fill: #616161" id="noseLower"/>
+  <path d="M 221.411 169.995 L 243.551 227.43 L 199.271 227.43 L 221.411 169.995 Z" style="fill: #dcdcdc" id="noseUpper"/>
+  <path d="M 178.234606 182.019072 L 160.788606 172.447072 L 184.719606 172.447072 L 178.234606 182.019072 Z" style="fill: #bf0000" id="eyeL"/>
+  <path d="M 264.245 182.330823 L 281.691 172.758823 L 257.76 172.758823 L 264.245 182.330823 Z" style="fill: #bf0000" id="eyeR"/>
+
+  <!-- Animated elements: default greyscale, pulse to original colour via CSS vars -->
+  <path d="M 221.411 103.038 L 276.453 165.259 L 166.369 165.259 L 221.411 103.038 Z" style="fill: #c9c9c9; --grey: #c9c9c9; --col: #9d6620" id="Forehead"/>
+  <path d="M 295.349937 173.273043 L 322.234466 111.516919 L 237.804141 101.293759 L 295.349937 173.273043 Z" style="fill: #a7a7a7; --grey: #a7a7a7; --col: #7b3c20" id="headUpperR"/>
+  <path d="M 297.422438 1.694788 L 250.918507 92.519588 L 317.62395 101.89442 L 297.422438 1.694788 Z" style="fill: #969696; --grey: #969696; --col: #8c5833" id="earLowerR"/>
+  <path d="M 327.637388 98.570878 L 306.138919 -4.992201 L 370.943749 -16.421476 L 327.637388 98.570878 Z" style="fill: #bcbcbc; --grey: #bcbcbc; --col: #7b6753" id="earUpperR"/>
+  <path d="M 254.974916 189.876654 L 305.261483 183.669096 L 247.937712 275.406905 L 254.974916 189.876654 Z" style="fill: #bfbfbf; --grey: #bfbfbf; --col: #a07639" id="cheekR"/>
+  <path d="M 221.414002 297.52049 L 194.678002 279.69949 L 248.151002 279.69949 L 221.414002 297.52049 Z" style="fill: #f0f0f0; --grey: #f0f0f0; --col: #c0bbaf" id="chin"/>
+  <path d="M 187.510327 189.560651 L 137.22376 183.353093 L 194.547532 275.090902 L 187.510327 189.560651 Z" style="fill: #d4d4d4; --grey: #d4d4d4; --col: #bb9864" id="cheekL"/>
+  <path d="M 114.95965 98.408338 L 136.458119 -5.154741 L 71.653289 -16.584016 L 114.95965 98.408338 Z" style="fill: #f7f7f7; --grey: #f7f7f7; --col: #9d8c7b" id="earUpperL"/>
+  <path d="M 145.294055 1.528053 L 191.797986 92.352853 L 125.092543 101.727685 L 145.294055 1.528053 Z" style="fill: #dcdcdc; --grey: #dcdcdc; --col: #7abbae" id="earLowerL"/>
+  <path d="M 147.134657 172.96341 L 120.250128 111.207286 L 204.680453 100.984126 L 147.134657 172.96341 Z" style="fill: #e1e1e1; --grey: #e1e1e1; --col: #ad6a4d" id="headUpperL"/>
+</svg>

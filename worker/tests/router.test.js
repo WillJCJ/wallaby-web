@@ -15,38 +15,6 @@ const makeEnv = (overrides = {}) => ({
 const makeRequest = (url, options = {}) => new Request(url, options);
 
 // ---------------------------------------------------------------------------
-// /cdn-cgi/image/ local dev shim
-// ---------------------------------------------------------------------------
-
-describe('router /cdn-cgi/image/ shim', () => {
-  it('strips the transform prefix and forwards to the underlying path', async () => {
-    const mockResponse = new Response('img-data', { status: 200 });
-    const mockFetch = vi.fn().mockResolvedValue(mockResponse);
-    vi.stubGlobal('fetch', mockFetch);
-
-    const req = makeRequest('http://localhost/cdn-cgi/image/width=400,format=auto/api/photos/photos/test.jpg');
-    const res = await router.fetch(req, makeEnv());
-
-    expect(res.status).toBe(200);
-    const calledUrl = mockFetch.mock.calls[0][0];
-    expect(new URL(calledUrl).pathname).toBe('/api/photos/photos/test.jpg');
-  });
-
-  it('redirects small-width photo requests to the blur/ key prefix', async () => {
-    const mockResponse = new Response('blur-data', { status: 200 });
-    const mockFetch = vi.fn().mockResolvedValue(mockResponse);
-    vi.stubGlobal('fetch', mockFetch);
-
-    const req = makeRequest('http://localhost/cdn-cgi/image/width=40,quality=5,format=auto/api/photos/photos/test.jpg');
-    const res = await router.fetch(req, makeEnv());
-
-    expect(res.status).toBe(200);
-    const calledUrl = mockFetch.mock.calls[0][0];
-    expect(new URL(calledUrl).pathname).toBe('/api/photos/blur/photos/test.jpg');
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Favicon routing
 // ---------------------------------------------------------------------------
 
@@ -69,7 +37,7 @@ describe('router favicon routing', () => {
     const req = makeRequest('https://my-app-preview.workers.dev/favicon.ico');
     const res = await router.fetch(req, makeEnv());
     expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/images/logos/logo_orangey.svg');
+    expect(res.headers.get('location')).toBe('/images/logos/logo_red.svg');
   });
 
   it('sets cache-control: no-store on favicon responses', async () => {
@@ -172,6 +140,33 @@ describe('router ASSETS fallback', () => {
 // ---------------------------------------------------------------------------
 
 describe('router /api/photos/*', () => {
+  it('returns SVG placeholder for LQIP requests (w <= 60) without hitting R2', async () => {
+    const mockFetch = vi.fn();
+    vi.stubGlobal('fetch', mockFetch);
+
+    const req = makeRequest('https://example.com/api/photos/test.jpg?w=40&q=5');
+    const res = await router.fetch(req, makeEnv({ PHOTOS_BUCKET: { get: vi.fn() } }));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/svg+xml');
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('uses cf.image fetch subrequest on the production domain', async () => {
+    const mockResponse = new Response('resized-bytes', { status: 200 });
+    const mockFetch = vi.fn().mockResolvedValue(mockResponse);
+    vi.stubGlobal('fetch', mockFetch);
+
+    const req = makeRequest('https://wallabyfest.co.uk/api/photos/sample.jpg?w=600&q=80');
+    const res = await router.fetch(req, makeEnv({ PHOTOS_BUCKET: { get: vi.fn() } }));
+
+    expect(res.status).toBe(200);
+    const [calledUrl, calledOpts] = mockFetch.mock.calls[0];
+    expect(new URL(calledUrl).searchParams.get('raw')).toBe('1');
+    expect(calledOpts.cf.image.width).toBe(600);
+    expect(calledOpts.cf.image.quality).toBe(80);
+  });
+
   it('returns 503 when PHOTOS_BUCKET binding is unavailable', async () => {
     const req = makeRequest('https://example.com/api/photos/party.jpg');
     const res = await router.fetch(req, makeEnv({ PHOTOS_BUCKET: null }));
@@ -191,14 +186,13 @@ describe('router /api/photos/*', () => {
 
   it('returns photo content and metadata from R2', async () => {
     const req = makeRequest('https://example.com/api/photos/sample.jpg');
+    const mockGet = vi.fn().mockResolvedValue({
+      body: 'photo-bytes',
+      httpMetadata: { contentType: 'image/jpeg' },
+      httpEtag: '"etag-123"',
+    });
     const env = makeEnv({
-      PHOTOS_BUCKET: {
-        get: vi.fn().mockResolvedValue({
-          body: 'photo-bytes',
-          httpMetadata: { contentType: 'image/jpeg' },
-          httpEtag: '"etag-123"',
-        }),
-      },
+      PHOTOS_BUCKET: { get: mockGet },
     });
 
     const res = await router.fetch(req, env);
@@ -207,5 +201,6 @@ describe('router /api/photos/*', () => {
     expect(res.headers.get('content-type')).toBe('image/jpeg');
     expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
     expect(res.headers.get('etag')).toBe('"etag-123"');
+    expect(mockGet).toHaveBeenCalledWith('photos/sample.jpg');
   });
 });

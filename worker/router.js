@@ -6,40 +6,48 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // /cdn-cgi/image/ is handled by Cloudflare's edge in production and never
-    // reaches the Worker. Locally, Wrangler passes it through, so we strip the
-    // transform options and serve the underlying resource directly.
-    // For small-width requests (width <= 60, i.e. LQIP placeholders) pointing at
-    // photo API paths, we serve the pre-generated blur/{key} from local R2 instead.
-    if (url.pathname.startsWith('/cdn-cgi/image/')) {
-      const afterPrefix = url.pathname.slice('/cdn-cgi/image/'.length);
-      const slashIdx = afterPrefix.indexOf('/');
-      const opts = slashIdx === -1 ? afterPrefix : afterPrefix.slice(0, slashIdx);
-      const innerPath = slashIdx === -1 ? '/' : '/' + afterPrefix.slice(slashIdx + 1);
-
-      const inner = new URL(request.url);
-      const widthMatch = opts.match(/width=(\d+)/);
-      const width = widthMatch ? parseInt(widthMatch[1], 10) : Infinity;
-
-      if (width <= 60 && innerPath.startsWith('/api/photos/')) {
-        inner.pathname = `/api/photos/blur/${innerPath.slice('/api/photos/'.length)}`;
-      } else {
-        inner.pathname = innerPath;
-      }
-
-      return fetch(inner, request);
-    }
-
     if (url.pathname.startsWith('/api/photos/')) {
       if (!env.PHOTOS_BUCKET) {
         return new Response('Photos bucket is not configured', { status: 503 });
       }
 
-      const key = decodeURIComponent(url.pathname.slice('/api/photos/'.length));
-      if (!key) {
+      const segment = decodeURIComponent(url.pathname.slice('/api/photos/'.length));
+      if (!segment) {
         return new Response('Photo key is required', { status: 400 });
       }
 
+      const w = url.searchParams.get('w');
+      const width = w ? parseInt(w, 10) : null;
+
+      // LQIP requests: return a tiny SVG placeholder immediately.
+      // In production the browser never requests this URL — CF Image Resizing
+      // handles the cdn-cgi LQIP URL at the edge. In preview and local, the
+      // CSS background gets a solid placeholder instead.
+      if (width !== null && width <= 60) {
+        return new Response(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
+          { status: 200, headers: { 'content-type': 'image/svg+xml', 'cache-control': 'public, max-age=3600' } }
+        );
+      }
+
+      // On the production domain, use Cloudflare Image Resizing via a cf.image
+      // subrequest so we get automatic format negotiation and resizing without
+      // needing the /cdn-cgi/image/ URL scheme (which isn't available on
+      // workers.dev preview domains).
+      const isProduction = url.hostname === 'wallabyfest.co.uk';
+      if (isProduction && width !== null && !url.searchParams.has('raw')) {
+        const q = url.searchParams.get('q');
+        const image = { width };
+        if (q) image.quality = parseInt(q, 10);
+        const accept = request.headers.get('accept') || '';
+        if (/image\/avif/.test(accept)) image.format = 'avif';
+        else if (/image\/webp/.test(accept)) image.format = 'webp';
+        const rawUrl = new URL(request.url);
+        rawUrl.searchParams.set('raw', '1');
+        return fetch(rawUrl.toString(), { cf: { image } });
+      }
+
+      const key = `photos/${segment}`;
       const object = await env.PHOTOS_BUCKET.get(key);
       if (!object) {
         return new Response('Photo not found', { status: 404 });
@@ -80,7 +88,7 @@ export default {
       const faviconPath = isLocal
         ? '/images/logos/logo_greyscale_red_eyes.svg'
         : isPreview
-          ? '/images/logos/logo_orangey.svg'
+          ? '/images/logos/logo_red.svg'
           : '/images/logos/logo.svg';
 
       return new Response(null, {

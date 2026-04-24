@@ -33,6 +33,20 @@
   filter: blur(10px);
 }
 
+/* Loading logo shown in each grid cell until the thumbnail is ready */
+.photo-thumb-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/logos/logo-loading.svg') center / 3.75rem no-repeat;
+  transition: opacity 0.2s ease;
+}
+
+.photo-thumb-link:has(img.loaded)::after {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .photo-thumb-link img {
   width: 100%;
   height: 100%;
@@ -53,13 +67,18 @@
 
 /* ── Lightbox ── */
 
+/* Lock body scroll while lightbox is open */
+body:has(.photo-item:target) {
+  overflow: hidden;
+}
+
 /* Persistent dark backdrop — stays visible when navigating between photos */
 body:has(.photo-item:target)::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 99;
-  background: color-mix(in srgb, var(--tone-primary) 60%, transparent);
+  background: rgb(0 0 0 / 88%);
   animation: lightbox-in 0.2s ease;
 }
 
@@ -82,7 +101,6 @@ body:has(.photo-item:target)::before {
 }
 
 /* Backdrop — click anywhere not on the image/arrows to close */
-
 .lightbox-close {
   position: absolute;
   inset: 0;
@@ -91,8 +109,21 @@ body:has(.photo-item:target)::before {
   cursor: zoom-out;
 }
 
-/* Figure — z-index 2 so it sits above the close backdrop */
+/* Counter — top-left, z-index 4 so it sits above figure */
+.lightbox-counter {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 4;
+  color: #fff;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+}
 
+/* Figure — z-index 2 so it sits above the close backdrop */
 .lightbox-figure {
   position: relative;
   z-index: 2;
@@ -100,37 +131,41 @@ body:has(.photo-item:target)::before {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: calc(100dvw - 9rem);
+  width: 100dvw;
   height: 100dvh;
-  padding: 0.5rem 0;
+  padding: 2.5rem 5rem;
+  box-sizing: border-box;
   margin: 0;
-  animation: lightbox-in 0.15s ease;
 }
 
-/* Wrapper constrains the LQIP blur strictly to the image bounds */
+/* Wrapper constrains the image to its bounds */
 .lightbox-img-wrap {
   position: relative;
   overflow: hidden;
-  border-radius: 4px;
   display: flex;
   line-height: 0;
 }
 
-/* Blurry LQIP behind the full lightbox image — clipped by overflow: hidden */
-.lightbox-img-wrap::before {
+/* Smooth unblur when is-loading is removed — transition must live on the base selector */
+.lightbox-img-wrap img {
+  transition: filter 0.45s ease, transform 0.45s ease;
+}
+
+/* While hi-res loads: blur the thumbnail underneath and show the loading logo */
+.lightbox-img-wrap.is-loading img {
+  filter: blur(20px);
+}
+
+.lightbox-img-wrap.is-loading::after {
   content: '';
   position: absolute;
-  inset: -4px;
-  background-image: var(--lqip);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(12px);
+  inset: 0;
+  background: url('/images/logos/logo-loading.svg') center / 5rem no-repeat;
 }
 
 .lightbox-figure img {
   max-width: 100%;
-  max-height: calc(100dvh - 4rem);
+  max-height: calc(100dvh - 5rem);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -139,17 +174,18 @@ body:has(.photo-item:target)::before {
 }
 
 .lightbox-caption {
-  display: none; /* Don't show the caption for now */
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 0 1rem;
-  color: var(--text);
-  opacity: 0.75;
-  font-size: 0.85rem;
+  padding: 2.5rem 1rem 0.75rem;
+  background: linear-gradient(transparent, rgb(0 0 0 / 65%));
+  color: #fff;
+  font-size: 0.875rem;
   text-align: center;
   margin: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* Navigation arrows — z-index 3 so they sit above the figure */
@@ -167,7 +203,7 @@ body:has(.photo-item:target)::before {
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  opacity: 0.8;
+  opacity: 0.7;
   backdrop-filter: blur(4px);
   color: var(--text);
   text-decoration: none;
@@ -185,16 +221,66 @@ body:has(.photo-item:target)::before {
 }
 
 .lightbox-nav--disabled {
-  opacity: 0.25;
+  opacity: 0.2;
   cursor: default;
 }
 
 .lightbox-nav--prev {
-  left: 1rem;
+  left: 0.75rem;
 }
 
 .lightbox-nav--next {
-  right: 1rem;
+  right: 0.75rem;
+}
+
+/* Close button — z-index 4, top-right corner */
+
+.lightbox-close-btn {
+  position: absolute;
+  z-index: 4;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  opacity: 0.7;
+  backdrop-filter: blur(4px);
+  color: var(--text);
+  text-decoration: none;
+  transition: opacity 0.15s;
+  cursor: pointer;
+}
+
+.lightbox-close-btn:hover {
+  opacity: 1;
+}
+
+.lightbox-close-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lightbox-close-btn::before,
+.lightbox-close-btn::after {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 2px;
+  background: currentcolor;
+  border-radius: 1px;
+}
+
+.lightbox-close-btn::before {
+  transform: rotate(45deg);
+}
+
+.lightbox-close-btn::after {
+  transform: rotate(-45deg);
 }
 
 .lightbox-nav--prev::before,
@@ -235,13 +321,16 @@ body:has(.photo-item:target)::before {
   }
 
   .lightbox-figure {
-    max-width: calc(100dvw - 6rem);
+    padding: 1.5rem 0;
+  }
+
+  .lightbox-figure img {
+    max-height: calc(100dvh - 3rem);
   }
 
   .lightbox-nav {
     width: 2.5rem;
     height: 2.5rem;
-    font-size: 1.5rem;
   }
 
   .lightbox-nav--prev {
@@ -249,6 +338,13 @@ body:has(.photo-item:target)::before {
   }
 
   .lightbox-nav--next {
+    right: 0.5rem;
+  }
+
+  .lightbox-close-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    top: 0.5rem;
     right: 0.5rem;
   }
 }

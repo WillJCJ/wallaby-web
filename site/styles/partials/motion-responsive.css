@@ -20,46 +20,66 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001s !important;
   }
-
-  ::view-transition-old(root) {
-    animation: none;
-  }
-
-  ::view-transition-new(root) {
-    animation: none;
-  }
 }
 
-@view-transition {
-  navigation: auto;
+/* hires-load: morph blurry thumbnail to full-res image in lightbox.
+   Group handles position/size expansion; old/new crossfade blurry → sharp. */
+
+::view-transition-group(hires-load) {
+  animation-duration: 0.45s;
+}
+
+/* Root transition is instant — only named elements animate */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/* photo-zoom: shared-element morph between thumbnail and lightbox image.
+   Suppress the default crossfade so only the size/position morph shows. */
+
+::view-transition-old(photo-zoom),
+::view-transition-new(photo-zoom) {
+  animation: none;
+}
+
+/* lightbox-photo: directional slide between photos.
+   Allow overflow so the outgoing image slides fully off-screen. */
+
+::view-transition-image-pair(lightbox-photo) {
+  overflow: visible;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
-    animation: fade-out 0.25s ease-out forwards;
+  :root[data-nav-direction="forward"]::view-transition-old(lightbox-photo) {
+    animation: photo-slide-out-left 0.25s ease forwards;
   }
 
-  ::view-transition-new(root) {
-    animation: fade-in 0.25s ease-in forwards;
+  :root[data-nav-direction="forward"]::view-transition-new(lightbox-photo) {
+    animation: photo-slide-in-right 0.25s ease forwards;
   }
 
-  @keyframes fade-out {
-    from {
-      opacity: 1;
-    }
-
-    to {
-      opacity: 0;
-    }
+  :root[data-nav-direction="back"]::view-transition-old(lightbox-photo) {
+    animation: photo-slide-out-right 0.25s ease forwards;
   }
 
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
+  :root[data-nav-direction="back"]::view-transition-new(lightbox-photo) {
+    animation: photo-slide-in-left 0.25s ease forwards;
+  }
 
-    to {
-      opacity: 1;
-    }
+  @keyframes photo-slide-out-left {
+    to { transform: translateX(-100dvw); }
+  }
+
+  @keyframes photo-slide-in-right {
+    from { transform: translateX(100dvw); }
+  }
+
+  @keyframes photo-slide-out-right {
+    to { transform: translateX(100dvw); }
+  }
+
+  @keyframes photo-slide-in-left {
+    from { transform: translateX(-100dvw); }
   }
 }
