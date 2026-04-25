@@ -118,6 +118,31 @@
   color: var(--text);
 }
 
+.admin-guest-detail-lastseen {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+}
+
+.admin-guest-detail-lastseen-main {
+  min-width: 0;
+}
+
+.admin-guest-detail-id-inline {
+  margin-left: auto;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-guest-debug {
+  margin: 0.18rem 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
 .admin-col-actions {
   white-space: nowrap;
 }

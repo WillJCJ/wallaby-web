@@ -18,7 +18,7 @@
   --bg-card: #34495e;
   --border: var(--bg-surface);
   --text: #bdc3c7;
-  --text-muted: var(--text);
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-faint: var(--text);
   --text-strong: var(--accent);
   --text-on-accent: #ecf0f1;

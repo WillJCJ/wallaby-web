@@ -130,9 +130,7 @@
 
   if (!isLocalHost) {
     if (cfLoginLink) {
-      const loginUrl = new URL('/cdn-cgi/access/login', window.location.origin);
-      loginUrl.searchParams.set('returnTo', `${window.location.origin}${nextPath}`);
-      cfLoginLink.href = loginUrl.toString();
+      cfLoginLink.href = `/api/private/auth-entry?next=${encodeURIComponent(nextPath)}`;
     }
 
     auth?.fetchAuthEmail().then((email) => {

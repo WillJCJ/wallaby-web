@@ -7,7 +7,7 @@ const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
 const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
-const PRIVATE_PAGE_PREFIXES = ['/profile/', '/admin/', '/details/'];
+const PRIVATE_PAGE_PREFIXES = ['/profile/', '/admin/'];
 
 const isPrivatePagePath = (pathname) => PRIVATE_PAGE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
@@ -129,15 +129,13 @@ const showStoredFlashMessage = () => {
 	}
 };
 
-const setSignedOutNav = (detailsLink, profileLink, logoutLink, loginLink) => {
-	detailsLink.hidden = true;
+const setSignedOutNav = (profileLink, logoutLink, loginLink) => {
 	profileLink.hidden = true;
 	logoutLink.hidden = true;
 	loginLink.hidden = false;
 };
 
-const setSignedInNav = (detailsLink, profileLink, logoutLink, loginLink) => {
-	detailsLink.hidden = false;
+const setSignedInNav = (profileLink, logoutLink, loginLink) => {
 	profileLink.hidden = false;
 	logoutLink.hidden = false;
 	loginLink.hidden = true;
@@ -189,12 +187,11 @@ const setupLogout = (logoutLink) => {
 };
 
 const initializeAuthNav = async () => {
-	const detailsLink = document.getElementById('nav-details-link');
 	const profileLink = document.getElementById('nav-profile-link');
 	const logoutLink = document.getElementById('nav-logout-link');
 	const loginLink = document.getElementById('nav-login-link');
 
-	if (!detailsLink || !profileLink || !logoutLink || !loginLink) {
+	if (!profileLink || !logoutLink || !loginLink) {
 		return;
 	}
 
@@ -206,33 +203,33 @@ const initializeAuthNav = async () => {
 	const storedEmail = getStoredAuthEmail();
 
 	if (storedEmail) {
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		setSignedInNav(profileLink, logoutLink, loginLink);
 	} else {
-		setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
+		setSignedOutNav(profileLink, logoutLink, loginLink);
 	}
 
 	const identityEmail = await fetchAuthEmail();
 
 	if (identityEmail) {
 		setStoredAuthEmail(identityEmail);
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		setSignedInNav(profileLink, logoutLink, loginLink);
 		return;
 	}
 
 	if (isPrivatePage && !isLocalHost) {
 		setStoredAuthEmail(null);
-		setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
+		setSignedOutNav(profileLink, logoutLink, loginLink);
 		window.location.replace(buildLoginRedirectUrl());
 		return;
 	}
 
 	if (storedEmail) {
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		setSignedInNav(profileLink, logoutLink, loginLink);
 		return;
 	}
 
 	setStoredAuthEmail(null);
-	setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
+	setSignedOutNav(profileLink, logoutLink, loginLink);
 };
 
 if (document.readyState === 'loading') {

@@ -57,6 +57,13 @@ import { apiFetch } from '/scripts/api-utils.js';
   let createLockedUntilFieldChange = false;
   const guestActionInFlight = new Set();
   const statusClasses = ['private-status--success', 'private-status--warning', 'private-status--failure'];
+  const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  const isLastSeenDebugEnabled = isLocalHost && new URLSearchParams(window.location.search).has('debugLastSeen');
+
+  const normalizeAccessEnabled = (value) => value === true
+    || value === 1
+    || value === '1'
+    || (typeof value === 'string' && value.toLowerCase() === 'true');
 
   const setStatus = (message, tone = null) => {
     status.textContent = message;
@@ -185,7 +192,10 @@ import { apiFetch } from '/scripts/api-utils.js';
     try {
       const data = await (await apiFetch(`/api/private/guests/${guestId}/last-seen`)).json();
       return data?.lastSeen || null;
-    } catch {
+    } catch (error) {
+      if (isLastSeenDebugEnabled) {
+        console.error('[last_seen debug] Failed to load last_seen for guest', guestId, error);
+      }
       return null;
     }
   };
@@ -362,6 +372,8 @@ import { apiFetch } from '/scripts/api-utils.js';
   };
 
   const formatGuestRow = (guest, allInSync = false) => {
+    const isAccessEnabled = normalizeAccessEnabled(guest.accessEnabled);
+
     const row = document.createElement('tr');
     row.className = 'admin-guest-row';
     row.setAttribute('aria-expanded', 'false');
@@ -396,21 +408,58 @@ import { apiFetch } from '/scripts/api-utils.js';
 
     // Last seen display
     const lastSeenItem = document.createElement('p');
-    lastSeenItem.className = 'admin-guest-detail-item';
-    lastSeenItem.id = `guest-last-seen-${guest.id}`;
+    lastSeenItem.className = 'admin-guest-detail-item admin-guest-detail-lastseen';
     const lastSeenLabel = document.createElement('strong');
     lastSeenLabel.textContent = 'Last seen: ';
-    lastSeenItem.appendChild(lastSeenLabel);
-    lastSeenItem.appendChild(document.createTextNode('Loading...'));
+
+    const lastSeenMain = document.createElement('span');
+    lastSeenMain.className = 'admin-guest-detail-lastseen-main';
+    const lastSeenValue = document.createElement('span');
+    lastSeenValue.id = `guest-last-seen-${guest.id}`;
+    lastSeenValue.textContent = 'Loading...';
+    lastSeenMain.appendChild(lastSeenLabel);
+    lastSeenMain.appendChild(lastSeenValue);
+
+    const guestIdInline = document.createElement('span');
+    guestIdInline.className = 'admin-guest-detail-id-inline';
+    guestIdInline.textContent = `Guest ID: ${guest.id || '—'}`;
+
+    lastSeenItem.appendChild(lastSeenMain);
+    lastSeenItem.appendChild(guestIdInline);
     viewSection.appendChild(lastSeenItem);
 
-    // Fetch and update last_seen
-    fetchGuestLastSeen(guest.id).then((lastSeen) => {
-      const displayText = lastSeen
+    const inviteDebugItem = document.createElement('p');
+    inviteDebugItem.className = 'admin-guest-debug';
+    inviteDebugItem.hidden = !isLastSeenDebugEnabled;
+    viewSection.appendChild(inviteDebugItem);
+
+    const updateLastSeenUI = (lastSeen) => {
+      const hasLastSeen = typeof lastSeen === 'string' && lastSeen.trim() !== '';
+      const displayText = hasLastSeen
         ? new Date(lastSeen).toLocaleString()
         : 'Never';
-      lastSeenItem.textContent = 'Last seen: ' + displayText;
-    });
+      lastSeenValue.textContent = displayText;
+
+      const shouldShowSendInvitation = isAccessEnabled && !hasLastSeen;
+      setInvitationButtonVisible(shouldShowSendInvitation);
+
+      if (isLastSeenDebugEnabled) {
+        inviteDebugItem.textContent =
+          `Debug: raw accessEnabled=${JSON.stringify(guest.accessEnabled)}, `
+          + `normalised=${isAccessEnabled}, lastSeenRaw=${JSON.stringify(lastSeen)}, `
+          + `hasLastSeen=${hasLastSeen}, showInvite=${shouldShowSendInvitation}`;
+
+        console.log('[last_seen debug]', {
+          guestId: guest.id,
+          email: guest.email,
+          rawAccessEnabled: guest.accessEnabled,
+          isAccessEnabled,
+          lastSeen,
+          hasLastSeen,
+          shouldShowSendInvitation,
+        });
+      }
+    };
 
     const editButton = document.createElement('button');
     editButton.type = 'button';
@@ -427,7 +476,15 @@ import { apiFetch } from '/scripts/api-utils.js';
     sendInvitationButton.type = 'button';
     sendInvitationButton.className = 'login-button admin-guest-edit-button';
     sendInvitationButton.textContent = 'Send invitation';
-    sendInvitationButton.hidden = true;
+    const setInvitationButtonVisible = (visible) => {
+      if (visible) {
+        if (!viewActions.contains(sendInvitationButton)) {
+          viewActions.appendChild(sendInvitationButton);
+        }
+      } else if (viewActions.contains(sendInvitationButton)) {
+        sendInvitationButton.remove();
+      }
+    };
     sendInvitationButton.addEventListener('click', async (event) => {
       event.stopPropagation();
       sendInvitationButton.disabled = true;
@@ -447,13 +504,11 @@ import { apiFetch } from '/scripts/api-utils.js';
     viewActions.className = 'admin-guest-detail-actions';
     viewActions.appendChild(editButton);
     viewActions.appendChild(deleteButton);
-    viewActions.appendChild(sendInvitationButton);
+    // The sendInvitationButton will be managed by setInvitationButtonVisible
     viewSection.appendChild(viewActions);
 
-    // Show invite button if last_seen is null
-    fetchGuestLastSeen(guest.id).then((lastSeen) => {
-      sendInvitationButton.hidden = lastSeen !== null;
-    });
+    // Fetch once and drive both last-seen text + invitation visibility from the same value.
+    fetchGuestLastSeen(guest.id).then(updateLastSeenUI);
 
     // --- edit mode ---
     const editSection = document.createElement('div');
@@ -560,8 +615,6 @@ import { apiFetch } from '/scripts/api-utils.js';
         return;
       }
 
-      setStatus(`Deleting ${guestLabel}...`, 'warning');
-
       try {
         await withGuestAction(guest.id, async () => {
           await deleteGuest(guest.id);
@@ -624,19 +677,19 @@ import { apiFetch } from '/scripts/api-utils.js';
     accessCell.className = 'admin-col-actions admin-col-access';
 
     const accessStateIcon = document.createElement('span');
-    accessStateIcon.className = `admin-access-state ${guest.accessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
-    accessStateIcon.textContent = guest.accessEnabled ? '✓' : '✕';
-    accessStateIcon.title = guest.accessEnabled ? 'Access enabled' : 'Access disabled';
-    accessStateIcon.setAttribute('aria-label', guest.accessEnabled ? 'Access enabled' : 'Access disabled');
+    accessStateIcon.className = `admin-access-state ${isAccessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
+    accessStateIcon.textContent = isAccessEnabled ? '✓' : '✕';
+    accessStateIcon.title = isAccessEnabled ? 'Access enabled' : 'Access disabled';
+    accessStateIcon.setAttribute('aria-label', isAccessEnabled ? 'Access enabled' : 'Access disabled');
 
     const toggleAccessButton = document.createElement('button');
     toggleAccessButton.type = 'button';
     toggleAccessButton.className = 'login-button admin-guest-access-button';
-    toggleAccessButton.textContent = guest.accessEnabled ? 'Disable' : 'Enable';
+    toggleAccessButton.textContent = isAccessEnabled ? 'Disable' : 'Enable';
     toggleAccessButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
 
     toggleAccessButton.addEventListener('click', async () => {
-      const nextEnabled = !guest.accessEnabled;
+      const nextEnabled = !isAccessEnabled;
       setStatus(`${nextEnabled ? 'Enabling' : 'Disabling'} access for ${guest.email || guest.name}...`, 'warning');
 
       try {

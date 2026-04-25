@@ -1,4 +1,5 @@
 import { handleAuthStatus } from './auth-status.js';
+import { requireAuthenticatedEmail } from './auth.js';
 import { handleDevAuthApi } from './dev-auth.js';
 import { handlePrivateDetails } from './details.js';
 import { handleGuestsApi } from './guests.js';
@@ -7,6 +8,34 @@ import {
   handleListAccessRequests,
   handleDismissAccessRequest,
 } from './access-requests.js';
+
+const resolveSafeNextPath = (value) => {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) {
+    return '/profile/';
+  }
+
+  return value;
+};
+
+const handlePrivateAuthEntry = (request, env, url) => {
+  if (request.method !== 'GET') {
+    return new Response('Method Not Allowed', { status: 405 });
+  }
+
+  const authResult = requireAuthenticatedEmail(request, env);
+  if (authResult.error) {
+    return authResult.error;
+  }
+
+  const nextPath = resolveSafeNextPath(url.searchParams.get('next') || '/profile/');
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: nextPath,
+      'cache-control': 'no-store',
+    },
+  });
+};
 
 export default {
   async fetch(request, env) {
@@ -117,6 +146,10 @@ export default {
     if (url.pathname.startsWith('/api/private/admin/access-requests/')) {
       const email = decodeURIComponent(url.pathname.slice('/api/private/admin/access-requests/'.length));
       return handleDismissAccessRequest(request, env, email);
+    }
+
+    if (url.pathname === '/api/private/auth-entry') {
+      return handlePrivateAuthEntry(request, env, url);
     }
 
     if (

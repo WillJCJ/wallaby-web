@@ -571,13 +571,13 @@ export const handleGuestsApi = async (request, env, pathname) => {
     return handleGuestAccessToggle(request, env, authResult.email, parts[3], false);
   }
 
-  if (parts.length === 6 && parts[4] === 'last-seen') {
+  if (parts.length === 5 && parts[4] === 'last-seen') {
     const adminError = requireAdmin(authResult.email, env);
     if (adminError) return adminError;
     return handleGetLastSeen(request, env, parts[3]);
   }
 
-  if (parts.length === 6 && parts[4] === 'send-invitation') {
+  if (parts.length === 5 && parts[4] === 'send-invitation') {
     const adminError = requireAdmin(authResult.email, env);
     if (adminError) return adminError;
     return handleSendInvitation(request, env, parts[3]);

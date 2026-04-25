@@ -8,7 +8,7 @@ Protect this route family with authentication:
 
 - `/api/private/*`
 
-Private page shells (`/admin/`, `/profile/`, `/details/`) stay publicly reachable.
+Private page shells (`/admin/`, `/profile/`) stay publicly reachable.
 They immediately send signed-out users to `/login/` in-site, then private API calls remain protected by Access.
 
 ## Setup steps
