@@ -2,6 +2,11 @@ import { handleAuthStatus } from './auth-status.js';
 import { handleDevAuthApi } from './dev-auth.js';
 import { handlePrivateDetails } from './details.js';
 import { handleGuestsApi } from './guests.js';
+import {
+  handlePublicAccessRequest,
+  handleListAccessRequests,
+  handleDismissAccessRequest,
+} from './access-requests.js';
 
 export default {
   async fetch(request, env) {
@@ -99,6 +104,19 @@ export default {
           'cache-control': 'no-store',
         },
       });
+    }
+
+    if (url.pathname === '/api/access-requests') {
+      return handlePublicAccessRequest(request, env);
+    }
+
+    if (url.pathname === '/api/private/admin/access-requests') {
+      return handleListAccessRequests(request, env);
+    }
+
+    if (url.pathname.startsWith('/api/private/admin/access-requests/')) {
+      const email = decodeURIComponent(url.pathname.slice('/api/private/admin/access-requests/'.length));
+      return handleDismissAccessRequest(request, env, email);
     }
 
     if (

@@ -6,6 +6,7 @@ import { apiFetch } from '/scripts/api-utils.js';
   const submitButton = document.getElementById('guest-admin-submit');
   const cancelAddButton = document.getElementById('guest-admin-cancel');
   const toggleAddButton = document.getElementById('guest-admin-toggle');
+  const addFormStatus = document.getElementById('guest-admin-form-status');
   const addPanel = document.getElementById('admin-add-panel');
   const guestsList = document.getElementById('admin-guests-list');
   const rsvpStats = document.getElementById('admin-rsvp-stats');
@@ -14,6 +15,8 @@ import { apiFetch } from '/scripts/api-utils.js';
   const runSyncButton = document.getElementById('admin-sync-run');
   const dryRunSyncButton = document.getElementById('admin-sync-dry-run');
   const refreshSyncButton = document.getElementById('admin-sync-refresh');
+  const requestsPanel = document.getElementById('admin-requests-panel');
+  const requestsList = document.getElementById('admin-requests-list');
 
   if (
     !status ||
@@ -21,6 +24,7 @@ import { apiFetch } from '/scripts/api-utils.js';
     !submitButton ||
     !cancelAddButton ||
     !toggleAddButton ||
+    !addFormStatus ||
     !addPanel ||
     !guestsList ||
     !rsvpStats ||
@@ -28,7 +32,9 @@ import { apiFetch } from '/scripts/api-utils.js';
     !syncSummary ||
     !runSyncButton ||
     !dryRunSyncButton ||
-    !refreshSyncButton
+    !refreshSyncButton ||
+    !requestsPanel ||
+    !requestsList
   ) {
     return;
   }
@@ -48,7 +54,22 @@ import { apiFetch } from '/scripts/api-utils.js';
   let isSubmitting = false;
   let isAddFormExpanded = false;
   let syncActionInProgress = false;
+  let createLockedUntilFieldChange = false;
   const guestActionInFlight = new Set();
+  const statusClasses = ['private-status--success', 'private-status--warning', 'private-status--failure'];
+
+  const setStatus = (message, tone = null) => {
+    status.textContent = message;
+    status.classList.remove(...statusClasses);
+
+    if (tone === 'success') {
+      status.classList.add('private-status--success');
+    } else if (tone === 'warning') {
+      status.classList.add('private-status--warning');
+    } else if (tone === 'failure') {
+      status.classList.add('private-status--failure');
+    }
+  };
 
   const setAddFormExpanded = (expanded) => {
     isAddFormExpanded = expanded;
@@ -85,8 +106,20 @@ import { apiFetch } from '/scripts/api-utils.js';
 
   const setSubmittingState = (submitting) => {
     isSubmitting = submitting;
-    submitButton.disabled = submitting;
+    submitButton.disabled = submitting || createLockedUntilFieldChange;
     submitButton.textContent = submitting ? 'Adding...' : 'Add guest';
+  };
+
+  const clearAddGuestStatus = () => {
+    addFormStatus.hidden = true;
+    addFormStatus.textContent = '';
+  };
+
+  const showAddGuestError = (message, lockUntilFieldChange = false) => {
+    addFormStatus.hidden = false;
+    addFormStatus.textContent = message;
+    createLockedUntilFieldChange = lockUntilFieldChange;
+    setSubmittingState(false);
   };
 
   const withGuestAction = async (guestId, action) => {
@@ -106,6 +139,17 @@ import { apiFetch } from '/scripts/api-utils.js';
   const fetchGuests = async () => {
     const data = await (await apiFetch('/api/private/guests')).json();
     return Array.isArray(data?.guests) ? data.guests : [];
+  };
+
+  const fetchAccessRequests = async () => {
+    const data = await (await apiFetch('/api/private/admin/access-requests')).json();
+    return Array.isArray(data?.requests) ? data.requests : [];
+  };
+
+  const dismissAccessRequest = async (email) => {
+    await apiFetch(`/api/private/admin/access-requests/${encodeURIComponent(email)}`, {
+      method: 'DELETE',
+    });
   };
 
   const fetchSyncStatus = async () => {
@@ -130,9 +174,125 @@ import { apiFetch } from '/scripts/api-utils.js';
     return response;
   };
 
+  const deleteGuest = async (guestId) => {
+    const response = await (await apiFetch(`/api/private/guests/${guestId}`, {
+      method: 'DELETE',
+    })).json();
+    return response;
+  };
+
+  const fetchGuestLastSeen = async (guestId) => {
+    try {
+      const data = await (await apiFetch(`/api/private/guests/${guestId}/last-seen`)).json();
+      return data?.lastSeen || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const sendGuestInvitation = async (guestId) => {
+    const response = await (await apiFetch(`/api/private/guests/${guestId}/send-invitation`, {
+      method: 'POST',
+    })).json();
+    return response;
+  };
+
   const refreshSyncSummary = async () => {
     const summary = await fetchSyncStatus();
     setSyncSummary(formatSyncSummary(summary));
+  };
+
+  const renderAccessRequests = (requests) => {
+    requestsList.innerHTML = '';
+
+    if (!Array.isArray(requests) || requests.length === 0) {
+      requestsPanel.hidden = true;
+      return;
+    }
+
+    const tableWrap = document.createElement('div');
+    tableWrap.className = 'admin-requests-table-wrap';
+
+    const table = document.createElement('table');
+    table.className = 'admin-guests-table admin-requests-table';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    ['Name', 'Email', 'Requested', 'Actions'].forEach((label) => {
+      const th = document.createElement('th');
+      th.textContent = label;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+
+    const tbody = document.createElement('tbody');
+
+    requests.forEach((req) => {
+      const row = document.createElement('tr');
+
+      const nameCell = document.createElement('td');
+      nameCell.textContent = req.name || '—';
+      row.appendChild(nameCell);
+
+      const emailCell = document.createElement('td');
+      emailCell.textContent = req.email || '—';
+      row.appendChild(emailCell);
+
+      const dateCell = document.createElement('td');
+      dateCell.textContent = req.requestedAt
+        ? new Date(req.requestedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        : '—';
+      row.appendChild(dateCell);
+
+      const actionsCell = document.createElement('td');
+      actionsCell.className = 'admin-col-actions';
+
+      const createButton = document.createElement('button');
+      createButton.type = 'button';
+      createButton.className = 'login-button admin-request-create-button';
+      createButton.textContent = 'Create guest';
+      createButton.addEventListener('click', () => {
+        // Pre-populate the add-guest form with the request details and scroll to it
+        if (fields.name) fields.name.value = req.name || '';
+        if (fields.email) fields.email.value = req.email || '';
+        setAddFormExpanded(true);
+        addPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      const dismissButton = document.createElement('button');
+      dismissButton.type = 'button';
+      dismissButton.className = 'login-button admin-request-dismiss-button';
+      dismissButton.textContent = 'Dismiss';
+      dismissButton.addEventListener('click', async () => {
+        dismissButton.disabled = true;
+        dismissButton.textContent = 'Dismissing...';
+        try {
+          await dismissAccessRequest(req.email);
+          await refreshAccessRequests();
+        } catch (error) {
+          setStatus(error.message, 'failure');
+          dismissButton.disabled = false;
+          dismissButton.textContent = 'Dismiss';
+        }
+      });
+
+      actionsCell.appendChild(createButton);
+      actionsCell.appendChild(dismissButton);
+      row.appendChild(actionsCell);
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    requestsList.appendChild(tableWrap);
+    requestsPanel.hidden = false;
+  };
+
+  const refreshAccessRequests = async () => {
+    const requests = await fetchAccessRequests();
+    renderAccessRequests(requests);
   };
 
   const renderRsvpStats = (guests) => {
@@ -189,7 +349,7 @@ import { apiFetch } from '/scripts/api-utils.js';
     renderGuests(guestsState);
     renderRsvpStats(guestsState);
     setSyncSummary(formatSyncSummary(summary));
-    status.textContent = '';
+    setStatus('');
   };
 
   const createCell = (value, className = '') => {
@@ -234,11 +394,66 @@ import { apiFetch } from '/scripts/api-utils.js';
       viewSection.appendChild(item);
     });
 
+    // Last seen display
+    const lastSeenItem = document.createElement('p');
+    lastSeenItem.className = 'admin-guest-detail-item';
+    lastSeenItem.id = `guest-last-seen-${guest.id}`;
+    const lastSeenLabel = document.createElement('strong');
+    lastSeenLabel.textContent = 'Last seen: ';
+    lastSeenItem.appendChild(lastSeenLabel);
+    lastSeenItem.appendChild(document.createTextNode('Loading...'));
+    viewSection.appendChild(lastSeenItem);
+
+    // Fetch and update last_seen
+    fetchGuestLastSeen(guest.id).then((lastSeen) => {
+      const displayText = lastSeen
+        ? new Date(lastSeen).toLocaleString()
+        : 'Never';
+      lastSeenItem.textContent = 'Last seen: ' + displayText;
+    });
+
     const editButton = document.createElement('button');
     editButton.type = 'button';
     editButton.className = 'login-button admin-guest-edit-button';
     editButton.textContent = 'Edit';
-    viewSection.appendChild(editButton);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.className = 'login-button admin-guest-edit-button';
+    deleteButton.textContent = 'Delete';
+    deleteButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
+
+    const sendInvitationButton = document.createElement('button');
+    sendInvitationButton.type = 'button';
+    sendInvitationButton.className = 'login-button admin-guest-edit-button';
+    sendInvitationButton.textContent = 'Send invitation';
+    sendInvitationButton.hidden = true;
+    sendInvitationButton.addEventListener('click', async (event) => {
+      event.stopPropagation();
+      sendInvitationButton.disabled = true;
+      sendInvitationButton.textContent = 'Sending...';
+      try {
+        await sendGuestInvitation(guest.id);
+        setStatus('Invitation sent to ' + (guest.email || guest.name), 'success');
+      } catch (error) {
+        setStatus(error.message, 'failure');
+      } finally {
+        sendInvitationButton.disabled = false;
+        sendInvitationButton.textContent = 'Send invitation';
+      }
+    });
+
+    const viewActions = document.createElement('div');
+    viewActions.className = 'admin-guest-detail-actions';
+    viewActions.appendChild(editButton);
+    viewActions.appendChild(deleteButton);
+    viewActions.appendChild(sendInvitationButton);
+    viewSection.appendChild(viewActions);
+
+    // Show invite button if last_seen is null
+    fetchGuestLastSeen(guest.id).then((lastSeen) => {
+      sendInvitationButton.hidden = lastSeen !== null;
+    });
 
     // --- edit mode ---
     const editSection = document.createElement('div');
@@ -336,6 +551,28 @@ import { apiFetch } from '/scripts/api-utils.js';
       enterEditMode();
     });
 
+    deleteButton.addEventListener('click', async (event) => {
+      event.stopPropagation();
+
+      const guestLabel = guest.name || guest.email || `guest ${guest.id}`;
+      const confirmed = window.confirm(`Delete ${guestLabel}? This cannot be undone.`);
+      if (!confirmed) {
+        return;
+      }
+
+      setStatus(`Deleting ${guestLabel}...`, 'warning');
+
+      try {
+        await withGuestAction(guest.id, async () => {
+          await deleteGuest(guest.id);
+        });
+        await refreshGuestsAndSummary();
+        setStatus(`Deleted ${guestLabel}.`, 'success');
+      } catch (error) {
+        setStatus(error.message, 'failure');
+      }
+    });
+
     cancelEditButton.addEventListener('click', () => {
       exitEditMode();
     });
@@ -343,7 +580,7 @@ import { apiFetch } from '/scripts/api-utils.js';
     saveButton.addEventListener('click', async () => {
       saveButton.disabled = true;
       saveButton.textContent = 'Saving...';
-      status.textContent = `Saving ${editName.value.trim() || guest.name}...`;
+    setStatus(`Saving ${editName.value.trim() || guest.name}...`, 'warning');
 
       try {
         await apiFetch(`/api/private/guests/${guest.id}`, {
@@ -359,8 +596,9 @@ import { apiFetch } from '/scripts/api-utils.js';
           }),
         });
         await refreshGuestsAndSummary();
+        setStatus(`Saved ${editName.value.trim() || guest.name}.`, 'success');
       } catch (error) {
-        status.textContent = error.message;
+        setStatus(error.message, 'failure');
         saveButton.disabled = false;
         saveButton.textContent = 'Save';
       }
@@ -383,7 +621,14 @@ import { apiFetch } from '/scripts/api-utils.js';
     row.appendChild(createCell(String(Number.parseInt(guest.additionalGuests, 10) || 0), 'admin-col-number'));
 
     const accessCell = document.createElement('td');
-    accessCell.className = 'admin-col-actions';
+    accessCell.className = 'admin-col-actions admin-col-access';
+
+    const accessStateIcon = document.createElement('span');
+    accessStateIcon.className = `admin-access-state ${guest.accessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
+    accessStateIcon.textContent = guest.accessEnabled ? '✓' : '✕';
+    accessStateIcon.title = guest.accessEnabled ? 'Access enabled' : 'Access disabled';
+    accessStateIcon.setAttribute('aria-label', guest.accessEnabled ? 'Access enabled' : 'Access disabled');
+
     const toggleAccessButton = document.createElement('button');
     toggleAccessButton.type = 'button';
     toggleAccessButton.className = 'login-button admin-guest-access-button';
@@ -392,18 +637,20 @@ import { apiFetch } from '/scripts/api-utils.js';
 
     toggleAccessButton.addEventListener('click', async () => {
       const nextEnabled = !guest.accessEnabled;
-      status.textContent = `${nextEnabled ? 'Enabling' : 'Disabling'} access for ${guest.email || guest.name}...`;
+      setStatus(`${nextEnabled ? 'Enabling' : 'Disabling'} access for ${guest.email || guest.name}...`, 'warning');
 
       try {
         await withGuestAction(guest.id, async () => {
           await setGuestAccess(guest.id, nextEnabled);
         });
         await refreshGuestsAndSummary();
+        setStatus(`${nextEnabled ? 'Enabled' : 'Disabled'} access for ${guest.email || guest.name}.`, 'success');
       } catch (error) {
-        status.textContent = error.message;
+        setStatus(error.message, 'failure');
       }
     });
 
+    accessCell.appendChild(accessStateIcon);
     accessCell.appendChild(toggleAccessButton);
     row.appendChild(accessCell);
 
@@ -506,13 +753,43 @@ import { apiFetch } from '/scripts/api-utils.js';
     })).json();
   };
 
+  const hasDuplicateGuestEmail = (email) => {
+    const normalizedEmail = (email || '').trim().toLowerCase();
+    if (!normalizedEmail) {
+      return false;
+    }
+
+    return guestsState.some((guest) => (guest?.email || '').trim().toLowerCase() === normalizedEmail);
+  };
+
   const resetForm = () => {
     form.reset();
     fields.rsvp.value = 'pending';
     fields.additionalGuests.value = '0';
+    createLockedUntilFieldChange = false;
+    clearAddGuestStatus();
+    setSubmittingState(false);
   };
 
+  const unlockCreateAfterFieldChange = () => {
+    if (!createLockedUntilFieldChange) {
+      return;
+    }
+
+    createLockedUntilFieldChange = false;
+    clearAddGuestStatus();
+    setSubmittingState(false);
+  };
+
+  form.addEventListener('input', unlockCreateAfterFieldChange);
+  form.addEventListener('change', unlockCreateAfterFieldChange);
+
   toggleAddButton.addEventListener('click', () => {
+    if (isAddFormExpanded) {
+      clearAddGuestStatus();
+      createLockedUntilFieldChange = false;
+      setSubmittingState(false);
+    }
     setAddFormExpanded(!isAddFormExpanded);
   });
 
@@ -528,8 +805,13 @@ import { apiFetch } from '/scripts/api-utils.js';
       return;
     }
 
+    clearAddGuestStatus();
     setSubmittingState(true);
-    status.textContent = 'Adding guest...';
+
+    if (hasDuplicateGuestEmail(fields.email.value)) {
+      showAddGuestError('A guest with this email already exists. Use a different email.', true);
+      return;
+    }
 
     try {
       await addGuest();
@@ -537,7 +819,11 @@ import { apiFetch } from '/scripts/api-utils.js';
       setAddFormExpanded(false);
       await refreshGuestsAndSummary();
     } catch (error) {
-      status.textContent = error.message;
+      if (/already exists|unique constraint|duplicate/i.test(error.message || '')) {
+        showAddGuestError('A guest with this email already exists. Use a different email.', true);
+      } else {
+        showAddGuestError(error.message || 'Unable to create guest.');
+      }
     } finally {
       setSubmittingState(false);
     }
@@ -566,7 +852,7 @@ import { apiFetch } from '/scripts/api-utils.js';
       await refreshGuestsAndSummary();
     } catch (error) {
       setSyncSummary(error.message, true);
-      status.textContent = error.message;
+      setStatus(error.message, 'failure');
     } finally {
       syncActionInProgress = false;
       setSyncButtonsDisabled(false);
@@ -589,7 +875,7 @@ import { apiFetch } from '/scripts/api-utils.js';
       await refreshSyncSummary();
     } catch (error) {
       setSyncSummary(error.message, true);
-      status.textContent = error.message;
+      setStatus(error.message, 'failure');
     } finally {
       syncActionInProgress = false;
       setSyncButtonsDisabled(false);
@@ -608,7 +894,7 @@ import { apiFetch } from '/scripts/api-utils.js';
       await refreshSyncSummary();
     } catch (error) {
       setSyncSummary(error.message, true);
-      status.textContent = error.message;
+      setStatus(error.message, 'failure');
     } finally {
       syncActionInProgress = false;
       setSyncButtonsDisabled(false);
@@ -626,6 +912,10 @@ import { apiFetch } from '/scripts/api-utils.js';
       form.hidden = true;
       addPanel.hidden = true;
       syncPanel.hidden = true;
-      status.textContent = error.message;
+      setStatus(error.message, 'failure');
     });
+
+  refreshAccessRequests().catch(() => {
+    // Non-fatal: pending requests panel stays hidden on error
+  });
 })();

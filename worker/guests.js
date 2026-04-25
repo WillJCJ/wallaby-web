@@ -18,18 +18,19 @@ import {
 import {
   jsonResponse,
   badRequest,
+  conflict,
   notFound,
   methodNotAllowed,
   internalError,
 } from './response.js';
 
 const GUEST_COLUMNS =
-  `id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message,
+  `guest_id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message,
    access_enabled, invited_at, last_synced_at, sync_status, sync_error,
    created_at, updated_at, updated_by`;
 
 const formatGuest = (row) => ({
-  id: row.id,
+  id: row.guest_id,
   name: row.name,
   email: row.email,
   rsvp: row.rsvp,
@@ -58,8 +59,37 @@ const parseAndValidate = async (request, validator, validatorArg) => {
   return { input: validated.value };
 };
 
+const isDuplicateEmailError = (error) => {
+  const message = (error?.message || error?.cause?.message || '').toLowerCase();
+  return message.includes('unique constraint failed') && message.includes('guests.email');
+};
+
+const isDuplicateEmailInsertFailure = (result) => {
+  const message = String(result?.error || result?.message || '').toLowerCase();
+  return message.includes('unique constraint failed') && message.includes('guests.email');
+};
+
+const isValidUuid = (uuid) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
+const recordLastSeen = async (guestId, env) => {
+  if (!env.GUEST_LAST_SEEN_KV) return;
+  try {
+    await env.GUEST_LAST_SEEN_KV.put(
+      guestId,
+      JSON.stringify({ lastSeen: new Date().toISOString() }),
+      { expirationTtl: 2592000 } // 30 days
+    );
+  } catch (error) {
+    // Silent fail - logging to activity tracker is best-effort
+    console.error('Failed to record last_seen:', error);
+  }
+};
+
 const loadGuestById = async (env, guestId) => env.GUESTS_DB
-  .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
+  .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE guest_id = ?`)
   .bind(guestId)
   .first();
 
@@ -110,7 +140,7 @@ const runPolicySync = async (env) => {
 };
 
 const handleGuestAccessToggle = async (request, env, adminEmail, guestId, nextState) => {
-  if (!Number.isInteger(guestId) || guestId < 1) {
+  if (!isValidUuid(guestId)) {
     return badRequest('Invalid guest id');
   }
 
@@ -135,7 +165,7 @@ const handleGuestAccessToggle = async (request, env, adminEmail, guestId, nextSt
            sync_error = '',
            updated_by = ?,
            updated_at = datetime('now')
-       WHERE id = ?`
+       WHERE guest_id = ?`
     )
     .bind(nextState ? 1 : 0, nextState ? 1 : 0, adminEmail, guestId)
     .run();
@@ -249,7 +279,7 @@ const handleGuestsSyncStatus = async (request, env) => {
 const handleGuestsCollection = async (request, env, adminEmail) => {
   if (request.method === 'GET') {
     const results = await env.GUESTS_DB
-      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests ORDER BY name COLLATE NOCASE ASC`)
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests ORDER BY created_at DESC`)
       .all();
 
     return jsonResponse({ guests: (results.results || []).map(formatGuest) });
@@ -259,30 +289,41 @@ const handleGuestsCollection = async (request, env, adminEmail) => {
     const { errorResponse, input } = await parseAndValidate(request, validateGuestPayload);
     if (errorResponse) return errorResponse;
 
-    const insert = await env.GUESTS_DB
-      .prepare(
-        `INSERT INTO guests (name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, updated_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        input.name,
-        input.email,
-        input.rsvp,
-        input.additionalGuests,
-        input.dietaryRequirements,
-        input.rsvpMessage,
-        adminEmail
-      )
-      .run();
-
-    if (!insert.success) {
+    const guestId = crypto.randomUUID();
+    let insert;
+    try {
+      insert = await env.GUESTS_DB
+        .prepare(
+          `INSERT INTO guests (guest_id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, updated_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          guestId,
+          input.name,
+          input.email,
+          input.rsvp,
+          input.additionalGuests,
+          input.dietaryRequirements,
+          input.rsvpMessage,
+          adminEmail
+        )
+        .run();
+    } catch (error) {
+      if (isDuplicateEmailError(error)) {
+        return conflict('A guest with this email already exists');
+      }
       return internalError('Unable to create guest');
     }
 
-    const guestId = insert.meta.last_row_id;
+    if (!insert.success) {
+      if (isDuplicateEmailInsertFailure(insert)) {
+        return conflict('A guest with this email already exists');
+      }
+      return internalError('Unable to create guest');
+    }
 
     const row = await env.GUESTS_DB
-      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE guest_id = ?`)
       .bind(guestId)
       .first();
 
@@ -293,13 +334,13 @@ const handleGuestsCollection = async (request, env, adminEmail) => {
 };
 
 const handleGuestById = async (request, env, adminEmail, guestId) => {
-  if (!Number.isInteger(guestId) || guestId < 1) {
+  if (!isValidUuid(guestId)) {
     return badRequest('Invalid guest id');
   }
 
   if (request.method === 'GET') {
     const row = await env.GUESTS_DB
-      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE guest_id = ?`)
       .bind(guestId)
       .first();
 
@@ -325,7 +366,7 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
              rsvp_message = ?,
              updated_by = ?,
              updated_at = datetime('now')
-         WHERE id = ?`
+         WHERE guest_id = ?`
       )
       .bind(
         input.name,
@@ -348,7 +389,7 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
     }
 
     const row = await env.GUESTS_DB
-      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE id = ?`)
+      .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE guest_id = ?`)
       .bind(guestId)
       .first();
 
@@ -357,7 +398,7 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
 
   if (request.method === 'DELETE') {
     const deleted = await env.GUESTS_DB
-      .prepare('DELETE FROM guests WHERE id = ?')
+      .prepare('DELETE FROM guests WHERE guest_id = ?')
       .bind(guestId)
       .run();
 
@@ -431,6 +472,70 @@ const handleGuestSelf = async (request, env, authenticatedEmail) => {
   return methodNotAllowed();
 };
 
+const handleRecordVisit = async (request, env, authenticatedEmail) => {
+  if (request.method !== 'POST') {
+    return methodNotAllowed();
+  }
+
+  const email = normalizeAuthenticatedEmail(authenticatedEmail);
+  const guest = await env.GUESTS_DB
+    .prepare(`SELECT ${GUEST_COLUMNS} FROM guests WHERE LOWER(email) = ?`)
+    .bind(email)
+    .first();
+
+  if (!guest) {
+    return notFound('Guest not found');
+  }
+
+  await recordLastSeen(guest.guest_id, env);
+  return jsonResponse({ success: true });
+};
+
+const handleGetLastSeen = async (request, env, guestId) => {
+  if (request.method !== 'GET') {
+    return methodNotAllowed();
+  }
+
+  if (!isValidUuid(guestId)) {
+    return badRequest('Invalid guest id');
+  }
+
+  if (!env.GUEST_LAST_SEEN_KV) {
+    return jsonResponse({ lastSeen: null });
+  }
+
+  try {
+    const data = await env.GUEST_LAST_SEEN_KV.get(guestId);
+    if (data) {
+      const parsed = JSON.parse(data);
+      return jsonResponse({ lastSeen: parsed.lastSeen });
+    }
+  } catch {
+    // Silently handle parse errors
+  }
+
+  return jsonResponse({ lastSeen: null });
+};
+
+const handleSendInvitation = async (request, env, guestId) => {
+  if (request.method !== 'POST') {
+    return methodNotAllowed();
+  }
+
+  if (!isValidUuid(guestId)) {
+    return badRequest('Invalid guest id');
+  }
+
+  const guest = await loadGuestById(env, guestId);
+  if (!guest) {
+    return notFound('Guest not found');
+  }
+
+  // TODO: Integrate email service to send Cloudflare Access login link
+  // For now, just return success
+  return jsonResponse({ success: true, message: 'Invitation queued' });
+};
+
 export const handleGuestsApi = async (request, env, pathname) => {
   const authResult = requireAuthenticatedEmail(request, env);
 
@@ -446,6 +551,10 @@ export const handleGuestsApi = async (request, env, pathname) => {
 
   const parts = pathname.split('/').filter(Boolean);
 
+  if (parts.length === 4 && parts[3] === 'record-visit') {
+    return handleRecordVisit(request, env, authResult.email);
+  }
+
   if (parts.length === 4 && parts[3] === 'sync') {
     return handleGuestsSync(request, env);
   }
@@ -455,11 +564,23 @@ export const handleGuestsApi = async (request, env, pathname) => {
   }
 
   if (parts.length === 6 && parts[4] === 'access' && parts[5] === 'enable') {
-    return handleGuestAccessToggle(request, env, authResult.email, Number.parseInt(parts[3], 10), true);
+    return handleGuestAccessToggle(request, env, authResult.email, parts[3], true);
   }
 
   if (parts.length === 6 && parts[4] === 'access' && parts[5] === 'disable') {
-    return handleGuestAccessToggle(request, env, authResult.email, Number.parseInt(parts[3], 10), false);
+    return handleGuestAccessToggle(request, env, authResult.email, parts[3], false);
+  }
+
+  if (parts.length === 6 && parts[4] === 'last-seen') {
+    const adminError = requireAdmin(authResult.email, env);
+    if (adminError) return adminError;
+    return handleGetLastSeen(request, env, parts[3]);
+  }
+
+  if (parts.length === 6 && parts[4] === 'send-invitation') {
+    const adminError = requireAdmin(authResult.email, env);
+    if (adminError) return adminError;
+    return handleSendInvitation(request, env, parts[3]);
   }
 
   if (parts.length === 4 && parts[3] === 'me') {
@@ -481,7 +602,7 @@ export const handleGuestsApi = async (request, env, pathname) => {
       request,
       env,
       authResult.email,
-      Number.parseInt(parts[3], 10)
+      parts[3]
     );
   }
 

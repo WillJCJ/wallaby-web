@@ -10,9 +10,15 @@ title: Guest Admin - Wallaby Fest
 <section class="private-details" id="guest-admin" aria-live="polite">
   <p class="private-status" id="guest-admin-status">Loading guests...</p>
 
+  <section class="admin-requests-panel" id="admin-requests-panel" hidden>
+    <h3>Pending Requests</h3>
+    <div class="admin-requests-list" id="admin-requests-list"></div>
+  </section>
+
   <div class="admin-rsvp-stats" id="admin-rsvp-stats" hidden></div>
 
   <section class="admin-add-panel" id="admin-add-panel" hidden>
+    <p class="private-status admin-form-status" id="guest-admin-form-status" hidden aria-live="polite"></p>
     <button type="button" class="login-button" id="guest-admin-toggle">Add guest</button>
 
     <form class="guest-profile-form admin-guest-form-compact" id="guest-admin-form" hidden>

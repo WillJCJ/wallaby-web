@@ -10,12 +10,31 @@ title: Guest Login - Wallaby Fest
 <section class="login-panel">
   <p id="login-status" class="private-status" aria-live="polite" hidden></p>
   <p>
-    This area is for invited guests only.
     If your email's on the list, you'll get a code to sign in.
-    After sign-in, there'll be a couple more pages visible.
+    Use the button below to ask Will for an account. He'll get back to you eventually.
   </p>
+  <p>Or maybe the button is broken and he'll never find out.</p>
 
   <a class="login-button" id="cf-login-link" href="/profile/">Sign in with Cloudflare Access</a>
+
+  <div class="request-access-panel" id="request-access-panel">
+    <p class="request-access-intro">Not on the list yet? You can request access and the organiser will review it.</p>
+    <button type="button" class="login-button request-access-toggle" id="request-access-toggle">Request access</button>
+
+    <form class="guest-profile-form" id="request-access-form" hidden>
+      <h3>Request access</h3>
+      <p id="request-access-status" class="private-status" aria-live="polite" hidden></p>
+      <label for="request-name">Name</label>
+      <input id="request-name" name="name" type="text" required maxlength="120" autocomplete="name" />
+      <label for="request-email">Email</label>
+      <input id="request-email" name="email" type="email" required maxlength="320" autocomplete="email" />
+      <div class="request-access-actions">
+        <button type="submit" class="login-button" id="request-access-submit">Send request</button>
+        <div class="cf-turnstile" id="request-turnstile" data-sitekey="0x4AAAAAADCtP9eKZZoFvBDA" data-callback="onTurnstileSuccess" data-theme="auto"></div>
+      </div>
+      <button type="button" class="login-button request-access-cancel" id="request-access-cancel">Cancel</button>
+    </form>
+  </div>
 
   <form class="guest-profile-form" id="dev-auth-form" hidden>
     <h3>Local Dev Login</h3>

@@ -136,3 +136,45 @@ export const validateGuestsSyncPayload = (payload) => {
 
   return { value: { mode: rawMode } };
 };
+
+// Validates a public access-request submission (name + email only).
+// Uses a Unicode-aware name allowlist to support European and other special characters.
+// Does NOT use the admin guest validators — this is a stricter, narrower surface.
+const VALID_NAME_RE = /^[\p{L}\p{M}\p{N} '\-.]+$/u;
+
+export const validateAccessRequestPayload = (payload) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return { error: 'Invalid request body' };
+  }
+
+  const name = typeof payload.name === 'string' ? payload.name.trim() : '';
+  const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : '';
+
+  if (!name) {
+    return { error: 'Name is required' };
+  }
+
+  if (name.length > 120) {
+    return { error: 'Name is too long' };
+  }
+
+  if (!VALID_NAME_RE.test(name)) {
+    return { error: 'Name contains invalid characters' };
+  }
+
+  if (!email) {
+    return { error: 'Email is required' };
+  }
+
+  if (email.length > 320) {
+    return { error: 'Email is too long' };
+  }
+
+  // RFC-5321-ish: local@domain.tld — deliberately simple but sufficient.
+  const VALID_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!VALID_EMAIL_RE.test(email)) {
+    return { error: 'Email is not valid' };
+  }
+
+  return { value: { name, email } };
+};

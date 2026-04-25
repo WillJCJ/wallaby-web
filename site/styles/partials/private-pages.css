@@ -23,6 +23,18 @@
   margin-bottom: 1rem;
 }
 
+.private-status--success {
+  color: var(--success);
+}
+
+.private-status--warning {
+  color: var(--caution);
+}
+
+.private-status--failure {
+  color: var(--failure);
+}
+
 .private-list {
   display: grid;
   gap: 0.9rem;
@@ -46,6 +58,58 @@
   margin: 0;
   color: var(--text-strong);
   overflow-wrap: break-word;
+}
+
+.profile-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.profile-field-value {
+  flex: 1;
+  padding-top: 0.2rem;
+}
+
+.profile-field-editor {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 0.5rem 0.6rem;
+  font: inherit;
+}
+
+textarea.profile-field-editor {
+  resize: vertical;
+}
+
+.profile-field-action {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-strong);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  margin-top: 0.05rem;
+}
+
+.profile-field-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.profile-field-action:hover:not(:disabled),
+.profile-field-action:focus-visible {
+  border-color: var(--text-faint);
 }
 
 .guest-profile-form {
@@ -93,4 +157,54 @@
   justify-self: start;
   border: none;
   cursor: pointer;
+}
+
+/* Request-access panel on login page */
+.request-access-panel {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.request-access-intro {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.request-access-toggle {
+  border: none;
+  cursor: pointer;
+}
+
+.request-access-cancel {
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-faint);
+}
+
+.request-access-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.request-access-actions .cf-turnstile {
+  margin-left: auto;
+  transform: scale(0.85);
+  transform-origin: top right;
+}
+
+@media (width <= 500px) {
+  .request-access-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .request-access-actions .cf-turnstile {
+    margin-left: 0;
+    transform-origin: top left;
+  }
 }

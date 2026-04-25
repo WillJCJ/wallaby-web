@@ -7,6 +7,14 @@ const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
 const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
+const PRIVATE_PAGE_PREFIXES = ['/profile/', '/admin/', '/details/'];
+
+const isPrivatePagePath = (pathname) => PRIVATE_PAGE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
+const buildLoginRedirectUrl = () => {
+	const next = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+	return `/login/?next=${encodeURIComponent(next)}`;
+};
 
 const formatLocalTimestamp = (timestamp) => {
 	if (!timestamp || typeof timestamp !== 'string') {
@@ -192,6 +200,9 @@ const initializeAuthNav = async () => {
 
 	setupLogout(logoutLink);
 
+	const isPrivatePage = isPrivatePagePath(window.location.pathname);
+	const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+
 	const storedEmail = getStoredAuthEmail();
 
 	if (storedEmail) {
@@ -205,6 +216,13 @@ const initializeAuthNav = async () => {
 	if (identityEmail) {
 		setStoredAuthEmail(identityEmail);
 		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		return;
+	}
+
+	if (isPrivatePage && !isLocalHost) {
+		setStoredAuthEmail(null);
+		setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
+		window.location.replace(buildLoginRedirectUrl());
 		return;
 	}
 

@@ -4,12 +4,12 @@ Access policies are managed in the Cloudflare Zero Trust console.
 
 ## Paths to protect
 
-Protect these routes with authentication:
+Protect this route family with authentication:
 
-- `/admin/*`
-- `/profile/*`
-- `/details/*`
 - `/api/private/*`
+
+Private page shells (`/admin/`, `/profile/`, `/details/`) stay publicly reachable.
+They immediately send signed-out users to `/login/` in-site, then private API calls remain protected by Access.
 
 ## Setup steps
 
@@ -28,6 +28,14 @@ Protect these routes with authentication:
 ## Guest access sync
 
 Guest records in D1 drive Access allowlist membership through admin endpoints.
+
+## Access request flow
+
+The public `POST /api/access-requests` endpoint allows anyone to submit their name and email for consideration. Submissions write to KV only — D1 and the Access allowlist are not touched at this stage.
+
+Admins review pending requests on the admin page. Choosing "Create guest" creates a D1 record and triggers an Access policy sync, which adds the guest's email to the allowlist. Choosing "Dismiss" deletes the KV entry without creating a guest record.
+
+This keeps D1 and Access policy changes exclusively under authenticated admin control.
 
 - `POST /api/private/guests/:id/access/enable`: marks a guest as access-enabled and runs policy sync.
 - `POST /api/private/guests/:id/access/disable`: removes access for a guest and runs policy sync.

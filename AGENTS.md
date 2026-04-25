@@ -90,7 +90,6 @@ npm test
 - Do not commit secrets, tokens, or environment credentials.
 - Do not use destructive git commands unless explicitly requested.
 - Do not rewrite history on shared branches.
-- Prefer minimal, targeted changes over broad rewrites.
 - If uncertain, document assumptions in the PR description.
 - Don't generate text content leave that to the humands. Just use lorem ipsum or whatever.
 
