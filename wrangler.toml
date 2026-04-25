@@ -14,12 +14,12 @@ binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
 
 [[kv_namespaces]]
-# Run: wrangler kv namespace create GUEST_REQUESTS_KV
+# KV name: GUEST_REQUESTS_KV
 binding = "GUEST_REQUESTS_KV"
-id = "066387590a95496a959a2d25b6a0fb49"
+id = "99220d8852904bafbcd6914a428a5ba7"
 
 [[kv_namespaces]]
-# Run: wrangler kv namespace create GUEST_LAST_SEEN_KV
+# KV name: GUEST_LAST_SEEN_KV
 binding = "GUEST_LAST_SEEN_KV"
 id = "fbab3fea2a534688b96c1db9f811f90b"
 
@@ -63,12 +63,12 @@ binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
 
 [[env.production.kv_namespaces]]
-# Run: wrangler kv namespace create GUEST_REQUESTS_KV --env production
+# KV name: production-GUEST_REQUESTS_KV
 binding = "GUEST_REQUESTS_KV"
 id = "e5c9ce7ec2dd49a193050ddcae15f060"
 
 [[env.production.kv_namespaces]]
-# Run: wrangler kv namespace create GUEST_LAST_SEEN_KV --env production
+# KV name: production-GUEST_LAST_SEEN_KV
 binding = "GUEST_LAST_SEEN_KV"
 id = "899d7a8a1d894be5a2f92f49ca80c43f"
 
@@ -90,12 +90,12 @@ preview_urls = true
 binding = "CF_VERSION_METADATA"
 
 [[env.preview.kv_namespaces]]
-# Run: wrangler kv namespace create GUEST_REQUESTS_KV --env preview
+# KV name: preview-GUEST_REQUESTS_KV
 binding = "GUEST_REQUESTS_KV"
 id = "b928598615b849cf86abbb680afee7f8"
 
 [[env.preview.kv_namespaces]]
-# Run: wrangler kv namespace create GUEST_LAST_SEEN_KV --env preview
+# KV name: preview-GUEST_LAST_SEEN_KV
 binding = "GUEST_LAST_SEEN_KV"
 id = "729c195e7ed54737aa3dfc2a9f5a0ea1"
 
