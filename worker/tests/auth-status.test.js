@@ -23,16 +23,35 @@ describe('handleAuthStatus', () => {
     expect(body.email).toBe('local@example.com');
   });
 
-  it('returns signedIn: true with the email when identity lookup succeeds', async () => {
+  it('ignores dev-auth cookie on non-local hosts', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ email: 'user@example.com' }), { status: 200 })
+      new Response(JSON.stringify({}), { status: 200 })
     ));
+
+    const req = new Request('https://example.com/api/auth/status', {
+      headers: { cookie: 'wallabyfest-dev-auth-email=local%40example.com' },
+    });
+
+    const res = await handleAuthStatus(req, { DEV_AUTH_ENABLED: 'true' });
+    const body = await res.json();
+    expect(body.signedIn).toBe(false);
+    expect(body.email).toBeNull();
+  });
+
+  it('returns signedIn: true with the email when identity lookup succeeds', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ email: 'user@example.com' }), { status: 200 })
+    );
+    vi.stubGlobal('fetch', mockFetch);
 
     const res = await handleAuthStatus(makeRequest('cf_auth=token'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.signedIn).toBe(true);
     expect(body.email).toBe('user@example.com');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [requestArg] = mockFetch.mock.calls[0];
+    expect(requestArg.url).toContain('/cdn-cgi/access/get-identity');
   });
 
   it('resolves email from user_email field', async () => {

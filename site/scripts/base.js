@@ -6,7 +6,10 @@ const auth = window.WallabyAuth;
 const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
 const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
+const AUTH_STATE_CHANGE_EVENT = auth?.AUTH_STATE_CHANGE_EVENT || 'wallabyauth:statechange';
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
+
+let authNavElements = null;
 
 const formatLocalTimestamp = (timestamp) => {
 	if (!timestamp || typeof timestamp !== 'string') {
@@ -133,6 +136,21 @@ const setSignedInNav = (profileLink, logoutLink, loginLink) => {
 	loginLink.hidden = true;
 };
 
+const applyAuthNavState = (email) => {
+	if (!authNavElements) {
+		return;
+	}
+
+	const { profileLink, logoutLink, loginLink } = authNavElements;
+
+	if (email) {
+		setSignedInNav(profileLink, logoutLink, loginLink);
+		return;
+	}
+
+	setSignedOutNav(profileLink, logoutLink, loginLink);
+};
+
 const setupLogout = (logoutLink) => {
 	if (!logoutLink) {
 		return;
@@ -187,32 +205,31 @@ const initializeAuthNav = async () => {
 		return;
 	}
 
+	authNavElements = { profileLink, logoutLink, loginLink };
+
 	setupLogout(logoutLink);
 
 	const storedEmail = getStoredAuthEmail();
-
-	if (storedEmail) {
-		setSignedInNav(profileLink, logoutLink, loginLink);
-	} else {
-		setSignedOutNav(profileLink, logoutLink, loginLink);
-	}
+	applyAuthNavState(storedEmail);
 
 	const identityEmail = await fetchAuthEmail();
 
 	if (identityEmail) {
 		setStoredAuthEmail(identityEmail);
-		setSignedInNav(profileLink, logoutLink, loginLink);
 		return;
 	}
 
 	if (storedEmail) {
-		setSignedInNav(profileLink, logoutLink, loginLink);
+		applyAuthNavState(storedEmail);
 		return;
 	}
 
 	setStoredAuthEmail(null);
-	setSignedOutNav(profileLink, logoutLink, loginLink);
 };
+
+window.addEventListener(AUTH_STATE_CHANGE_EVENT, (event) => {
+	applyAuthNavState(event.detail?.email || null);
+});
 
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', () => {

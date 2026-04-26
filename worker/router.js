@@ -7,6 +7,7 @@ import {
   handleListAccessRequests,
   handleDismissAccessRequest,
 } from './access-requests.js';
+import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
 
 
 
@@ -42,7 +43,7 @@ export default {
       // subrequest so we get automatic format negotiation and resizing without
       // needing the /cdn-cgi/image/ URL scheme (which isn't available on
       // workers.dev preview domains).
-      const isProduction = url.hostname === 'wallabyfest.co.uk';
+      const isProduction = isProductionHost(url.hostname);
       if (isProduction && width !== null && !url.searchParams.has('raw')) {
         const q = url.searchParams.get('q');
         const image = { width };
@@ -84,14 +85,8 @@ export default {
 
     // Route logo requests through one code path and map to env-specific static assets.
     if (url.pathname === '/api/logo.svg' || url.pathname === '/favicon.ico') {
-      const host = url.hostname;
-      const isLocal =
-        host === 'localhost' ||
-        host === '127.0.0.1' ||
-        host === '::1';
-      const isPreview =
-        host.includes('-preview') &&
-        host.endsWith('.workers.dev');
+      const isLocal = isLocalHost(url.hostname);
+      const isPreview = isWorkersPreviewHost(url.hostname);
 
       const faviconPath = isLocal
         ? '/images/logos/logo_greyscale_red_eyes.svg'

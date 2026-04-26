@@ -537,7 +537,7 @@ const handleSendInvitation = async (request, env, guestId) => {
 };
 
 export const handleGuestsApi = async (request, env, pathname) => {
-  const authResult = requireAuthenticatedEmail(request, env);
+  const authResult = await requireAuthenticatedEmail(request, env);
 
   if (authResult.error) {
     return authResult.error;

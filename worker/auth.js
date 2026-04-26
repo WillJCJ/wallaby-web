@@ -3,17 +3,44 @@ import { getDevAuthEmailFromCookie, isDevAuthRequestAllowed } from './dev-auth.j
 
 export const getAuthenticatedEmail = (request) => request.headers.get('CF-Access-Authenticated-User-Email');
 
-export const resolveAuthenticatedEmail = (request, env = {}) => {
+export const fetchAccessIdentityEmail = async (request) => {
+  try {
+    const identityUrl = new URL('/cdn-cgi/access/get-identity', request.url);
+    const identityResponse = await fetch(new Request(identityUrl.toString(), {
+      method: 'GET',
+      headers: {
+        cookie: request.headers.get('cookie') || '',
+        accept: 'application/json',
+      },
+      redirect: 'manual',
+    }));
+
+    if (!identityResponse.ok) {
+      return null;
+    }
+
+    const identity = await identityResponse.json().catch(() => null);
+    const resolvedEmail = identity?.email || identity?.user_email || identity?.identity?.email || null;
+    return typeof resolvedEmail === 'string' && resolvedEmail ? resolvedEmail : null;
+  } catch {
+    return null;
+  }
+};
+
+export const resolveAuthenticatedEmail = async (request, env = {}) => {
   const headerEmail = getAuthenticatedEmail(request);
   if (headerEmail) {
     return headerEmail;
   }
 
-  if (!isDevAuthRequestAllowed(request, env)) {
-    return null;
+  if (isDevAuthRequestAllowed(request, env)) {
+    const devAuthEmail = getDevAuthEmailFromCookie(request);
+    if (devAuthEmail) {
+      return devAuthEmail;
+    }
   }
 
-  return getDevAuthEmailFromCookie(request);
+  return fetchAccessIdentityEmail(request);
 };
 
 export const parseAdminEmails = (env) => {
@@ -26,8 +53,8 @@ export const parseAdminEmails = (env) => {
   );
 };
 
-export const requireAuthenticatedEmail = (request, env = {}) => {
-  const email = resolveAuthenticatedEmail(request, env);
+export const requireAuthenticatedEmail = async (request, env = {}) => {
+  const email = await resolveAuthenticatedEmail(request, env);
 
   if (!email) {
     return { error: unauthorized() };

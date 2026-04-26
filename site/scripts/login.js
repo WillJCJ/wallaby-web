@@ -149,26 +149,24 @@
     return;
   }
 
+  devForm.hidden = false;
+
   const setSubmitting = (submitting) => {
     devSubmit.disabled = submitting;
     devSubmit.textContent = submitting ? 'Signing in...' : 'Sign in locally';
   };
 
-  auth?.devStatus?.()
-    .then((state) => {
-      if (!state?.enabled) {
-        setStatus('Local dev login is disabled. Enable DEV_AUTH_ENABLED for localhost testing.');
+  auth?.fetchAuthEmail?.()
+    .then((email) => {
+      if (!email) {
         return;
       }
 
-      devForm.hidden = false;
-      if (state.email) {
-        auth?.setStoredAuthEmail(state.email);
-        redirectAfterLogin();
-      }
+      auth?.setStoredAuthEmail(email);
+      redirectAfterLogin();
     })
     .catch(() => {
-      setStatus('Unable to check local login status.');
+      // Ignore auth status failures and keep local login available.
     });
 
   devForm.addEventListener('submit', async (event) => {
@@ -182,7 +180,12 @@
       auth?.setStoredAuthEmail(email);
       redirectAfterLogin();
     } catch (error) {
-      setStatus(error.message || 'Unable to sign in locally.');
+      const message = error.message || 'Unable to sign in locally.';
+      if (message.includes('403')) {
+        setStatus('Local dev login is disabled for this host.');
+      } else {
+        setStatus(message);
+      }
     } finally {
       setSubmitting(false);
     }

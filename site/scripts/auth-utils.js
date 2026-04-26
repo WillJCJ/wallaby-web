@@ -1,5 +1,16 @@
 (() => {
   const AUTH_EMAIL_STORAGE_KEY = 'wallabyfest-auth-email';
+  const AUTH_STATE_CHANGE_EVENT = 'wallabyauth:statechange';
+
+  const notifyAuthStateChange = (email) => {
+    try {
+      window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGE_EVENT, {
+        detail: { email: email || null },
+      }));
+    } catch {
+      // Ignore event dispatch failures.
+    }
+  };
 
   const getStoredAuthEmail = () => {
     try {
@@ -13,13 +24,14 @@
     try {
       if (email) {
         window.localStorage.setItem(AUTH_EMAIL_STORAGE_KEY, email);
-        return;
+      } else {
+        window.localStorage.removeItem(AUTH_EMAIL_STORAGE_KEY);
       }
-
-      window.localStorage.removeItem(AUTH_EMAIL_STORAGE_KEY);
     } catch {
       // Ignore storage access failures.
     }
+
+    notifyAuthStateChange(email);
   };
 
   const fetchAuthEmail = async () => {
@@ -41,26 +53,6 @@
     } catch {
       return null;
     }
-  };
-
-  const devStatus = async () => {
-    const response = await fetch('/api/dev-auth/status', {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: {
-        accept: 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      return { enabled: false, email: null };
-    }
-
-    const data = await response.json().catch(() => null);
-    return {
-      enabled: Boolean(data?.enabled),
-      email: typeof data?.email === 'string' && data.email ? data.email : null,
-    };
   };
 
   const devLogin = async (email) => {
@@ -101,10 +93,10 @@
 
   window.WallabyAuth = {
     AUTH_EMAIL_STORAGE_KEY,
+    AUTH_STATE_CHANGE_EVENT,
     getStoredAuthEmail,
     setStoredAuthEmail,
     fetchAuthEmail,
-    devStatus,
     devLogin,
     devLogout,
   };

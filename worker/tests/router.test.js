@@ -170,6 +170,18 @@ describe('router /api/dev-auth/*', () => {
     }));
     expect(res.status).toBe(403);
   });
+
+  it('returns 403 on production hosts even if dev auth flags are set', async () => {
+    const req = makeRequest('https://wallabyfest.co.uk/api/dev-auth/status', {
+      headers: { cookie: 'wallabyfest-dev-auth-email=friend%40example.com' },
+    });
+
+    const res = await router.fetch(req, makeEnv({
+      DEV_AUTH_ENABLED: 'true',
+      DEV_AUTH_ALLOWED_HOSTS: 'wallabyfest.co.uk,localhost',
+    }));
+    expect(res.status).toBe(403);
+  });
 });
 
 // ---------------------------------------------------------------------------

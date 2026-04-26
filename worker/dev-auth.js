@@ -1,9 +1,7 @@
 import { badRequest, forbidden, jsonResponse, methodNotAllowed } from './response.js';
+import { isLocalHost, normalizeHost } from './host.js';
 
 const DEV_AUTH_COOKIE = 'wallabyfest-dev-auth-email';
-const LOCALHOSTS = new Set(['localhost', '127.0.0.1', '::1']);
-
-const normalizeHost = (host) => String(host || '').trim().toLowerCase().replace(/^\[(.*)\]$/, '$1');
 
 const parseCookies = (cookieHeader) => {
   if (!cookieHeader || typeof cookieHeader !== 'string') {
@@ -38,7 +36,7 @@ const isEmailLike = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const getAllowedHosts = (env) => {
   const raw = String(env?.DEV_AUTH_ALLOWED_HOSTS || '').trim();
   if (!raw) {
-    return new Set(LOCALHOSTS);
+    return new Set(['localhost', '127.0.0.1', '::1']);
   }
 
   return new Set(
@@ -51,7 +49,7 @@ const getAllowedHosts = (env) => {
 
 export const isDevAuthEnabled = (env, request) => {
   const host = normalizeHost(new URL(request.url).hostname);
-  if (!LOCALHOSTS.has(host)) {
+  if (!isLocalHost(host)) {
     return false;
   }
 
@@ -65,7 +63,7 @@ export const isDevAuthEnabled = (env, request) => {
     return true;
   }
 
-  return LOCALHOSTS.has(host);
+  return isLocalHost(host);
 };
 
 export const isDevAuthRequestAllowed = (request, env) => {

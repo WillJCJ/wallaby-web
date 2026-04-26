@@ -82,7 +82,7 @@ export const handleListAccessRequests = async (request, env) => {
     return methodNotAllowed();
   }
 
-  const authResult = requireAuthenticatedEmail(request, env);
+  const authResult = await requireAuthenticatedEmail(request, env);
   if (authResult.error) return authResult.error;
 
   const adminError = requireAdmin(authResult.email, env);
@@ -126,7 +126,7 @@ export const handleDismissAccessRequest = async (request, env, email) => {
     return methodNotAllowed();
   }
 
-  const authResult = requireAuthenticatedEmail(request, env);
+  const authResult = await requireAuthenticatedEmail(request, env);
   if (authResult.error) return authResult.error;
 
   const adminError = requireAdmin(authResult.email, env);

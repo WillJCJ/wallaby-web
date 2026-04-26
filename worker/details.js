@@ -2,7 +2,7 @@ import { HTTP_STATUS } from './constants.js';
 import { requireAuthenticatedEmail } from './auth.js';
 import { jsonResponse } from './response.js';
 
-export const handlePrivateDetails = (request, env) => {
+export const handlePrivateDetails = async (request, env) => {
   if (request.method !== 'GET') {
     return jsonResponse(
       { error: 'Method Not Allowed' },
@@ -10,7 +10,7 @@ export const handlePrivateDetails = (request, env) => {
     );
   }
 
-  const authResult = requireAuthenticatedEmail(request, env);
+  const authResult = await requireAuthenticatedEmail(request, env);
 
   if (authResult.error) {
     return authResult.error;
