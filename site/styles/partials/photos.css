@@ -36,6 +36,10 @@
   background: var(--bg-surface);
 }
 
+.photo-item--video {
+  background: #000;
+}
+
 .photo-thumb-link {
   display: block;
   width: 100%;
@@ -70,6 +74,21 @@
   pointer-events: none;
 }
 
+.photo-thumb-link--video::before,
+.photo-thumb-link--video::after {
+  content: none;
+}
+
+.photo-thumb-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center clamp(0%, calc(50% - var(--thumb-offset-y, 0%)), 100%);
+  display: block;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
 .photo-thumb-link img {
   width: 100%;
   height: 100%;
@@ -81,7 +100,8 @@
   transition: transform 0.2s ease;
 }
 
-.photo-thumb-link:hover img {
+.photo-thumb-link:hover img,
+.photo-thumb-link:hover .photo-thumb-video {
   transform: scale(1.06);
 }
 
@@ -163,29 +183,40 @@ body:has(.photo-item:target)::before {
   margin: 0;
 }
 
-/* Wrapper constrains the image to its bounds */
-.lightbox-img-wrap {
+/* Wrapper constrains the media to its bounds */
+.lightbox-media-wrap {
   position: relative;
   overflow: hidden;
   display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 0;
 }
 
 /* Smooth unblur when is-loading is removed — transition must live on the base selector */
-.lightbox-img-wrap img {
+.lightbox-media-wrap img {
   transition: filter 0.45s ease, transform 0.45s ease;
 }
 
 /* While hi-res loads: blur the thumbnail underneath and show the loading logo */
-.lightbox-img-wrap.is-loading img {
+.lightbox-media-wrap.is-loading img {
   filter: blur(20px);
 }
 
-.lightbox-img-wrap.is-loading::after {
+.lightbox-media-wrap.is-loading::after {
   content: '';
   position: absolute;
   inset: 0;
   background: url('/images/logos/logo-loading.svg') center / 5rem no-repeat;
+}
+
+.lightbox-video {
+  max-width: 100%;
+  max-height: calc(100dvh - 5rem);
+  width: auto;
+  height: auto;
+  display: block;
+  background: #000;
 }
 
 .lightbox-figure img {

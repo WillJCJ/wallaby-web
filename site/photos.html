@@ -8,58 +8,83 @@ title: Photos - Wallaby Fest
 </div>
 
 {% assign years = photos | map: 'year' | uniq | sort | reverse %}
+{% assign totalItems = photos | size %}
 {% assign cumulativeCount = 0 %}
 
 <p class="sr-only" id="lightbox-status" aria-live="polite" aria-atomic="true"></p>
 <section class="photos-by-year" id="photos-top">
   {% for year in years %}
-  {% assign yearPhotos = photos | where: 'year', year %}
-  {% assign yearSize = yearPhotos | size %}
+  {% assign yearItems = photos | where: 'year', year %}
+  {% assign yearSize = yearItems | size %}
   {% assign cumulativeStart = cumulativeCount %}
   {% if yearSize > 0 %}
   <section class="photos-year-section" aria-label="Photos from {{ year }}">
     <h3 class="photos-year-heading">{{ year }}</h3>
     <div class="photos-gallery">
-      {% for photo in yearPhotos %}
+      {% for item in yearItems %}
       {% assign photoIndex = forloop.index | plus: cumulativeStart %}
-      <article id="photo-{{ photoIndex }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5'); --thumb-offset-y: {{ photo.thumbOffsetY | default: 0 }}%">
+      {% assign isVideo = item.type == 'video' %}
+      {% assign mediaIdWithoutExt = item.id | split: '.' | first %}
+      {% assign mediaSlug = mediaIdWithoutExt | slugify %}
+      <article id="{{ mediaSlug }}" class="photo-item{% if isVideo %} photo-item--video{% endif %}" data-index="{{ photoIndex }}" style="--thumb-offset-y: {{ item.thumbOffsetY | default: 0 }}%;{% unless isVideo %} --lqip: url('/api/photos/{{ item.id }}?w=40&q=5');{% endunless %}">
 
-        <a href="#photo-{{ photoIndex }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
+        <a href="#{{ mediaSlug }}" class="photo-thumb-link{% if isVideo %} photo-thumb-link--video{% endif %}" aria-label="{{ item.alt }}">
+          {% if isVideo %}
+          <video
+            src="/api/videos/{{ item.id }}"
+            class="photo-thumb-video"
+            preload="metadata"
+            muted
+            playsinline
+            aria-hidden="true"
+          ></video>
+          {% else %}
           <img
-            src="/api/photos/{{ photo.id }}?w=400&q=80"
-            alt="{{ photo.alt }}"
+            src="/api/photos/{{ item.id }}?w=400&q=80"
+            alt="{{ item.alt }}"
             loading="{% if photoIndex <= 12 %}eager{% else %}lazy{% endif %}"
             fetchpriority="{% if photoIndex <= 4 %}high{% else %}auto{% endif %}"
             decoding="async"
           >
+          {% endif %}
         </a>
 
-        <div class="photo-lightbox" role="dialog" aria-modal="true" aria-label="{{ photo.alt }}">
+        <div class="photo-lightbox" role="dialog" aria-modal="true" aria-label="{{ item.alt }}">
           <a href="#photos-top" class="lightbox-close" aria-label="Close lightbox"></a>
           <a href="#photos-top" class="lightbox-close-btn" aria-label="Close photo"></a>
-          <span class="lightbox-counter" aria-hidden="true">{{ photoIndex }} / {{ photos | size }}</span>
+          <span class="lightbox-counter" aria-hidden="true">{{ photoIndex }} / {{ totalItems }}</span>
           <figure class="lightbox-figure">
-            <div class="lightbox-img-wrap">
+            <div class="lightbox-media-wrap{% if isVideo %} lightbox-media-wrap--video{% endif %}">
+              {% if isVideo %}
+              <video
+                src="/api/videos/{{ item.id }}"
+                class="lightbox-video"
+                controls
+                preload="metadata"
+                playsinline
+                aria-label="{{ item.alt }}"
+              ></video>
+              {% else %}
               <img
-                src="/api/photos/{{ photo.id }}?w=400&q=80"
-                data-hires="/api/photos/{{ photo.id }}?w=2000&q=85"
-                alt="{{ photo.alt }}"
+                src="/api/photos/{{ item.id }}?w=400&q=80"
+                data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
+                alt="{{ item.alt }}"
                 loading="lazy"
                 decoding="async"
               >
-              {% if photo.caption %}<figcaption class="lightbox-caption">{{ photo.caption }}</figcaption>{% endif %}
+              {% endif %}
+              {% if item.caption %}<figcaption class="lightbox-caption">{{ item.caption }}</figcaption>{% endif %}
             </div>
           </figure>
           {% if photoIndex == 1 %}
-          <a href="#photo-{{ photoIndex }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo"></a>
+          <a href="#{{ mediaSlug }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo"></a>
           {% else %}
-          <a href="#photo-{{ photoIndex | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo"></a>
+          <a href="#" class="lightbox-nav lightbox-nav--prev" data-nav-dir="prev" aria-label="Previous photo"></a>
           {% endif %}
-          {% assign totalPhotos = photos | size %}
-          {% if photoIndex == totalPhotos %}
-          <a href="#photo-{{ photoIndex }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo"></a>
+          {% if photoIndex == totalItems %}
+          <a href="#{{ mediaSlug }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo"></a>
           {% else %}
-          <a href="#photo-{{ photoIndex | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo"></a>
+          <a href="#" class="lightbox-nav lightbox-nav--next" data-nav-dir="next" aria-label="Next photo"></a>
           {% endif %}
         </div>
 

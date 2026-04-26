@@ -5,6 +5,16 @@ import process from 'node:process';
 export default function (eleventyConfig) {
   const runMinify = process.env.MINIFY !== 'false';
 
+  eleventyConfig.addFilter('slugify', function (value) {
+    return String(value || '')
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  });
+
   eleventyConfig.setTemplateFormats([
     'md',
     'html',
