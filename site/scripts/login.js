@@ -18,22 +18,6 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   const requestSubmit = document.getElementById('request-access-submit');
   const requestTurnstile = document.getElementById('request-turnstile');
   const useTurnstile = !isLocalHost;
-  const requestedNext = new URL(window.location.href).searchParams.get('next') || '/profile/';
-
-  const resolveNextPath = (value) => {
-    if (typeof value !== 'string' || !value.startsWith('/')) {
-      return '/profile/';
-    }
-
-    // Prevent protocol-relative and other external redirects.
-    if (value.startsWith('//')) {
-      return '/profile/';
-    }
-
-    return value;
-  };
-
-  const nextPath = resolveNextPath(requestedNext);
 
   let turnstileToken = null;
 
@@ -111,7 +95,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   }
 
   const redirectAfterLogin = () => {
-    window.location.replace(nextPath);
+    window.location.replace('/profile/');
   };
 
   if (!isLocalHost) {
