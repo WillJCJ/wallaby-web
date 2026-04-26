@@ -6,7 +6,10 @@ const auth = window.WallabyAuth;
 const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
 const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
 const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
+const AUTH_STATE_CHANGE_EVENT = auth?.AUTH_STATE_CHANGE_EVENT || 'wallabyauth:statechange';
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
+
+let authNavElements = null;
 
 const formatLocalTimestamp = (timestamp) => {
 	if (!timestamp || typeof timestamp !== 'string') {
@@ -121,22 +124,61 @@ const showStoredFlashMessage = () => {
 	}
 };
 
-const setSignedOutNav = (detailsLink, profileLink, logoutLink, loginLink) => {
-	detailsLink.hidden = true;
+const setSignedOutNav = (profileLink, logoutLink, loginLink) => {
 	profileLink.hidden = true;
 	logoutLink.hidden = true;
 	loginLink.hidden = false;
 };
 
-const setSignedInNav = (detailsLink, profileLink, logoutLink, loginLink) => {
-	detailsLink.hidden = false;
+const setSignedInNav = (profileLink, logoutLink, loginLink) => {
 	profileLink.hidden = false;
 	logoutLink.hidden = false;
 	loginLink.hidden = true;
 };
 
+const applyAuthNavState = (email) => {
+	if (!authNavElements) {
+		return;
+	}
+
+	const { profileLink, logoutLink, loginLink } = authNavElements;
+
+	if (email) {
+		setSignedInNav(profileLink, logoutLink, loginLink);
+		return;
+	}
+
+	setSignedOutNav(profileLink, logoutLink, loginLink);
+};
+
 const setupLogout = (logoutLink) => {
 	if (!logoutLink) {
+		return;
+	}
+
+	const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+
+	if (isLocalHost) {
+		logoutLink.href = '#';
+		logoutLink.addEventListener('click', async (event) => {
+			event.preventDefault();
+
+			try {
+				await auth?.devLogout?.();
+			} catch {
+				// Ignore logout failures and still clear local state.
+			}
+
+			setStoredAuthEmail(null);
+			try {
+				window.sessionStorage.setItem(FLASH_STORAGE_KEY, 'logout-success');
+			} catch {
+				// Ignore sessionStorage access failures.
+			}
+
+			window.location.replace('/');
+		});
+
 		return;
 	}
 
@@ -155,41 +197,39 @@ const setupLogout = (logoutLink) => {
 };
 
 const initializeAuthNav = async () => {
-	const detailsLink = document.getElementById('nav-details-link');
 	const profileLink = document.getElementById('nav-profile-link');
 	const logoutLink = document.getElementById('nav-logout-link');
 	const loginLink = document.getElementById('nav-login-link');
 
-	if (!detailsLink || !profileLink || !logoutLink || !loginLink) {
+	if (!profileLink || !logoutLink || !loginLink) {
 		return;
 	}
+
+	authNavElements = { profileLink, logoutLink, loginLink };
 
 	setupLogout(logoutLink);
 
 	const storedEmail = getStoredAuthEmail();
-
-	if (storedEmail) {
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
-	} else {
-		setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
-	}
+	applyAuthNavState(storedEmail);
 
 	const identityEmail = await fetchAuthEmail();
 
 	if (identityEmail) {
 		setStoredAuthEmail(identityEmail);
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
 		return;
 	}
 
 	if (storedEmail) {
-		setSignedInNav(detailsLink, profileLink, logoutLink, loginLink);
+		applyAuthNavState(storedEmail);
 		return;
 	}
 
 	setStoredAuthEmail(null);
-	setSignedOutNav(detailsLink, profileLink, logoutLink, loginLink);
 };
+
+window.addEventListener(AUTH_STATE_CHANGE_EVENT, (event) => {
+	applyAuthNavState(event.detail?.email || null);
+});
 
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', () => {

@@ -1,6 +1,15 @@
 import { handleAuthStatus } from './auth-status.js';
+import { handleDevAuthApi } from './dev-auth.js';
 import { handlePrivateDetails } from './details.js';
 import { handleGuestsApi } from './guests.js';
+import {
+  handlePublicAccessRequest,
+  handleListAccessRequests,
+  handleDismissAccessRequest,
+} from './access-requests.js';
+import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
+
+
 
 export default {
   async fetch(request, env) {
@@ -34,7 +43,7 @@ export default {
       // subrequest so we get automatic format negotiation and resizing without
       // needing the /cdn-cgi/image/ URL scheme (which isn't available on
       // workers.dev preview domains).
-      const isProduction = url.hostname === 'wallabyfest.co.uk';
+      const isProduction = isProductionHost(url.hostname);
       if (isProduction && width !== null && !url.searchParams.has('raw')) {
         const q = url.searchParams.get('q');
         const image = { width };
@@ -76,14 +85,8 @@ export default {
 
     // Route logo requests through one code path and map to env-specific static assets.
     if (url.pathname === '/api/logo.svg' || url.pathname === '/favicon.ico') {
-      const host = url.hostname;
-      const isLocal =
-        host === 'localhost' ||
-        host === '127.0.0.1' ||
-        host === '::1';
-      const isPreview =
-        host.includes('-preview') &&
-        host.endsWith('.workers.dev');
+      const isLocal = isLocalHost(url.hostname);
+      const isPreview = isWorkersPreviewHost(url.hostname);
 
       const faviconPath = isLocal
         ? '/images/logos/logo_greyscale_red_eyes.svg'
@@ -100,6 +103,19 @@ export default {
       });
     }
 
+    if (url.pathname === '/api/access-requests') {
+      return handlePublicAccessRequest(request, env);
+    }
+
+    if (url.pathname === '/api/private/admin/access-requests') {
+      return handleListAccessRequests(request, env);
+    }
+
+    if (url.pathname.startsWith('/api/private/admin/access-requests/')) {
+      const email = decodeURIComponent(url.pathname.slice('/api/private/admin/access-requests/'.length));
+      return handleDismissAccessRequest(request, env, email);
+    }
+
     if (
       url.pathname === '/api/private/guests' ||
       url.pathname.startsWith('/api/private/guests/')
@@ -107,9 +123,13 @@ export default {
       return handleGuestsApi(request, env, url.pathname);
     }
 
+    if (url.pathname.startsWith('/api/dev-auth/')) {
+      return handleDevAuthApi(request, env, url.pathname);
+    }
+
     switch (url.pathname) {
       case '/api/auth/status':
-        return handleAuthStatus(request);
+        return handleAuthStatus(request, env);
 
       case '/api/env':
         {

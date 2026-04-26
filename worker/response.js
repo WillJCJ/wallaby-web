@@ -19,6 +19,9 @@ export const unauthorized = () =>
 export const forbidden = () =>
   jsonResponse({ error: 'Forbidden' }, { status: HTTP_STATUS.FORBIDDEN });
 
+export const conflict = (message = 'Conflict') =>
+  jsonResponse({ error: message }, { status: HTTP_STATUS.CONFLICT });
+
 export const notFound = (message = 'Not Found') =>
   jsonResponse({ error: message }, { status: HTTP_STATUS.NOT_FOUND });
 

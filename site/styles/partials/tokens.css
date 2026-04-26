@@ -18,13 +18,15 @@
   --bg-card: #34495e;
   --border: var(--bg-surface);
   --text: #bdc3c7;
-  --text-muted: var(--text);
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-faint: var(--text);
   --text-strong: var(--accent);
   --text-on-accent: #ecf0f1;
   --accent: #e74c3c;
-  --success: var(--tone-ink);
-  --error: var(--tone-primary);
+  --success: #22c55e;
+  --failure: #ef4444;
+  --caution: #f59e0b;
+  --error: var(--failure);
   --shadow-soft: rgb(123 60 32 / 20%);
   --shadow-strong: rgb(123 60 32 / 32%);
   --overlay-soft: rgb(123 60 32 / 60%);

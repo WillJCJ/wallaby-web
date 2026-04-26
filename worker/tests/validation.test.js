@@ -4,7 +4,10 @@ import {
   toInteger,
   normalizeRsvp,
   validateGuestPayload,
+  validateGuestAccessTogglePayload,
+  validateGuestsSyncPayload,
   validateGuestSelfPayload,
+  validateAccessRequestPayload,
 } from '../validation.js';
 
 // ---------------------------------------------------------------------------
@@ -218,5 +221,150 @@ describe('validateGuestSelfPayload', () => {
     );
     expect(result.value.dietaryRequirements).toBe('vegan');
     expect(result.value.rsvpMessage).toBe('hi');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateGuestAccessTogglePayload
+// ---------------------------------------------------------------------------
+
+describe('validateGuestAccessTogglePayload', () => {
+  it('accepts a valid boolean payload', () => {
+    const result = validateGuestAccessTogglePayload({ accessEnabled: true });
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ accessEnabled: true });
+  });
+
+  it('accepts null payload for bodyless endpoints', () => {
+    const result = validateGuestAccessTogglePayload(null);
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({});
+  });
+
+  it('rejects non-object payloads', () => {
+    const result = validateGuestAccessTogglePayload('oops');
+    expect(result.error).toBe('payload must be an object');
+  });
+
+  it('rejects missing accessEnabled field', () => {
+    const result = validateGuestAccessTogglePayload({});
+    expect(result.error).toBe('accessEnabled is required');
+  });
+
+  it('rejects non-boolean accessEnabled', () => {
+    const result = validateGuestAccessTogglePayload({ accessEnabled: 'yes' });
+    expect(result.error).toBe('accessEnabled must be a boolean');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateAccessRequestPayload
+// ---------------------------------------------------------------------------
+
+describe('validateAccessRequestPayload', () => {
+  const valid = { name: 'Alice Smith', email: 'Alice@Example.com' };
+
+  it('returns a value for a valid payload', () => {
+    const result = validateAccessRequestPayload(valid);
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ name: 'Alice Smith', email: 'alice@example.com' });
+  });
+
+  it('lowercases and trims the email', () => {
+    const result = validateAccessRequestPayload({ name: 'Alice', email: '  Alice@Example.COM  ' });
+    expect(result.value.email).toBe('alice@example.com');
+  });
+
+  it('trims whitespace from name', () => {
+    const result = validateAccessRequestPayload({ name: '  Alice  ', email: 'alice@example.com' });
+    expect(result.value.name).toBe('Alice');
+  });
+
+  it('returns an error when name is empty', () => {
+    const result = validateAccessRequestPayload({ name: '', email: 'alice@example.com' });
+    expect(result.error).toMatch(/name/i);
+  });
+
+  it('returns an error when name is too long', () => {
+    const result = validateAccessRequestPayload({ name: 'A'.repeat(121), email: 'alice@example.com' });
+    expect(result.error).toMatch(/too long/i);
+  });
+
+  it('returns an error when email is empty', () => {
+    const result = validateAccessRequestPayload({ name: 'Alice', email: '' });
+    expect(result.error).toMatch(/email/i);
+  });
+
+  it('returns an error when email is too long', () => {
+    const result = validateAccessRequestPayload({ name: 'Alice', email: 'a'.repeat(315) + '@x.com' });
+    expect(result.error).toMatch(/too long/i);
+  });
+
+  it('returns an error for an invalid email format', () => {
+    const result = validateAccessRequestPayload({ name: 'Alice', email: 'not-an-email' });
+    expect(result.error).toMatch(/email/i);
+  });
+
+  it('returns an error when name contains HTML-ish characters', () => {
+    const result = validateAccessRequestPayload({ name: 'Alice<script>', email: 'alice@example.com' });
+    expect(result.error).toMatch(/invalid characters/i);
+  });
+
+  it('accepts names with apostrophes', () => {
+    const result = validateAccessRequestPayload({ name: "O'Brien", email: 'obrien@example.com' });
+    expect(result.error).toBeUndefined();
+  });
+
+  it('accepts names with hyphens', () => {
+    const result = validateAccessRequestPayload({ name: 'Anne-Marie', email: 'anne@example.com' });
+    expect(result.error).toBeUndefined();
+  });
+
+  it('accepts names with European special characters', () => {
+    const result = validateAccessRequestPayload({ name: 'Ångström', email: 'ang@example.com' });
+    expect(result.error).toBeUndefined();
+  });
+
+  it('accepts names with accented characters', () => {
+    const result = validateAccessRequestPayload({ name: 'Renée Dupont', email: 'renee@example.com' });
+    expect(result.error).toBeUndefined();
+  });
+
+  it('returns an error for a null payload', () => {
+    const result = validateAccessRequestPayload(null);
+    expect(result.error).toBeTruthy();
+  });
+
+  it('returns an error for a non-object payload', () => {
+    const result = validateAccessRequestPayload('string');
+    expect(result.error).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// validateGuestsSyncPayload
+// ---------------------------------------------------------------------------
+
+describe('validateGuestsSyncPayload', () => {
+  it('defaults to full mode when payload is null', () => {
+    const result = validateGuestsSyncPayload(null);
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ mode: 'full' });
+  });
+
+  it('accepts dry-run mode', () => {
+    const result = validateGuestsSyncPayload({ mode: 'dry-run' });
+    expect(result.error).toBeUndefined();
+    expect(result.value).toEqual({ mode: 'dry-run' });
+  });
+
+  it('rejects non-object payloads', () => {
+    const result = validateGuestsSyncPayload('bad');
+    expect(result.error).toBe('payload must be an object');
+  });
+
+  it('rejects invalid mode values', () => {
+    const result = validateGuestsSyncPayload({ mode: 'incremental' });
+    expect(result.error).toBe('mode must be one of: full, dry-run');
   });
 });

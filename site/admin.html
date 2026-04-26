@@ -10,35 +10,64 @@ title: Guest Admin - Wallaby Fest
 <section class="private-details" id="guest-admin" aria-live="polite">
   <p class="private-status" id="guest-admin-status">Loading guests...</p>
 
-  <form class="guest-profile-form" id="guest-admin-form" hidden>
-    <h3>Add Guest</h3>
+  <section class="admin-requests-panel" id="admin-requests-panel" hidden>
+    <h3>Pending Requests</h3>
+    <div class="admin-requests-list" id="admin-requests-list"></div>
+  </section>
 
-    <label for="admin-guest-name">Name</label>
-    <input id="admin-guest-name" name="name" type="text" required maxlength="120" />
+  <div class="admin-rsvp-stats" id="admin-rsvp-stats" hidden></div>
 
-    <label for="admin-guest-email">Email</label>
-    <input id="admin-guest-email" name="email" type="email" required maxlength="320" />
+  <section class="admin-add-panel" id="admin-add-panel" hidden>
+    <p class="private-status admin-form-status" id="guest-admin-form-status" hidden aria-live="polite"></p>
+    <button type="button" class="login-button" id="guest-admin-toggle">Add guest</button>
 
-    <label for="admin-guest-rsvp">RSVP</label>
-    <select id="admin-guest-rsvp" name="rsvp" required>
-      <option value="pending">Pending</option>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
+    <form class="guest-profile-form admin-guest-form-compact" id="guest-admin-form" hidden>
+      <h3>Create Guest</h3>
 
-    <label for="admin-guest-additional-guests">Additional guests</label>
-    <input id="admin-guest-additional-guests" name="additionalGuests" type="number" min="0" step="1" value="0" />
+      <div class="admin-form-row">
+        <div class="admin-form-field">
+          <label for="admin-guest-name">Name</label>
+          <input id="admin-guest-name" name="name" type="text" required maxlength="120" />
+        </div>
+        <div class="admin-form-field">
+          <label for="admin-guest-rsvp">RSVP</label>
+          <select id="admin-guest-rsvp" name="rsvp" required>
+            <option value="pending">Pending</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+      </div>
 
-    <label for="admin-guest-dietary">Dietary requirements</label>
-    <textarea id="admin-guest-dietary" name="dietaryRequirements" rows="3" maxlength="600"></textarea>
+      <div class="admin-form-row">
+        <div class="admin-form-field">
+          <label for="admin-guest-email">Email</label>
+          <input id="admin-guest-email" name="email" type="email" required maxlength="320" />
+        </div>
+        <div class="admin-form-field admin-form-field--narrow">
+          <label for="admin-guest-additional-guests">Extra guests</label>
+          <input id="admin-guest-additional-guests" name="additionalGuests" type="number" min="0" step="1" value="0" />
+        </div>
+      </div>
 
-    <label for="admin-guest-rsvp-message">RSVP message</label>
-    <textarea id="admin-guest-rsvp-message" name="rsvpMessage" rows="4" maxlength="1000"></textarea>
-
-    <button type="submit" class="login-button" id="guest-admin-submit">Add guest</button>
-  </form>
+      <div class="admin-add-form-actions">
+        <button type="submit" class="login-button" id="guest-admin-submit">Create</button>
+        <button type="button" class="login-button" id="guest-admin-cancel">Cancel</button>
+      </div>
+    </form>
+  </section>
 
   <div class="admin-guests-list" id="admin-guests-list" hidden></div>
+
+  <section class="admin-sync-panel" id="admin-sync-panel" hidden>
+    <h3>Access Policy Sync</h3>
+    <p class="admin-sync-summary" id="admin-sync-summary">Checking sync status...</p>
+    <div class="admin-sync-actions">
+      <button type="button" class="login-button" id="admin-sync-run">Run sync</button>
+      <button type="button" class="login-button" id="admin-sync-dry-run">Dry run</button>
+      <button type="button" class="login-button" id="admin-sync-refresh">Refresh status</button>
+    </div>
+  </section>
 </section>
 
 <script type="module" src="/scripts/admin.js"></script>

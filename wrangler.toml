@@ -13,6 +13,16 @@ binding = "CF_VERSION_METADATA"
 binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
 
+[[kv_namespaces]]
+# KV name: GUEST_REQUESTS_KV
+binding = "GUEST_REQUESTS_KV"
+id = "99220d8852904bafbcd6914a428a5ba7"
+
+[[kv_namespaces]]
+# KV name: GUEST_LAST_SEEN_KV
+binding = "GUEST_LAST_SEEN_KV"
+id = "fbab3fea2a534688b96c1db9f811f90b"
+
 [[d1_databases]]
 binding = "GUESTS_DB"
 database_name = "wallabyfest-guests-preview"
@@ -20,6 +30,9 @@ database_id = "e051dc73-8940-4dcc-b670-572c94d0bd07"
 
 [vars]
 LOG_LEVEL = "debug"
+CF_ACCOUNT_ID = "890cec1351da5724fac94ef095c16a24"
+CF_ACCESS_POLICY_ID = "fbaa0a6f-7900-45fe-8dca-04bb1ef98a04"
+DEV_AUTH_ENABLED = "false"
 
 [build]
 command = "npm run build"
@@ -40,6 +53,9 @@ preview_urls = false
 
 [env.production.vars]
 LOG_LEVEL = "info"
+CF_ACCOUNT_ID = "890cec1351da5724fac94ef095c16a24"
+CF_ACCESS_POLICY_ID = "8ce75a5b-12b4-4014-82e6-723e9aee43e8"
+DEV_AUTH_ENABLED = "false"
 
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"
@@ -47,6 +63,16 @@ binding = "CF_VERSION_METADATA"
 [[env.production.r2_buckets]]
 binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
+
+[[env.production.kv_namespaces]]
+# KV name: production-GUEST_REQUESTS_KV
+binding = "GUEST_REQUESTS_KV"
+id = "e5c9ce7ec2dd49a193050ddcae15f060"
+
+[[env.production.kv_namespaces]]
+# KV name: production-GUEST_LAST_SEEN_KV
+binding = "GUEST_LAST_SEEN_KV"
+id = "899d7a8a1d894be5a2f92f49ca80c43f"
 
 [[env.production.routes]]
 pattern = "wallabyfest.co.uk"
@@ -65,12 +91,25 @@ preview_urls = true
 [env.preview.version_metadata]
 binding = "CF_VERSION_METADATA"
 
+[[env.preview.kv_namespaces]]
+# KV name: preview-GUEST_REQUESTS_KV
+binding = "GUEST_REQUESTS_KV"
+id = "b928598615b849cf86abbb680afee7f8"
+
+[[env.preview.kv_namespaces]]
+# KV name: preview-GUEST_LAST_SEEN_KV
+binding = "GUEST_LAST_SEEN_KV"
+id = "729c195e7ed54737aa3dfc2a9f5a0ea1"
+
 [[env.preview.r2_buckets]]
 binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
 
 [env.preview.vars]
 LOG_LEVEL = "debug"
+CF_ACCOUNT_ID = "890cec1351da5724fac94ef095c16a24"
+CF_ACCESS_POLICY_ID = "fbaa0a6f-7900-45fe-8dca-04bb1ef98a04"
+DEV_AUTH_ENABLED = "false"
 
 [[env.preview.d1_databases]]
 binding = "GUESTS_DB"

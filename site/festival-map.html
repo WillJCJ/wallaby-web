@@ -7,9 +7,26 @@ title: Map - Wallaby Fest
   <p>I promise this will look better soon!</p>
 </div>
 
+<section class="private-details" id="private-details" aria-live="polite" hidden>
+  <p class="private-status" id="private-status">Loading travel details...</p>
+
+  <dl class="private-list" id="private-list" hidden>
+    <div class="private-item">
+      <dt>Address</dt>
+      <dd id="private-address"></dd>
+    </div>
+    <div class="private-item">
+      <dt>Gate code</dt>
+      <dd id="private-gate-code"></dd>
+    </div>
+  </dl>
+</section>
+
 <section class="map-section">
   <div class="map-wrap">
     <img src="/images/festival-map.svg" alt="Festival map" style="display: block; width: 100%; height: auto;">
   </div>
 </section>
+
+<script type="module" src="/scripts/details.js"></script>
 

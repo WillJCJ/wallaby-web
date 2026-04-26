@@ -13,8 +13,12 @@
   --bg-surface: #d97d3e;
   --bg-card: #c24a1f;
   --text: #ffe4b5;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #fff8e7;
   --accent: #ffd700;
+  --success: #2fbf71;
+  --failure: #e84855;
+  --caution: #ffd166;
 }
 
 /* 2. Cool Teal - Fresh and modern */
@@ -30,8 +34,12 @@
   --bg-surface: #2c7a7b;
   --bg-card: #0d9488;
   --text: #d1fae5;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #ecfdf5;
   --accent: #fbbf24;
+  --success: #14b889;
+  --failure: #f25f5c;
+  --caution: #f2b705;
 }
 
 /* 3. Forest Green - Earthy and calming */
@@ -47,8 +55,12 @@
   --bg-surface: #1f5641;
   --bg-card: #2d5a42;
   --text: #c7e9c0;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #f0fdf4;
   --accent: #d4a574;
+  --success: #2ea44f;
+  --failure: #d64545;
+  --caution: #c98a2a;
 }
 
 /* 4. Ocean Blue - Calm and professional */
@@ -64,8 +76,12 @@
   --bg-surface: #0369a1;
   --bg-card: #0c4a6e;
   --text: #bae6fd;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #ecf0f1;
   --accent: #fbbf24;
+  --success: #24b47e;
+  --failure: #ff5a5f;
+  --caution: #ffb547;
 }
 
 /* 5. Minimalist - Clean and simple */
@@ -81,8 +97,12 @@
   --bg-surface: #4b5563;
   --bg-card: #34495e;
   --text: #bdc3c7;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #ecf0f1;
   --accent: #e74c3c;
+  --success: #22a06b;
+  --failure: #d14343;
+  --caution: #c77d2b;
 }
 
 /* 6. Berry - Rich and elegant */
@@ -98,8 +118,12 @@
   --bg-surface: #5b21b6;
   --bg-card: #7c3aed;
   --text: #e9d5ff;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #faf5ff;
   --accent: #fcd34d;
+  --success: #28c76f;
+  --failure: #ff4d7a;
+  --caution: #ffb454;
 }
 
 /* 7. Coral - Warm and friendly */
@@ -115,8 +139,12 @@
   --bg-surface: #ea580c;
   --bg-card: #dc2626;
   --text: #fed7aa;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #fffbeb;
   --accent: #fda969;
+  --success: #34b96f;
+  --failure: #c7362e;
+  --caution: #ffc857;
 }
 
 /* 8. Muted Earth - Soft and natural */
@@ -132,8 +160,12 @@
   --bg-surface: #78716c;
   --bg-card: #92837d;
   --text: #d7ccc8;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #f5f5f4;
   --accent: #c8b8a8;
+  --success: #4f8a3b;
+  --failure: #b14a3e;
+  --caution: #b8863b;
 }
 
 /* 9. Midnight - Deep and sophisticated */
@@ -149,8 +181,12 @@
   --bg-surface: #1e293b;
   --bg-card: #334155;
   --text: #cbd5e1;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #f0f4f8;
   --accent: #64748b;
+  --success: #20c997;
+  --failure: #ff5d73;
+  --caution: #f0ad2c;
 }
 
 /* 10. Vibrant Pop - Bold and playful */
@@ -166,8 +202,12 @@
   --bg-surface: #d91e63;
   --bg-card: #c2185b;
   --text: #f8bbd0;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #f3e5f5;
   --accent: #ffb300;
+  --success: #2adf7a;
+  --failure: #ff3864;
+  --caution: #ffb100;
 }
 
 /* Original scheme */
@@ -183,6 +223,10 @@
   --bg-surface: #7b3c20;
   --bg-card: #683823;
   --text: #d1d5db;
+  --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #605a57;
   --accent: #dbb957;
+  --success: #39b970;
+  --failure: #d24a3f;
+  --caution: #e0b24f;
 }
