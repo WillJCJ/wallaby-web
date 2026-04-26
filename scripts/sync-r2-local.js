@@ -28,13 +28,13 @@ const JPEG_QUALITY = 55;
 
 const args = process.argv.slice(2);
 const targetArgIndex = args.findIndex((arg) => arg === '--target' || arg.startsWith('--target='));
-let target = '';
-if (targetArgIndex >= 0) {
-    const flag = args[targetArgIndex];
-    target = flag.includes('=') ? (flag.split('=').slice(1).join('=') || '') : (args[targetArgIndex + 1] || '');
-} else {
-    target = args.find((arg) => !arg.startsWith('--')) || '';
-}
+const target = (() => {
+    if (targetArgIndex >= 0) {
+        const flag = args[targetArgIndex];
+        return flag.includes('=') ? (flag.split('=').slice(1).join('=') || '') : (args[targetArgIndex + 1] || '');
+    }
+    return args.find((arg) => !arg.startsWith('--')) || '';
+})();
 
 const isVideo = (item) => {
     if (item.type === 'video') return true;
