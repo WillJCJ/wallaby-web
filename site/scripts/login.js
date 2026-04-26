@@ -129,10 +129,6 @@
   };
 
   if (!isLocalHost) {
-    if (cfLoginLink) {
-      cfLoginLink.href = `/api/private/auth-entry?next=${encodeURIComponent(nextPath)}`;
-    }
-
     auth?.fetchAuthEmail().then((email) => {
       if (!email) {
         return;

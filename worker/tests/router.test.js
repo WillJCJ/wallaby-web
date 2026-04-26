@@ -125,38 +125,6 @@ describe('router /api/private/details', () => {
 });
 
 // ---------------------------------------------------------------------------
-// /api/private/auth-entry
-// ---------------------------------------------------------------------------
-
-describe('router /api/private/auth-entry', () => {
-  it('returns 401 when no auth header is present', async () => {
-    const req = makeRequest('https://example.com/api/private/auth-entry?next=%2Fprofile%2F');
-    const res = await router.fetch(req, makeEnv());
-    expect(res.status).toBe(401);
-  });
-
-  it('redirects authenticated users to the requested next path', async () => {
-    const req = makeRequest('https://example.com/api/private/auth-entry?next=%2Fprofile%2F', {
-      headers: { 'CF-Access-Authenticated-User-Email': 'user@example.com' },
-    });
-
-    const res = await router.fetch(req, makeEnv());
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/profile/');
-  });
-
-  it('falls back to /profile/ for unsafe next paths', async () => {
-    const req = makeRequest('https://example.com/api/private/auth-entry?next=%2F%2Fevil.example', {
-      headers: { 'CF-Access-Authenticated-User-Email': 'user@example.com' },
-    });
-
-    const res = await router.fetch(req, makeEnv());
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toBe('/profile/');
-  });
-});
-
-// ---------------------------------------------------------------------------
 // /api/dev-auth/*
 // ---------------------------------------------------------------------------
 
