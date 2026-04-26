@@ -7,6 +7,29 @@
   padding-bottom: 3rem;
 }
 
+.photos-by-year {
+  display: grid;
+  gap: 1rem;
+}
+
+.photos-year-section {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.photos-year-heading {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.photos-year-section .photos-gallery {
+  padding-bottom: 0;
+}
+
 .photo-item {
   aspect-ratio: 1;
   overflow: hidden;

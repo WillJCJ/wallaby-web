@@ -1,74 +1,182 @@
 [
   {
-    "id": "2022-campfire-bois.jpg",
-    "alt": "2022 - Campfire bois"
-  },
-  {
-    "id": "2022-campfire.jpg",
-    "alt": "2022 - Campfire"
-  },
-  {
-    "id": "2022-hana-snooze.jpg",
-    "alt": "2022 - Hana snooze"
-  },
-  {
-    "id": "2022-kevin-biscuit.jpg",
-    "alt": "2022 - Kevin biscuit"
-  },
-  {
-    "id": "2022-omar-chef.jpg",
-    "alt": "2022 - Omar chef"
-  },
-  {
-    "id": "2022-rounders.jpg",
-    "alt": "2022 - Rounders"
+    "id": "2022-tractor-ride.jpg",
+    "alt": "Tractor ride",
+    "year": "2022",
+    "caption": "Campsite logistics"
   },
   {
     "id": "2022-sports-teams.jpg",
-    "alt": "2022 - Sports teams"
+    "alt": "Sports teams",
+    "year": "2022",
+    "caption": "Discussing rounders strategy"
   },
   {
-    "id": "2022-tractor-ride.jpg",
-    "alt": "2022 - Tractor ride"
+    "id": "2022-rounders.jpg",
+    "alt": "Rounders",
+    "year": "2022",
+    "caption": "Rounders"
   },
   {
-    "id": "2023-footy.jpg",
-    "alt": "2023 - Footy"
+    "id": "2022-kevin-biscuit.jpg",
+    "alt": "Kevin biscuit",
+    "year": "2022",
+    "caption": "Kevin enjoying a Rich Tea biscuit"
   },
   {
-    "id": "2023-ominous-rain.jpg",
-    "alt": "2023 - Ominous rain"
+    "id": "2022-campfire-bois.jpg",
+    "alt": "Campfire bois",
+    "year": "2022",
+    "caption": "Important campfire discussions"
+  },
+  {
+    "id": "2022-omar-chef.jpg",
+    "alt": "Omar chef",
+    "year": "2022",
+    "caption": "4x more efficient than using a stick"
+  },
+  {
+    "id": "2022-campfire.jpg",
+    "alt": "Campfire",
+    "year": "2022",
+    "caption": "Reflecting on a great first Wallaby Fest"
+  },
+  {
+    "id": "2022-hana-snooze.jpg",
+    "alt": "Hana snooze",
+    "year": "2022",
+    "caption": "Reflecting on a great first Wallaby Fest"
   },
   {
     "id": "2023-tents.jpg",
-    "alt": "2023 - Tents"
+    "alt": "Tents",
+    "year": "2023",
+    "caption": "Hotel Wallaby"
   },
   {
-    "id": "2024-ally-lucy.jpg",
-    "alt": "2024 - Ally Lucy"
+    "id": "2023-ominous-rain.jpg",
+    "alt": "Ominous rain",
+    "year": "2023",
+    "caption": "Ominous rain clouds"
   },
   {
-    "id": "2024-andrew-corgette.jpg",
-    "alt": "2024 - Andrew corgette"
+    "id": "2023-footy.jpg",
+    "alt": "Footy",
+    "year": "2023",
+    "caption": "Inflatable human table football!"
+  },
+  {
+    "id": "2023-Gladiatorial-Combat.jpeg",
+    "alt": "Gladiatorial Combat",
+    "year": "2023",
+    "caption": "Gladiatorial combat"
+  },
+  {
+    "id": "2023-Gladiators-Suiting-Up.jpeg",
+    "alt": "Gladiators Suiting Up",
+    "year": "2023",
+    "caption": "Gladiators suiting up"
+  },
+  {
+    "id": "2023-Ed-beating-will.jpeg",
+    "alt": "Ed beating will",
+    "year": "2023",
+    "caption": "Ed beating up his big brother"
+  },
+  {
+    "id": "2023-Milling-Around.jpeg",
+    "alt": "Milling Around",
+    "year": "2023",
+    "caption": "Milling around"
   },
   {
     "id": "2024-booze.jpg",
-    "alt": "2024 - Booze"
+    "alt": "Booze",
+    "year": "2024",
+    "caption": "Well-stocked shed"
   },
   {
-    "id": "2024-breakfast.jpg",
-    "alt": "2024 - Breakfast"
+    "id": "2024-BBQ.jpeg",
+    "alt": "BBQ",
+    "year": "2024",
+    "caption": "That's a lot of sausage"
   },
   {
-    "id": "2024-fan-zone.jpg",
-    "alt": "2024 - Fan zone"
-  },
-  {
-    "id": "2024-lucy-helping.jpg",
-    "alt": "2024 - Lucy helping"
+    "id": "2024-andrew-corgette.jpg",
+    "alt": "Andrew corgette",
+    "year": "2024",
+    "caption": "Andrew enjoying the leftovers"
   },
   {
     "id": "2024-tony.jpg",
-    "alt": "2024 - Tony"
+    "alt": "Tony",
+    "year": "2024",
+    "caption": "Tony"
+  },
+  {
+    "id": "2024-Mum-and-Will.jpeg",
+    "alt": "Mum and Will",
+    "year": "2024",
+    "caption": "Mum and Will"
+  },
+  {
+    "id": "2024-Fan-Zone-2.jpeg",
+    "alt": "Fan Zone",
+    "year": "2024",
+    "caption": "Fan zone"
+  },
+  {
+    "id": "2024-fan-zone.jpg",
+    "alt": "Fan Zone",
+    "year": "2024",
+    "caption": "Fan zone from another angle"
+  },
+  {
+    "id": "2024-ally-lucy.jpg",
+    "alt": "Ally Lucy",
+    "year": "2024",
+    "caption": "Midnight cuddles"
+  },
+  {
+    "id": "2024-breakfast.jpg",
+    "alt": "Breakfast",
+    "year": "2024",
+    "caption": "Breakfast"
+  },
+  {
+    "id": "2024-lucy-helping.jpg",
+    "alt": "Lucy helping",
+    "year": "2024",
+    "caption": "Lucy helping tidy up"
+  },
+  {
+    "id": "2025-Ant-the-Cycle-Tourist.jpeg",
+    "alt": "Ant the Cycle Tourist",
+    "year": "2025",
+    "caption": "Cycle tourist arrives"
+  },
+  {
+    "id": "2025-Cake.jpeg",
+    "alt": "Cake",
+    "year": "2025",
+    "caption": "Cake!"
+  },
+  {
+    "id": "2025-Grannie-and-Mum.jpeg",
+    "alt": "Grannie and Mum",
+    "year": "2025",
+    "caption": "Grannie Jackie and Mum"
+  },
+  {
+    "id": "2025-Inflatable-Will.jpeg",
+    "alt": "Inflatable Will",
+    "year": "2025",
+    "caption": "Interesting 30th Birthday presents"
+  },
+  {
+    "id": "2025-Naval-Exercise.jpeg",
+    "alt": "Naval Exercise",
+    "year": "2025",
+    "caption": "Naval exercise"
   }
 ]

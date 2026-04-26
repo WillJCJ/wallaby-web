@@ -7,50 +7,67 @@ title: Photos - Wallaby Fest
   <p>Previous festival highlights.</p>
 </div>
 
+{% assign years = photos | map: 'year' | uniq | sort | reverse %}
+{% assign cumulativeCount = 0 %}
+
 <p class="sr-only" id="lightbox-status" aria-live="polite" aria-atomic="true"></p>
-<section class="photos-gallery" id="photos-top">
-  {% for photo in photos %}
-  <article id="photo-{{ forloop.index }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5')">
+<section class="photos-by-year" id="photos-top">
+  {% for year in years %}
+  {% assign yearPhotos = photos | where: 'year', year %}
+  {% assign yearSize = yearPhotos | size %}
+  {% assign cumulativeStart = cumulativeCount %}
+  {% if yearSize > 0 %}
+  <section class="photos-year-section" aria-label="Photos from {{ year }}">
+    <h3 class="photos-year-heading">{{ year }}</h3>
+    <div class="photos-gallery">
+      {% for photo in yearPhotos %}
+      {% assign photoIndex = forloop.index | plus: cumulativeStart %}
+      <article id="photo-{{ photoIndex }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5')">
 
-    <a href="#photo-{{ forloop.index }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
-      <img
-        src="/api/photos/{{ photo.id }}?w=400&q=80"
-        alt="{{ photo.alt }}"
-        loading="{% if forloop.index <= 12 %}eager{% else %}lazy{% endif %}"
-        fetchpriority="{% if forloop.index <= 4 %}high{% else %}auto{% endif %}"
-        decoding="async"
-      >
-    </a>
-
-    <div class="photo-lightbox" role="dialog" aria-modal="true" aria-label="{{ photo.alt }}">
-      <a href="#photos-top" class="lightbox-close" aria-label="Close lightbox"></a>
-      <a href="#photos-top" class="lightbox-close-btn" aria-label="Close photo"></a>
-      <span class="lightbox-counter" aria-hidden="true">{{ forloop.index }} / {{ photos | size }}</span>
-      <figure class="lightbox-figure">
-        <div class="lightbox-img-wrap">
+        <a href="#photo-{{ photoIndex }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
           <img
             src="/api/photos/{{ photo.id }}?w=400&q=80"
-            data-hires="/api/photos/{{ photo.id }}?w=2000&q=85"
             alt="{{ photo.alt }}"
-            loading="lazy"
+            loading="{% if photoIndex <= 12 %}eager{% else %}lazy{% endif %}"
+            fetchpriority="{% if photoIndex <= 4 %}high{% else %}auto{% endif %}"
             decoding="async"
           >
-          {% if photo.alt %}<figcaption class="lightbox-caption">{{ photo.alt }}</figcaption>{% endif %}
-        </div>
-      </figure>
-      {% if forloop.first %}
-      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo"></a>
-      {% else %}
-      <a href="#photo-{{ forloop.index | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo"></a>
-      {% endif %}
-      {% if forloop.last %}
-      <a href="#photo-{{ forloop.index }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo"></a>
-      {% else %}
-      <a href="#photo-{{ forloop.index | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo"></a>
-      {% endif %}
-    </div>
+        </a>
 
-  </article>
+        <div class="photo-lightbox" role="dialog" aria-modal="true" aria-label="{{ photo.alt }}">
+          <a href="#photos-top" class="lightbox-close" aria-label="Close lightbox"></a>
+          <a href="#photos-top" class="lightbox-close-btn" aria-label="Close photo"></a>
+          <span class="lightbox-counter" aria-hidden="true">{{ photoIndex }} / {{ photos | size }}</span>
+          <figure class="lightbox-figure">
+            <div class="lightbox-img-wrap">
+              <img
+                src="/api/photos/{{ photo.id }}?w=400&q=80"
+                data-hires="/api/photos/{{ photo.id }}?w=2000&q=85"
+                alt="{{ photo.alt }}"
+                loading="lazy"
+                decoding="async"
+              >
+              {% if photo.caption %}<figcaption class="lightbox-caption">{{ photo.caption }}</figcaption>{% endif %}
+            </div>
+          </figure>
+          {% if photoIndex == 1 %}
+          <a href="#photo-{{ photoIndex }}" class="lightbox-nav lightbox-nav--prev lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No previous photo"></a>
+          {% else %}
+          <a href="#photo-{{ photoIndex | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo"></a>
+          {% endif %}
+          {% if photoIndex == photos | size %}
+          <a href="#photo-{{ photoIndex }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo"></a>
+          {% else %}
+          <a href="#photo-{{ photoIndex | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo"></a>
+          {% endif %}
+        </div>
+
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% assign cumulativeCount = cumulativeCount | plus: yearSize %}
   {% endfor %}
 </section>
 <script src="/scripts/photos.js" defer></script>
