@@ -9,21 +9,18 @@ title: Guest Login - Wallaby Fest
 
 <section class="login-panel">
   <p id="login-status" class="private-status" aria-live="polite" hidden></p>
-  <p>
-    If your email's on the list, you'll get a code to sign in.
-    Use the button below to ask Will for an account. He'll get back to you eventually.
-  </p>
-  <p>Or maybe the button is broken and he'll never find out.</p>
+  <p id="request-access-status" class="private-status" aria-live="polite" hidden></p>
+  <p>Click the button below to get a login code.</p>
+  <p>Will only work if you've requested access.</p>
 
-  <a class="login-button" id="cf-login-link" href="/profile/">Sign in with Cloudflare Access</a>
+  <a class="login-button" id="cf-login-link" href="/profile/">Get Login Code</a>
 
   <div class="request-access-panel" id="request-access-panel">
-    <p class="request-access-intro">Not on the list yet? You can request access and the organiser will review it.</p>
+    <p class="request-access-intro">You can request access and Will will approve it eventually.</p>
     <button type="button" class="login-button request-access-toggle" id="request-access-toggle">Request access</button>
 
     <form class="guest-profile-form" id="request-access-form" hidden>
       <h3>Request access</h3>
-      <p id="request-access-status" class="private-status" aria-live="polite" hidden></p>
       <label for="request-name">Name</label>
       <input id="request-name" name="name" type="text" required maxlength="120" autocomplete="name" />
       <label for="request-email">Email</label>
@@ -44,4 +41,4 @@ title: Guest Login - Wallaby Fest
   </form>
 </section>
 
-<script src="/scripts/login.js" defer></script>
+<script type="module" src="/scripts/login.js"></script>

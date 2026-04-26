@@ -1,4 +1,5 @@
 import { apiFetch } from '/scripts/api-utils.js';
+import { createStatusSetter } from '/scripts/status-utils.js';
 
 (() => {
   const status = document.getElementById('guest-profile-status');
@@ -18,7 +19,6 @@ import { apiFetch } from '/scripts/api-utils.js';
   let currentGuest = null;
   let savingField = null;
   let editingField = null;
-  const statusClasses = ['private-status--success', 'private-status--warning', 'private-status--failure'];
 
   const fieldConfig = {
     rsvp: {
@@ -163,18 +163,7 @@ import { apiFetch } from '/scripts/api-utils.js';
         : (currentGuest?.rsvpMessage || ''),
   });
 
-  const setStatus = (message, tone = null) => {
-    status.textContent = message;
-    status.classList.remove(...statusClasses);
-
-    if (tone === 'success') {
-      status.classList.add('private-status--success');
-    } else if (tone === 'warning') {
-      status.classList.add('private-status--warning');
-    } else if (tone === 'failure') {
-      status.classList.add('private-status--failure');
-    }
-  };
+  const setStatus = createStatusSetter(status, { hideWhenEmpty: false });
 
   const renderGuest = (guest) => {
     guestName.textContent = guest.name || 'Not set';

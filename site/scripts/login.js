@@ -1,3 +1,5 @@
+import { createStatusSetter } from '/scripts/status-utils.js';
+
 (() => {
   const auth = window.WallabyAuth;
   const status = document.getElementById('login-status');
@@ -35,6 +37,9 @@
 
   let turnstileToken = null;
 
+  const setRequestStatus = createStatusSetter(requestStatus, { hideWhenEmpty: true });
+  const setStatus = createStatusSetter(status, { hideWhenEmpty: true });
+
   if (useTurnstile) {
     window.onTurnstileSuccess = (token) => {
       turnstileToken = token;
@@ -68,8 +73,7 @@
     requestCancel.addEventListener('click', () => {
       requestForm.hidden = true;
       requestToggle.hidden = false;
-      requestStatus.hidden = true;
-      requestStatus.textContent = '';
+      setRequestStatus('');
       requestForm.reset();
       turnstileToken = null;
     });
@@ -79,8 +83,7 @@
     requestForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       requestSubmit.disabled = true;
-      requestStatus.hidden = true;
-      requestStatus.textContent = '';
+      setRequestStatus('');
 
       const name = requestNameInput?.value?.trim() || '';
       const email = requestEmailInput?.value?.trim() || '';
@@ -97,32 +100,15 @@
         });
         requestForm.hidden = true;
         if (requestToggle) requestToggle.hidden = false;
-        requestStatus.textContent = 'Your request has been received. The organiser will be in touch.';
-        requestStatus.hidden = false;
+        setRequestStatus('Your request has been received! Maybe ping Will a WhatsApp.', 'success');
       } catch {
-        requestStatus.textContent = 'Unable to send your request. Please try again later.';
-        requestStatus.hidden = false;
+        setRequestStatus('Unable to send your request. Please try again later.', 'failure');
       } finally {
         requestSubmit.disabled = false;
         turnstileToken = null;
       }
     });
   }
-
-  const setStatus = (message) => {
-    if (!status) {
-      return;
-    }
-
-    if (!message) {
-      status.hidden = true;
-      status.textContent = '';
-      return;
-    }
-
-    status.hidden = false;
-    status.textContent = message;
-  };
 
   const redirectAfterLogin = () => {
     window.location.replace(nextPath);
@@ -145,7 +131,7 @@
   }
 
   if (!devForm || !devEmail || !devSubmit) {
-    setStatus('Local login form unavailable.');
+    setStatus('Local login form unavailable.', 'failure');
     return;
   }
 
@@ -172,7 +158,7 @@
   devForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     setSubmitting(true);
-    setStatus('Signing in...');
+    setStatus('Signing in...', 'warning');
 
     try {
       const result = await auth?.devLogin?.(devEmail.value || '');
@@ -182,9 +168,9 @@
     } catch (error) {
       const message = error.message || 'Unable to sign in locally.';
       if (message.includes('403')) {
-        setStatus('Local dev login is disabled for this host.');
+        setStatus('Local dev login is disabled for this host.', 'failure');
       } else {
-        setStatus(message);
+        setStatus(message, 'failure');
       }
     } finally {
       setSubmitting(false);

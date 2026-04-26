@@ -1,4 +1,5 @@
 import { apiFetch } from '/scripts/api-utils.js';
+import { createStatusSetter } from '/scripts/status-utils.js';
 
 (() => {
   const status = document.getElementById('guest-admin-status');
@@ -56,7 +57,6 @@ import { apiFetch } from '/scripts/api-utils.js';
   let syncActionInProgress = false;
   let createLockedUntilFieldChange = false;
   const guestActionInFlight = new Set();
-  const statusClasses = ['private-status--success', 'private-status--warning', 'private-status--failure'];
   const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const isLastSeenDebugEnabled = isLocalHost && new URLSearchParams(window.location.search).has('debugLastSeen');
 
@@ -65,18 +65,7 @@ import { apiFetch } from '/scripts/api-utils.js';
     || value === '1'
     || (typeof value === 'string' && value.toLowerCase() === 'true');
 
-  const setStatus = (message, tone = null) => {
-    status.textContent = message;
-    status.classList.remove(...statusClasses);
-
-    if (tone === 'success') {
-      status.classList.add('private-status--success');
-    } else if (tone === 'warning') {
-      status.classList.add('private-status--warning');
-    } else if (tone === 'failure') {
-      status.classList.add('private-status--failure');
-    }
-  };
+  const setStatus = createStatusSetter(status, { hideWhenEmpty: false });
 
   const setAddFormExpanded = (expanded) => {
     isAddFormExpanded = expanded;
