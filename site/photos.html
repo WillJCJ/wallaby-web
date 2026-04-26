@@ -55,7 +55,8 @@ title: Photos - Wallaby Fest
           {% else %}
           <a href="#photo-{{ photoIndex | minus: 1 }}" class="lightbox-nav lightbox-nav--prev" aria-label="Previous photo"></a>
           {% endif %}
-          {% if photoIndex == photos | size %}
+          {% assign totalPhotos = photos | size %}
+          {% if photoIndex == totalPhotos %}
           <a href="#photo-{{ photoIndex }}" class="lightbox-nav lightbox-nav--next lightbox-nav--disabled" aria-disabled="true" tabindex="-1" aria-label="No next photo"></a>
           {% else %}
           <a href="#photo-{{ photoIndex | plus: 1 }}" class="lightbox-nav lightbox-nav--next" aria-label="Next photo"></a>

@@ -236,7 +236,7 @@ body:has(.photo-item:target)::before {
   user-select: none;
 }
 
-.lightbox-nav:hover {
+.lightbox-nav:not(.lightbox-nav--disabled):hover {
   opacity: 1;
 }
 
