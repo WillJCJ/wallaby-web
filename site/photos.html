@@ -22,7 +22,7 @@ title: Photos - Wallaby Fest
     <div class="photos-gallery">
       {% for photo in yearPhotos %}
       {% assign photoIndex = forloop.index | plus: cumulativeStart %}
-      <article id="photo-{{ photoIndex }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5')">
+      <article id="photo-{{ photoIndex }}" class="photo-item" style="--lqip: url('/api/photos/{{ photo.id }}?w=40&q=5'); --thumb-offset-y: {{ photo.thumbOffsetY | default: 0 }}%">
 
         <a href="#photo-{{ photoIndex }}" class="photo-thumb-link" aria-label="{{ photo.alt }}">
           <img

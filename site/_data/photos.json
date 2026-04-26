@@ -105,13 +105,15 @@
     "id": "2024-andrew-corgette.jpg",
     "alt": "Andrew corgette",
     "year": "2024",
-    "caption": "Andrew enjoying the leftovers"
+    "caption": "Andrew enjoying the leftovers",
+    "thumbOffsetY": -40
   },
   {
     "id": "2024-tony.jpg",
     "alt": "Tony",
     "year": "2024",
-    "caption": "Tony"
+    "caption": "Tony",
+    "thumbOffsetY": 30
   },
   {
     "id": "2024-Mum-and-Will.jpeg",
@@ -135,7 +137,8 @@
     "id": "2024-ally-lucy.jpg",
     "alt": "Ally Lucy",
     "year": "2024",
-    "caption": "Midnight cuddles"
+    "caption": "Midnight cuddles",
+    "thumbOffsetY": -50
   },
   {
     "id": "2024-breakfast.jpg",
@@ -159,13 +162,15 @@
     "id": "2025-Cake.jpeg",
     "alt": "Cake",
     "year": "2025",
-    "caption": "Cake!"
+    "caption": "Cake!",
+    "thumbOffsetY": -10
   },
   {
     "id": "2025-Grannie-and-Mum.jpeg",
     "alt": "Grannie and Mum",
     "year": "2025",
-    "caption": "Grannie Jackie and Mum"
+    "caption": "Grannie Jackie and Mum",
+    "thumbOffsetY": 50
   },
   {
     "id": "2025-Inflatable-Will.jpeg",
