@@ -25,7 +25,7 @@ title: Guest Admin - Wallaby Fest
             <th>Name</th>
             <th class="admin-request-column-email">Email</th>
             <th>Requested</th>
-            <th class="admin-request-column-actions">Actions</th>
+            <th class="admin-request-column-actions" aria-hidden="true"></th>
           </tr>
         </thead>
         <tbody id="admin-requests-list"></tbody>
@@ -58,7 +58,14 @@ title: Guest Admin - Wallaby Fest
     </template>
   </section>
 
-  <div class="admin-rsvp-stats" id="admin-rsvp-stats" hidden></div>
+  <div class="admin-rsvp-stats" id="admin-rsvp-stats" hidden>
+    <p class="admin-rsvp-total" id="admin-rsvp-total"></p>
+    <div class="admin-rsvp-bar" id="admin-rsvp-bar">
+      <div class="admin-rsvp-seg admin-rsvp-seg--yes" id="admin-rsvp-seg-yes" hidden></div>
+      <div class="admin-rsvp-seg admin-rsvp-seg--pending" id="admin-rsvp-seg-pending" hidden></div>
+      <div class="admin-rsvp-seg admin-rsvp-seg--no" id="admin-rsvp-seg-no" hidden></div>
+    </div>
+  </div>
 
   <section class="admin-add-panel" id="admin-add-panel" hidden>
     <p class="private-status admin-form-status" id="guest-admin-form-status" hidden aria-live="polite"></p>
@@ -100,7 +107,94 @@ title: Guest Admin - Wallaby Fest
     </form>
   </section>
 
-  <div class="admin-guests-list" id="admin-guests-list" hidden></div>
+  <div class="admin-guests-list" id="admin-guests-list" hidden>
+    <p class="admin-guest-empty" id="admin-guest-empty" hidden>No guests found.</p>
+    <div class="admin-guests-table-wrap" id="admin-guests-table-wrap">
+      <table class="admin-guests-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>RSVP</th>
+            <th>Guests</th>
+            <th>Access</th>
+            <th id="admin-guests-sync-header">Sync</th>
+          </tr>
+        </thead>
+        <tbody id="admin-guests-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <template id="admin-guest-row-template">
+    <tr class="admin-guest-row" aria-expanded="false">
+      <td class="admin-guest-name-cell"></td>
+      <td class="admin-guest-rsvp-cell"></td>
+      <td class="admin-col-number admin-guest-count-cell"></td>
+      <td class="admin-col-actions admin-col-access">
+        <span class="admin-access-state"></span>
+        <button type="button" class="login-button admin-guest-access-button"></button>
+      </td>
+      <td class="admin-col-sync admin-guest-sync-cell">
+        <span class="admin-sync-icon admin-sync-icon-ok admin-guest-sync-ok" hidden>✓</span>
+        <span class="admin-sync-tooltip-wrap admin-guest-sync-warning" hidden>
+          <button type="button" class="admin-sync-tooltip-trigger">⚠</button>
+          <span class="admin-sync-tooltip"></span>
+        </span>
+      </td>
+    </tr>
+    <tr class="admin-guest-detail-row" hidden>
+      <td class="admin-guest-detail-cell" colspan="5">
+        <div class="admin-guest-detail-view">
+          <p class="admin-guest-detail-item"><strong>Email: </strong><span class="admin-guest-detail-email"></span></p>
+          <p class="admin-guest-detail-item"><strong>Dietary requirements: </strong><span class="admin-guest-detail-dietary"></span></p>
+          <p class="admin-guest-detail-item"><strong>RSVP message: </strong><span class="admin-guest-detail-rsvp-message"></span></p>
+          <p class="admin-guest-detail-item admin-guest-detail-lastseen">
+            <span class="admin-guest-detail-lastseen-main"><strong>Last seen: </strong><span class="admin-guest-last-seen-value">Loading...</span></span>
+            <span class="admin-guest-detail-id-inline"></span>
+          </p>
+          <p class="admin-guest-debug" hidden></p>
+          <div class="admin-guest-detail-actions">
+            <button type="button" class="login-button admin-guest-edit-button admin-guest-edit-trigger">Edit</button>
+            <button type="button" class="login-button admin-guest-edit-button admin-guest-delete-trigger">Delete</button>
+          </div>
+        </div>
+        <div class="admin-guest-edit-form" hidden>
+          <label class="admin-guest-edit-field">
+            <span>Name</span>
+            <input class="admin-guest-edit-name" type="text" maxlength="120" required />
+          </label>
+          <label class="admin-guest-edit-field">
+            <span>Email</span>
+            <input class="admin-guest-edit-email" type="email" maxlength="320" required />
+          </label>
+          <label class="admin-guest-edit-field">
+            <span>RSVP</span>
+            <select class="admin-guest-edit-rsvp">
+              <option value="pending">Pending</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label class="admin-guest-edit-field">
+            <span>Additional guests</span>
+            <input class="admin-guest-edit-additional" type="number" min="0" step="1" />
+          </label>
+          <label class="admin-guest-edit-field">
+            <span>Dietary requirements</span>
+            <input class="admin-guest-edit-dietary" type="text" maxlength="600" />
+          </label>
+          <label class="admin-guest-edit-field">
+            <span>RSVP message</span>
+            <input class="admin-guest-edit-rsvp-message" type="text" maxlength="1000" />
+          </label>
+          <div class="admin-guest-edit-actions">
+            <button type="button" class="login-button admin-guest-edit-button admin-guest-save-button">Save</button>
+            <button type="button" class="login-button admin-guest-edit-button admin-guest-cancel-edit-button">Cancel</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </template>
 
   <section class="admin-sync-panel" id="admin-sync-panel" hidden>
     <h3>Access Policy Sync</h3>

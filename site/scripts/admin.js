@@ -11,6 +11,11 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   const addPanel = document.getElementById('admin-add-panel');
   const guestsList = document.getElementById('admin-guests-list');
   const rsvpStats = document.getElementById('admin-rsvp-stats');
+  const rsvpTotal = document.getElementById('admin-rsvp-total');
+  const rsvpBar = document.getElementById('admin-rsvp-bar');
+  const rsvpYes = document.getElementById('admin-rsvp-seg-yes');
+  const rsvpPending = document.getElementById('admin-rsvp-seg-pending');
+  const rsvpNo = document.getElementById('admin-rsvp-seg-no');
   const syncPanel = document.getElementById('admin-sync-panel');
   const syncSummary = document.getElementById('admin-sync-summary');
   const runSyncButton = document.getElementById('admin-sync-run');
@@ -19,6 +24,11 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   const requestsPanel = document.getElementById('admin-requests-panel');
   const requestsList = document.getElementById('admin-requests-list');
   const requestTemplate = document.getElementById('admin-request-template');
+  const guestsEmpty = document.getElementById('admin-guest-empty');
+  const guestsTableWrap = document.getElementById('admin-guests-table-wrap');
+  const guestsTableBody = document.getElementById('admin-guests-table-body');
+  const guestsSyncHeader = document.getElementById('admin-guests-sync-header');
+  const guestRowTemplate = document.getElementById('admin-guest-row-template');
 
   if (
     !status ||
@@ -30,6 +40,11 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     !addPanel ||
     !guestsList ||
     !rsvpStats ||
+    !rsvpTotal ||
+    !rsvpBar ||
+    !rsvpYes ||
+    !rsvpPending ||
+    !rsvpNo ||
     !syncPanel ||
     !syncSummary ||
     !runSyncButton ||
@@ -37,7 +52,12 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     !refreshSyncButton ||
     !requestsPanel ||
     !requestsList ||
-    !requestTemplate
+    !requestTemplate ||
+    !guestsEmpty ||
+    !guestsTableWrap ||
+    !guestsTableBody ||
+    !guestsSyncHeader ||
+    !guestRowTemplate
   ) {
     return;
   }
@@ -69,6 +89,26 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     || (typeof value === 'string' && value.toLowerCase() === 'true');
 
   const setStatus = createStatusSetter(status, { hideWhenEmpty: false });
+
+  const formatAdminDateTime = (value) => {
+    if (!value) {
+      return '—';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return '—';
+    }
+
+    return parsed.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).replace(', ', ' ');
+  };
 
   const setAddFormExpanded = (expanded) => {
     isAddFormExpanded = expanded;
@@ -215,23 +255,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     const fragment = document.createDocumentFragment();
 
     const formatRequestedTime = (requestedAtRaw) => {
-      if (!requestedAtRaw) {
-        return '—';
-      }
-
-      const requestedAt = new Date(requestedAtRaw);
-      if (Number.isNaN(requestedAt.getTime())) {
-        return '—';
-      }
-
-      return requestedAt.toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
+      return formatAdminDateTime(requestedAtRaw);
     };
 
     requests.forEach((req) => {
@@ -317,11 +341,11 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   };
 
   const renderRsvpStats = (guests) => {
-    rsvpStats.innerHTML = '';
     if (!Array.isArray(guests) || guests.length === 0) {
       rsvpStats.hidden = true;
       return;
     }
+
     const counts = { yes: 0, no: 0, pending: 0 };
     let totalGuests = 0;
     guests.forEach((g) => {
@@ -335,32 +359,29 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     });
     const total = counts.yes + counts.no + counts.pending;
 
-    const totalEl = document.createElement('p');
-    totalEl.className = 'admin-rsvp-total';
-    totalEl.textContent = `${totalGuests} total guest${totalGuests === 1 ? '' : 's'}`;
-    rsvpStats.appendChild(totalEl);
+    rsvpTotal.textContent = `${totalGuests} total guest${totalGuests === 1 ? '' : 's'}`;
 
-    const segments = [
-      ['yes', counts.yes, 'admin-rsvp-seg--yes'],
-      ['pending', counts.pending, 'admin-rsvp-seg--pending'],
-      ['no', counts.no, 'admin-rsvp-seg--no'],
-    ].filter(([, count]) => count > 0);
+    const segments = {
+      yes: rsvpYes,
+      pending: rsvpPending,
+      no: rsvpNo,
+    };
 
-    const barRow = document.createElement('div');
-    barRow.className = 'admin-rsvp-bar';
-
-    segments.forEach(([label, count, cls]) => {
-      const pct = `${Math.round((count / total) * 100)}%`;
-
-      const seg = document.createElement('div');
-      seg.className = `admin-rsvp-seg ${cls}`;
-      seg.style.flexBasis = pct;
-      seg.title = `${label.charAt(0).toUpperCase() + label.slice(1)}: ${count}`;
-      seg.textContent = String(count);
-      barRow.appendChild(seg);
+    Object.entries(segments).forEach(([label, element]) => {
+      const count = counts[label];
+      element.hidden = count === 0;
+      if (count > 0) {
+        element.style.flexBasis = `${Math.round((count / Math.max(total, 1)) * 100)}%`;
+        element.title = `${label.charAt(0).toUpperCase() + label.slice(1)}: ${count}`;
+        element.textContent = String(count);
+      } else {
+        element.style.flexBasis = '0%';
+        element.title = '';
+        element.textContent = '';
+      }
     });
 
-    rsvpStats.appendChild(barRow);
+    rsvpBar.hidden = total === 0;
     rsvpStats.hidden = false;
   };
 
@@ -373,81 +394,108 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     setStatus('');
   };
 
-  const createCell = (value, className = '') => {
-    const cell = document.createElement('td');
-    if (className) {
-      cell.className = className;
-    }
-    cell.textContent = value;
-    return cell;
-  };
-
-  const formatGuestRow = (guest, allInSync = false) => {
+  const createGuestRows = (guest, allInSync = false) => {
     const isAccessEnabled = normalizeAccessEnabled(guest.accessEnabled);
+    const fragment = guestRowTemplate.content.cloneNode(true);
+    const rows = fragment.querySelectorAll('tr');
+    const row = rows[0];
+    const detailRow = rows[1];
+    const detailCell = fragment.querySelector('.admin-guest-detail-cell');
+    const viewSection = fragment.querySelector('.admin-guest-detail-view');
+    const emailValue = fragment.querySelector('.admin-guest-detail-email');
+    const dietaryValue = fragment.querySelector('.admin-guest-detail-dietary');
+    const rsvpMessageValue = fragment.querySelector('.admin-guest-detail-rsvp-message');
+    const lastSeenValue = fragment.querySelector('.admin-guest-last-seen-value');
+    const guestIdInline = fragment.querySelector('.admin-guest-detail-id-inline');
+    const inviteDebugItem = fragment.querySelector('.admin-guest-debug');
+    const editButton = fragment.querySelector('.admin-guest-edit-trigger');
+    const deleteButton = fragment.querySelector('.admin-guest-delete-trigger');
+    const editSection = fragment.querySelector('.admin-guest-edit-form');
+    const editName = fragment.querySelector('.admin-guest-edit-name');
+    const editEmail = fragment.querySelector('.admin-guest-edit-email');
+    const editRsvp = fragment.querySelector('.admin-guest-edit-rsvp');
+    const editAdditional = fragment.querySelector('.admin-guest-edit-additional');
+    const editDietary = fragment.querySelector('.admin-guest-edit-dietary');
+    const editRsvpMessage = fragment.querySelector('.admin-guest-edit-rsvp-message');
+    const saveButton = fragment.querySelector('.admin-guest-save-button');
+    const cancelEditButton = fragment.querySelector('.admin-guest-cancel-edit-button');
+    const nameCell = fragment.querySelector('.admin-guest-name-cell');
+    const rsvpCell = fragment.querySelector('.admin-guest-rsvp-cell');
+    const countCell = fragment.querySelector('.admin-guest-count-cell');
+    const accessStateIcon = fragment.querySelector('.admin-access-state');
+    const toggleAccessButton = fragment.querySelector('.admin-guest-access-button');
+    const syncCell = fragment.querySelector('.admin-guest-sync-cell');
+    const syncOkIcon = fragment.querySelector('.admin-guest-sync-ok');
+    const syncWarning = fragment.querySelector('.admin-guest-sync-warning');
+    const syncTrigger = fragment.querySelector('.admin-sync-tooltip-trigger');
+    const syncTooltip = fragment.querySelector('.admin-sync-tooltip');
+    const viewActions = fragment.querySelector('.admin-guest-detail-actions');
 
-    const row = document.createElement('tr');
-    row.className = 'admin-guest-row';
-    row.setAttribute('aria-expanded', 'false');
+    if (
+      !row ||
+      !detailRow ||
+      !detailCell ||
+      !viewSection ||
+      !emailValue ||
+      !dietaryValue ||
+      !rsvpMessageValue ||
+      !lastSeenValue ||
+      !guestIdInline ||
+      !inviteDebugItem ||
+      !editButton ||
+      !deleteButton ||
+      !editSection ||
+      !editName ||
+      !editEmail ||
+      !editRsvp ||
+      !editAdditional ||
+      !editDietary ||
+      !editRsvpMessage ||
+      !saveButton ||
+      !cancelEditButton ||
+      !nameCell ||
+      !rsvpCell ||
+      !countCell ||
+      !accessStateIcon ||
+      !toggleAccessButton ||
+      !syncCell ||
+      !syncOkIcon ||
+      !syncWarning ||
+      !syncTrigger ||
+      !syncTooltip ||
+      !viewActions
+    ) {
+      return document.createDocumentFragment();
+    }
+
     row.style.cursor = 'pointer';
-
-    const detailRow = document.createElement('tr');
-    detailRow.className = 'admin-guest-detail-row';
-    detailRow.hidden = true;
-
-    const detailCell = document.createElement('td');
     detailCell.colSpan = allInSync ? 4 : 5;
-    detailCell.className = 'admin-guest-detail-cell';
-
-    // --- view mode ---
-    const viewSection = document.createElement('div');
-    viewSection.className = 'admin-guest-detail-view';
-
-    const detailItems = [
-      ['Email', guest.email || '—'],
-      ['Dietary requirements', guest.dietaryRequirements || '—'],
-      ['RSVP message', guest.rsvpMessage || '—'],
-    ];
-    detailItems.forEach(([label, value]) => {
-      const item = document.createElement('p');
-      item.className = 'admin-guest-detail-item';
-      const labelEl = document.createElement('strong');
-      labelEl.textContent = `${label}: `;
-      item.appendChild(labelEl);
-      item.appendChild(document.createTextNode(value));
-      viewSection.appendChild(item);
-    });
-
-    // Last seen display
-    const lastSeenItem = document.createElement('p');
-    lastSeenItem.className = 'admin-guest-detail-item admin-guest-detail-lastseen';
-    const lastSeenLabel = document.createElement('strong');
-    lastSeenLabel.textContent = 'Last seen: ';
-
-    const lastSeenMain = document.createElement('span');
-    lastSeenMain.className = 'admin-guest-detail-lastseen-main';
-    const lastSeenValue = document.createElement('span');
-    lastSeenValue.id = `guest-last-seen-${guest.id}`;
-    lastSeenValue.textContent = 'Loading...';
-    lastSeenMain.appendChild(lastSeenLabel);
-    lastSeenMain.appendChild(lastSeenValue);
-
-    const guestIdInline = document.createElement('span');
-    guestIdInline.className = 'admin-guest-detail-id-inline';
+    emailValue.textContent = guest.email || '—';
+    dietaryValue.textContent = guest.dietaryRequirements || '—';
+    rsvpMessageValue.textContent = guest.rsvpMessage || '—';
     guestIdInline.textContent = `Guest ID: ${guest.id || '—'}`;
-
-    lastSeenItem.appendChild(lastSeenMain);
-    lastSeenItem.appendChild(guestIdInline);
-    viewSection.appendChild(lastSeenItem);
-
-    const inviteDebugItem = document.createElement('p');
-    inviteDebugItem.className = 'admin-guest-debug';
     inviteDebugItem.hidden = !isLastSeenDebugEnabled;
-    viewSection.appendChild(inviteDebugItem);
+    editName.value = guest.name || '';
+    editEmail.value = guest.email || '';
+    editRsvp.value = guest.rsvp || 'pending';
+    editAdditional.value = String(Number.parseInt(guest.additionalGuests, 10) || 0);
+    editDietary.value = guest.dietaryRequirements || '';
+    editRsvpMessage.value = guest.rsvpMessage || '';
+    nameCell.textContent = guest.name || 'Unnamed guest';
+    rsvpCell.textContent = guest.rsvp || 'pending';
+    countCell.textContent = String(Number.parseInt(guest.additionalGuests, 10) || 0);
+    accessStateIcon.className = `admin-access-state ${isAccessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
+    accessStateIcon.textContent = isAccessEnabled ? '✓' : '✕';
+    accessStateIcon.title = isAccessEnabled ? 'Access enabled' : 'Access disabled';
+    accessStateIcon.setAttribute('aria-label', isAccessEnabled ? 'Access enabled' : 'Access disabled');
+    toggleAccessButton.textContent = isAccessEnabled ? 'Disable' : 'Enable';
+    toggleAccessButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
+    syncCell.hidden = allInSync;
 
     const updateLastSeenUI = (lastSeen) => {
       const hasLastSeen = typeof lastSeen === 'string' && lastSeen.trim() !== '';
       const displayText = hasLastSeen
-        ? new Date(lastSeen).toLocaleString()
+        ? formatAdminDateTime(lastSeen)
         : 'Never';
       lastSeenValue.textContent = displayText;
 
@@ -471,16 +519,6 @@ import { createStatusSetter } from '/scripts/status-utils.js';
         });
       }
     };
-
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'login-button admin-guest-edit-button';
-    editButton.textContent = 'Edit';
-
-    const deleteButton = document.createElement('button');
-    deleteButton.type = 'button';
-    deleteButton.className = 'login-button admin-guest-edit-button';
-    deleteButton.textContent = 'Delete';
     deleteButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
 
     const sendInvitationButton = document.createElement('button');
@@ -512,93 +550,8 @@ import { createStatusSetter } from '/scripts/status-utils.js';
       }
     });
 
-    const viewActions = document.createElement('div');
-    viewActions.className = 'admin-guest-detail-actions';
-    viewActions.appendChild(editButton);
-    viewActions.appendChild(deleteButton);
-    // The sendInvitationButton will be managed by setInvitationButtonVisible
-    viewSection.appendChild(viewActions);
-
     // Fetch once and drive both last-seen text + invitation visibility from the same value.
     fetchGuestLastSeen(guest.id).then(updateLastSeenUI);
-
-    // --- edit mode ---
-    const editSection = document.createElement('div');
-    editSection.className = 'admin-guest-edit-form';
-    editSection.hidden = true;
-
-    const makeEditField = (labelText, inputEl) => {
-      const wrap = document.createElement('label');
-      wrap.className = 'admin-guest-edit-field';
-      const labelSpan = document.createElement('span');
-      labelSpan.textContent = labelText;
-      wrap.appendChild(labelSpan);
-      wrap.appendChild(inputEl);
-      return wrap;
-    };
-
-    const editName = document.createElement('input');
-    editName.type = 'text';
-    editName.value = guest.name || '';
-    editName.maxLength = 120;
-    editName.required = true;
-
-    const editEmail = document.createElement('input');
-    editEmail.type = 'email';
-    editEmail.value = guest.email || '';
-    editEmail.maxLength = 320;
-    editEmail.required = true;
-
-    const editRsvp = document.createElement('select');
-    ['pending', 'yes', 'no'].forEach((val) => {
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = val.charAt(0).toUpperCase() + val.slice(1);
-      if (val === (guest.rsvp || 'pending')) opt.selected = true;
-      editRsvp.appendChild(opt);
-    });
-
-    const editAdditional = document.createElement('input');
-    editAdditional.type = 'number';
-    editAdditional.min = '0';
-    editAdditional.step = '1';
-    editAdditional.value = String(Number.parseInt(guest.additionalGuests, 10) || 0);
-
-    const editDietary = document.createElement('input');
-    editDietary.type = 'text';
-    editDietary.value = guest.dietaryRequirements || '';
-    editDietary.maxLength = 600;
-
-    const editRsvpMessage = document.createElement('input');
-    editRsvpMessage.type = 'text';
-    editRsvpMessage.value = guest.rsvpMessage || '';
-    editRsvpMessage.maxLength = 1000;
-
-    editSection.appendChild(makeEditField('Name', editName));
-    editSection.appendChild(makeEditField('Email', editEmail));
-    editSection.appendChild(makeEditField('RSVP', editRsvp));
-    editSection.appendChild(makeEditField('Additional guests', editAdditional));
-    editSection.appendChild(makeEditField('Dietary requirements', editDietary));
-    editSection.appendChild(makeEditField('RSVP message', editRsvpMessage));
-
-    const saveButton = document.createElement('button');
-    saveButton.type = 'button';
-    saveButton.className = 'login-button admin-guest-edit-button';
-    saveButton.textContent = 'Save';
-
-    const cancelEditButton = document.createElement('button');
-    cancelEditButton.type = 'button';
-    cancelEditButton.className = 'login-button admin-guest-edit-button';
-    cancelEditButton.textContent = 'Cancel';
-
-    const editActions = document.createElement('div');
-    editActions.className = 'admin-guest-edit-actions';
-    editActions.appendChild(saveButton);
-    editActions.appendChild(cancelEditButton);
-    editSection.appendChild(editActions);
-
-    detailCell.appendChild(viewSection);
-    detailCell.appendChild(editSection);
 
     const enterEditMode = () => {
       viewSection.hidden = true;
@@ -679,27 +632,6 @@ import { createStatusSetter } from '/scripts/status-utils.js';
       detailRow.hidden = expanded;
     });
 
-    row._detailRow = detailRow;
-
-    row.appendChild(createCell(guest.name || 'Unnamed guest'));
-    row.appendChild(createCell(guest.rsvp || 'pending'));
-    row.appendChild(createCell(String(Number.parseInt(guest.additionalGuests, 10) || 0), 'admin-col-number'));
-
-    const accessCell = document.createElement('td');
-    accessCell.className = 'admin-col-actions admin-col-access';
-
-    const accessStateIcon = document.createElement('span');
-    accessStateIcon.className = `admin-access-state ${isAccessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
-    accessStateIcon.textContent = isAccessEnabled ? '✓' : '✕';
-    accessStateIcon.title = isAccessEnabled ? 'Access enabled' : 'Access disabled';
-    accessStateIcon.setAttribute('aria-label', isAccessEnabled ? 'Access enabled' : 'Access disabled');
-
-    const toggleAccessButton = document.createElement('button');
-    toggleAccessButton.type = 'button';
-    toggleAccessButton.className = 'login-button admin-guest-access-button';
-    toggleAccessButton.textContent = isAccessEnabled ? 'Disable' : 'Enable';
-    toggleAccessButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
-
     toggleAccessButton.addEventListener('click', async () => {
       const nextEnabled = !isAccessEnabled;
       setStatus(`${nextEnabled ? 'Enabling' : 'Disabling'} access for ${guest.email || guest.name}...`, 'warning');
@@ -714,94 +646,46 @@ import { createStatusSetter } from '/scripts/status-utils.js';
         setStatus(error.message, 'failure');
       }
     });
-
-    accessCell.appendChild(accessStateIcon);
-    accessCell.appendChild(toggleAccessButton);
-    row.appendChild(accessCell);
-
-    if (allInSync) {
-      return row;
-    }
-
-    const syncCell = document.createElement('td');
-    syncCell.className = 'admin-col-sync';
     const isSyncOk = guest.syncStatus === 'in_sync' && !guest.syncError;
 
     if (isSyncOk) {
-      const syncOkIcon = document.createElement('span');
-      syncOkIcon.className = 'admin-sync-icon admin-sync-icon-ok';
-      syncOkIcon.textContent = '✓';
+      syncOkIcon.hidden = false;
+      syncWarning.hidden = true;
       syncOkIcon.title = 'In sync';
-      syncCell.appendChild(syncOkIcon);
     } else {
       const message = guest.syncError || `Sync status: ${guest.syncStatus || 'unknown'}`;
-      const tooltipWrap = document.createElement('span');
-      tooltipWrap.className = 'admin-sync-tooltip-wrap';
-
-      const trigger = document.createElement('button');
-      trigger.type = 'button';
-      trigger.className = 'admin-sync-tooltip-trigger';
-      trigger.setAttribute('aria-label', message);
-      trigger.title = message;
-      trigger.textContent = '⚠';
-
-      const tooltip = document.createElement('span');
-      tooltip.className = 'admin-sync-tooltip';
-      tooltip.textContent = message;
-
-      tooltipWrap.appendChild(trigger);
-      tooltipWrap.appendChild(tooltip);
-      syncCell.appendChild(tooltipWrap);
+      syncOkIcon.hidden = true;
+      syncWarning.hidden = false;
+      syncTrigger.setAttribute('aria-label', message);
+      syncTrigger.title = message;
+      syncTooltip.textContent = message;
     }
 
-    row.appendChild(syncCell);
-
-    return row;
+    return fragment;
   };
 
   const renderGuests = (guests) => {
-    guestsList.innerHTML = '';
+    guestsTableBody.innerHTML = '';
 
     if (!Array.isArray(guests) || guests.length === 0) {
-      const empty = document.createElement('p');
-      empty.className = 'admin-guest-empty';
-      empty.textContent = 'No guests found.';
-      guestsList.appendChild(empty);
+      guestsEmpty.hidden = false;
+      guestsTableWrap.hidden = true;
       guestsList.hidden = false;
       return;
     }
 
-    const tableWrap = document.createElement('div');
-    tableWrap.className = 'admin-guests-table-wrap';
-
-    const table = document.createElement('table');
-    table.className = 'admin-guests-table';
-
     const allInSync = guests.every((g) => g.syncStatus === 'in_sync' && !g.syncError);
+    const fragment = document.createDocumentFragment();
 
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    const headers = ['Name', 'RSVP', 'Guests', 'Access'];
-    if (!allInSync) headers.push('Sync');
-    headers.forEach((label) => {
-      const th = document.createElement('th');
-      th.textContent = label;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
+    guestsEmpty.hidden = true;
+    guestsTableWrap.hidden = false;
+    guestsSyncHeader.hidden = allInSync;
 
-    const tbody = document.createElement('tbody');
     guests.forEach((guest) => {
-      const row = formatGuestRow(guest, allInSync);
-      tbody.appendChild(row);
-      tbody.appendChild(row._detailRow);
+      fragment.appendChild(createGuestRows(guest, allInSync));
     });
 
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    tableWrap.appendChild(table);
-    guestsList.appendChild(tableWrap);
-
+    guestsTableBody.appendChild(fragment);
     guestsList.hidden = false;
   };
 

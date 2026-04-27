@@ -429,10 +429,10 @@
   width: 100%;
   table-layout: fixed;
 
-  --admin-request-col-name: 24%;
-  --admin-request-col-email: 26%;
-  --admin-request-col-requested: 16%;
-  --admin-request-col-actions: 22%;
+  --admin-request-col-name: 22%;
+  --admin-request-col-email: 30%;
+  --admin-request-col-requested: 22%;
+  --admin-request-col-actions: calc(100% - var(--admin-request-col-name) - var(--admin-request-col-email) - var(--admin-request-col-requested));
 }
 
 .admin-request-col--name {
@@ -470,12 +470,20 @@
     minmax(0, var(--admin-request-col-email))
     minmax(0, var(--admin-request-col-requested))
     minmax(0, var(--admin-request-col-actions));
-  gap: 0.75rem;
+  gap: 0;
   align-items: center;
   cursor: default;
   list-style: none;
-  padding: 0.55rem;
+  padding: 0.55rem 0;
   color: var(--text);
+}
+
+.admin-request-name,
+.admin-request-summary-email,
+.admin-request-time {
+  display: block;
+  padding-left: 0.55rem;
+  padding-right: 0.75rem;
 }
 
 .admin-request-summary::-webkit-details-marker {
@@ -504,12 +512,14 @@
 .admin-request-time {
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .admin-request-summary-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 0.35rem;
+  padding-right: 0.55rem;
 }
 
 .admin-request-detail {
