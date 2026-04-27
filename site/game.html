@@ -29,11 +29,14 @@ title: Wallaby Run - Wallaby Fest
   >Start Game</button>
 
   <section class="wallaby-game__leaderboard" aria-live="polite" aria-label="High scores">
+    <p id="wallaby-game-signin-warning" class="wallaby-game__signin-warning" hidden>
+      Sign in to save your score.
+      <a class="wallaby-game__login-btn" href="/login.html">Login</a>
+    </p>
     <p id="wallaby-game-online-status" class="wallaby-game__online-status" hidden>
       Checking online scores...
     </p>
     <ol id="wallaby-game-top-scores" class="wallaby-game__top-scores"></ol>
-    <p id="wallaby-game-personal-best" class="wallaby-game__personal-best" hidden></p>
   </section>
 </div>
 

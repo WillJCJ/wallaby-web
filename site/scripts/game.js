@@ -5,7 +5,7 @@
   const jumpBtn = document.getElementById('wallaby-game-jump-btn');
   const onlineStatusEl = document.getElementById('wallaby-game-online-status');
   const topScoresEl = document.getElementById('wallaby-game-top-scores');
-  const personalBestEl = document.getElementById('wallaby-game-personal-best');
+  const signInWarningEl = document.getElementById('wallaby-game-signin-warning');
   let btnHeld = false;
 
   if (!canvas || !canvas.getContext) {
@@ -13,7 +13,7 @@
   }
 
   const ctx = canvas.getContext('2d');
-  const BEST_KEY = 'wallabyfest-game-best';
+  const BEST_KEY = 'wallabyfest-game-best-v2'; // bump version to reset local best scores if needed
   const HIGH_SCORES_ENDPOINT = '/api/game/high-scores';
   const START_RUN_ENDPOINT = '/api/private/game/runs/start';
   const TOP_SCORES_LIMIT = 10;
@@ -251,6 +251,11 @@
     onlineStatusEl.className = 'wallaby-game__online-status wallaby-game__online-status--error';
   };
 
+  const renderSignInWarning = () => {
+    if (!signInWarningEl) return;
+    signInWarningEl.hidden = isSignedIn;
+  };
+
   const normaliseLeaderboard = (payload) => {
     if (!payload || !Array.isArray(payload.leaderboard)) {
       return [];
@@ -260,6 +265,7 @@
       .map((row) => ({
         displayName: typeof row.displayName === 'string' ? row.displayName : 'Guest',
         score: Number.parseInt(row.score, 10) || 0,
+        isViewer: Boolean(row.isViewer),
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, TOP_SCORES_LIMIT);
@@ -282,24 +288,15 @@
       const name = document.createElement('span');
       const score = document.createElement('span');
       name.className = 'wallaby-game__score-name';
+      if (row.isViewer) {
+        name.classList.add('wallaby-game__score-name--mine');
+      }
       name.textContent = row.displayName;
       score.className = 'wallaby-game__score-value';
       score.textContent = String(row.score);
       li.append(name, score);
       topScoresEl.appendChild(li);
     });
-  };
-
-  const renderMyBest = (myBest) => {
-    if (!personalBestEl) return;
-    if (!myBest || typeof myBest.score !== 'number') {
-      personalBestEl.hidden = true;
-      personalBestEl.textContent = '';
-      return;
-    }
-
-    personalBestEl.hidden = false;
-    personalBestEl.textContent = `Your online best: ${myBest.score}`;
   };
 
   const apiJson = async (url, options = {}) => {
@@ -323,7 +320,6 @@
         headers: { accept: 'application/json' },
       });
       renderLeaderboard(normaliseLeaderboard(payload));
-      renderMyBest(payload.myBest || null);
       clearOnlineStatus();
     } catch {
       showOnlineStatusError('Online leaderboard is unavailable.');
@@ -382,7 +378,6 @@
       );
 
       renderLeaderboard(normaliseLeaderboard(payload));
-      renderMyBest(payload.myBest || null);
       clearOnlineStatus();
     } catch {
       showOnlineStatusError('Could not submit score online.');
@@ -1296,6 +1291,7 @@
     const fetchSignedIn = auth?.fetchSignedIn;
     if (typeof fetchSignedIn !== 'function') {
       isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
+      renderSignInWarning();
       void refreshOnlineScores();
       return;
     }
@@ -1303,9 +1299,11 @@
     fetchSignedIn()
       .then((signedIn) => {
         isSignedIn = Boolean(signedIn) || Boolean(auth?.getStoredAuthEmail?.());
+        renderSignInWarning();
       })
       .catch(() => {
         isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
+        renderSignInWarning();
       })
       .finally(() => {
         void refreshOnlineScores();
@@ -1316,6 +1314,7 @@
 
   window.addEventListener('wallabyauth:statechange', (event) => {
     isSignedIn = Boolean(event?.detail?.email);
+    renderSignInWarning();
     void refreshOnlineScores();
   });
 

@@ -51,7 +51,7 @@ const loadGuestByEmail = async (db, email) => db
   .bind(email)
   .first();
 
-const loadLeaderboard = async (db) => {
+const loadLeaderboard = async (db, viewerGuestId = null) => {
   const rows = await db
     .prepare(
       `SELECT
@@ -77,6 +77,7 @@ const loadLeaderboard = async (db) => {
     rank: index + 1,
     displayName: formatDisplayName(row.name),
     score: row.score,
+    isViewer: viewerGuestId ? row.guest_id === viewerGuestId : false,
     durationMs: row.duration_ms,
     updatedAt: null,
   }));
@@ -164,7 +165,7 @@ export const handleGameHighScores = async (request, env) => {
   const guest = email ? await loadGuestByEmail(env.GUESTS_DB, email) : null;
   const guestId = guest?.guest_id || null;
   const [leaderboard, myBest] = await Promise.all([
-    loadLeaderboard(env.GUESTS_DB),
+    loadLeaderboard(env.GUESTS_DB, guestId),
     guestId ? loadMyBest(env.GUESTS_DB, guestId) : Promise.resolve(null),
   ]);
 
@@ -311,7 +312,7 @@ export const handleGameRunFinish = async (request, env, pathname) => {
   }
 
   const [leaderboard, myBest] = await Promise.all([
-    loadLeaderboard(env.GUESTS_DB),
+    loadLeaderboard(env.GUESTS_DB, guest.guest_id),
     loadMyBest(env.GUESTS_DB, guest.guest_id),
   ]);
 

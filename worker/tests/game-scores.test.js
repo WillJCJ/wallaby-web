@@ -70,7 +70,7 @@ describe('game-scores handlers', () => {
 
     const env = {
       GUESTS_DB: makeDb({
-        leaderboardRows: [{ name: 'Will Connor', email: 'player@example.com', score: 321, duration_ms: 14000 }],
+        leaderboardRows: [{ guest_id: 'guest-1', name: 'Will Connor', email: 'player@example.com', score: 321, duration_ms: 14000 }],
       }),
     };
 
@@ -89,7 +89,7 @@ describe('game-scores handlers', () => {
     const env = {
       GUESTS_DB: makeDb({
         guestRow: { guest_id: 'guest-1', name: 'Will Connor', email: 'player@example.com' },
-        leaderboardRows: [{ name: 'Will Connor', email: 'player@example.com', score: 321, duration_ms: 14000 }],
+        leaderboardRows: [{ guest_id: 'guest-1', name: 'Will Connor', email: 'player@example.com', score: 321, duration_ms: 14000 }],
         myBestRow: { name: 'Will Connor', email: 'player@example.com', score: 321, duration_ms: 14000 },
       }),
     };
@@ -98,6 +98,7 @@ describe('game-scores handlers', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.leaderboard).toHaveLength(1);
+    expect(body.leaderboard[0].isViewer).toBe(true);
     expect(body.myBest.score).toBe(321);
   });
 
