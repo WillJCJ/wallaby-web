@@ -24,12 +24,34 @@
   cursor: pointer;
 }
 
+.login-button--accent {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.login-button--accent:hover,
+.login-button--accent:focus-visible {
+  background: color-mix(in srgb, var(--accent) 88%, black);
+}
+
+.request-access-button {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
+
 a.login-button:link,
 a.login-button:visited,
 a.login-button:hover,
 a.login-button:active {
   color: var(--text-muted);
   text-decoration: none;
+}
+
+a.login-button.login-button--accent:link,
+a.login-button.login-button--accent:visited,
+a.login-button.login-button--accent:hover,
+a.login-button.login-button--accent:active {
+  color: var(--text-on-accent);
 }
 
 .private-status {

@@ -37,7 +37,7 @@
 }
 
 .photo-item--video {
-  background: #000;
+  background: var(--bg-surface);
 }
 
 .photo-thumb-link {
@@ -220,7 +220,7 @@ body:has(.photo-item:target)::before {
   height: auto;
   object-fit: contain;
   display: block;
-  background: #000;
+  background: var(--bg-surface);
 }
 
 .lightbox-figure img {
