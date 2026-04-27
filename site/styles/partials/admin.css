@@ -427,6 +427,112 @@
 
 .admin-requests-table {
   width: 100%;
+  table-layout: fixed;
+
+  --admin-request-col-name: 24%;
+  --admin-request-col-email: 26%;
+  --admin-request-col-requested: 16%;
+  --admin-request-col-actions: 22%;
+}
+
+.admin-request-col--name {
+  width: var(--admin-request-col-name);
+}
+
+.admin-request-col--email {
+  width: var(--admin-request-col-email);
+}
+
+.admin-request-col--requested {
+  width: var(--admin-request-col-requested);
+}
+
+.admin-request-col--actions {
+  width: var(--admin-request-col-actions);
+}
+
+.admin-request-item-cell {
+  padding: 0;
+}
+
+.admin-request-item {
+  border-bottom: 1px solid var(--border);
+}
+
+#admin-requests-list tr:last-child .admin-request-item {
+  border-bottom: none;
+}
+
+.admin-request-summary {
+  display: grid;
+  grid-template-columns:
+    minmax(0, var(--admin-request-col-name))
+    minmax(0, var(--admin-request-col-email))
+    minmax(0, var(--admin-request-col-requested))
+    minmax(0, var(--admin-request-col-actions));
+  gap: 0.75rem;
+  align-items: center;
+  cursor: default;
+  list-style: none;
+  padding: 0.55rem;
+  color: var(--text);
+}
+
+.admin-request-summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-request-item[open] .admin-request-summary,
+.admin-request-summary:hover,
+.admin-request-summary:focus-visible {
+  background: var(--bg-card);
+}
+
+.admin-request-name {
+  overflow-wrap: anywhere;
+}
+
+.admin-request-summary-email {
+  display: block;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-request-time {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-request-summary-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.35rem;
+}
+
+.admin-request-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.55rem;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 65%, var(--bg-surface) 35%);
+}
+
+.admin-request-email {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.admin-request-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .admin-request-create-button {
@@ -442,4 +548,45 @@
   font-size: 0.82rem;
   color: var(--text-muted);
   border: 1px solid var(--border);
+}
+
+@media (width < 800px) {
+  .admin-requests-table {
+    --admin-request-col-name: 56%;
+    --admin-request-col-email: 0%;
+    --admin-request-col-requested: 44%;
+    --admin-request-col-actions: 0%;
+  }
+
+  .admin-request-column-email,
+  .admin-request-column-actions,
+  .admin-request-summary-actions {
+    display: none;
+  }
+
+  .admin-request-col--email {
+    width: 0;
+  }
+
+  .admin-request-col--actions {
+    width: 0;
+  }
+
+  .admin-request-detail {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-request-summary {
+    cursor: pointer;
+    grid-template-columns:
+      minmax(0, var(--admin-request-col-name))
+      minmax(0, var(--admin-request-col-requested));
+  }
+}
+
+@media (width > 800px) {
+  .admin-request-detail {
+    display: none;
+  }
 }

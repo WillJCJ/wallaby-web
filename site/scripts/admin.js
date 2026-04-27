@@ -18,6 +18,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   const refreshSyncButton = document.getElementById('admin-sync-refresh');
   const requestsPanel = document.getElementById('admin-requests-panel');
   const requestsList = document.getElementById('admin-requests-list');
+  const requestTemplate = document.getElementById('admin-request-template');
 
   if (
     !status ||
@@ -35,7 +36,8 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     !dryRunSyncButton ||
     !refreshSyncButton ||
     !requestsPanel ||
-    !requestsList
+    !requestsList ||
+    !requestTemplate
   ) {
     return;
   }
@@ -57,6 +59,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   let syncActionInProgress = false;
   let createLockedUntilFieldChange = false;
   const guestActionInFlight = new Set();
+  const desktopRequestLayout = window.matchMedia('(width > 800px)');
   const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const isLastSeenDebugEnabled = isLocalHost && new URLSearchParams(window.location.search).has('debugLastSeen');
 
@@ -209,83 +212,102 @@ import { createStatusSetter } from '/scripts/status-utils.js';
       return;
     }
 
-    const tableWrap = document.createElement('div');
-    tableWrap.className = 'admin-requests-table-wrap';
+    const fragment = document.createDocumentFragment();
 
-    const table = document.createElement('table');
-    table.className = 'admin-guests-table admin-requests-table';
+    const formatRequestedTime = (requestedAtRaw) => {
+      if (!requestedAtRaw) {
+        return '—';
+      }
 
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    ['Name', 'Email', 'Requested', 'Actions'].forEach((label) => {
-      const th = document.createElement('th');
-      th.textContent = label;
-      headerRow.appendChild(th);
-    });
-    thead.appendChild(headerRow);
+      const requestedAt = new Date(requestedAtRaw);
+      if (Number.isNaN(requestedAt.getTime())) {
+        return '—';
+      }
 
-    const tbody = document.createElement('tbody');
+      return requestedAt.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    };
 
     requests.forEach((req) => {
-      const row = document.createElement('tr');
+      const node = requestTemplate.content.cloneNode(true);
+      const details = node.querySelector('.admin-request-item');
+      const summary = node.querySelector('.admin-request-summary');
+      const nameEl = node.querySelector('.admin-request-name');
+      const summaryEmailEl = node.querySelector('.admin-request-summary-email');
+      const timeEl = node.querySelector('.admin-request-time');
+      const emailEl = node.querySelector('.admin-request-email');
+      const createButtons = node.querySelectorAll('.admin-request-create-button');
+      const dismissButtons = node.querySelectorAll('.admin-request-dismiss-button');
 
-      const nameCell = document.createElement('td');
-      nameCell.textContent = req.name || '—';
-      row.appendChild(nameCell);
+      if (!details || !summary || !nameEl || !summaryEmailEl || !timeEl || !emailEl || createButtons.length === 0 || dismissButtons.length === 0) {
+        return;
+      }
 
-      const emailCell = document.createElement('td');
-      emailCell.textContent = req.email || '—';
-      row.appendChild(emailCell);
+      nameEl.textContent = req.name || '—';
+      summaryEmailEl.textContent = req.email || '—';
+      timeEl.textContent = formatRequestedTime(req.requestedAt);
+      emailEl.textContent = req.email || '—';
 
-      const dateCell = document.createElement('td');
-      dateCell.textContent = req.requestedAt
-        ? new Date(req.requestedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-        : '—';
-      row.appendChild(dateCell);
+      const handleCreate = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
 
-      const actionsCell = document.createElement('td');
-      actionsCell.className = 'admin-col-actions';
-
-      const createButton = document.createElement('button');
-      createButton.type = 'button';
-      createButton.className = 'login-button admin-request-create-button';
-      createButton.textContent = 'Create guest';
-      createButton.addEventListener('click', () => {
         // Pre-populate the add-guest form with the request details and scroll to it
         if (fields.name) fields.name.value = req.name || '';
         if (fields.email) fields.email.value = req.email || '';
         setAddFormExpanded(true);
         addPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
+      };
 
-      const dismissButton = document.createElement('button');
-      dismissButton.type = 'button';
-      dismissButton.className = 'login-button admin-request-dismiss-button';
-      dismissButton.textContent = 'Dismiss';
-      dismissButton.addEventListener('click', async () => {
-        dismissButton.disabled = true;
-        dismissButton.textContent = 'Dismissing...';
+      const handleDismiss = async (event, buttonGroup) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        buttonGroup.forEach((button) => {
+          button.disabled = true;
+          button.textContent = 'Dismissing...';
+        });
+
         try {
           await dismissAccessRequest(req.requestId);
           await refreshAccessRequests();
         } catch (error) {
           setStatus(error.message, 'failure');
-          dismissButton.disabled = false;
-          dismissButton.textContent = 'Dismiss';
+          buttonGroup.forEach((button) => {
+            button.disabled = false;
+            button.textContent = 'Dismiss';
+          });
+        }
+      };
+
+      createButtons.forEach((button) => {
+        button.addEventListener('click', handleCreate);
+      });
+
+      dismissButtons.forEach((button) => {
+        button.addEventListener('click', (event) => handleDismiss(event, dismissButtons));
+      });
+
+      if (desktopRequestLayout.matches) {
+        details.open = false;
+      }
+
+      summary.addEventListener('click', (event) => {
+        if (desktopRequestLayout.matches) {
+          event.preventDefault();
         }
       });
 
-      actionsCell.appendChild(createButton);
-      actionsCell.appendChild(dismissButton);
-      row.appendChild(actionsCell);
-
-      tbody.appendChild(row);
+      fragment.appendChild(node);
     });
 
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    tableWrap.appendChild(table);
-    requestsList.appendChild(tableWrap);
+    requestsList.appendChild(fragment);
     requestsPanel.hidden = false;
   };
 

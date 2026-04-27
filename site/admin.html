@@ -12,7 +12,50 @@ title: Guest Admin - Wallaby Fest
 
   <section class="admin-requests-panel" id="admin-requests-panel" hidden>
     <h3>Pending Requests</h3>
-    <div class="admin-requests-list" id="admin-requests-list"></div>
+    <div class="admin-requests-table-wrap">
+      <table class="admin-guests-table admin-requests-table">
+        <colgroup>
+          <col class="admin-request-col admin-request-col--name">
+          <col class="admin-request-col admin-request-col--email">
+          <col class="admin-request-col admin-request-col--requested">
+          <col class="admin-request-col admin-request-col--actions">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="admin-request-column-email">Email</th>
+            <th>Requested</th>
+            <th class="admin-request-column-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="admin-requests-list"></tbody>
+      </table>
+    </div>
+
+    <template id="admin-request-template">
+      <tr>
+        <td colspan="4" class="admin-request-item-cell">
+          <details class="admin-request-item" name="admin-request-item">
+            <summary class="admin-request-summary">
+              <span class="admin-request-name"></span>
+              <span class="admin-request-summary-email admin-request-column-email"></span>
+              <span class="admin-request-time"></span>
+              <span class="admin-request-summary-actions admin-request-column-actions">
+                <button type="button" class="login-button admin-request-create-button admin-request-create-button--summary">Add</button>
+                <button type="button" class="login-button admin-request-dismiss-button admin-request-dismiss-button--summary">Dismiss</button>
+              </span>
+            </summary>
+            <div class="admin-request-detail">
+              <p class="admin-request-email"></p>
+              <div class="admin-request-actions">
+                <button type="button" class="login-button admin-request-create-button admin-request-create-button--detail">Add</button>
+                <button type="button" class="login-button admin-request-dismiss-button admin-request-dismiss-button--detail">Dismiss</button>
+              </div>
+            </div>
+          </details>
+        </td>
+      </tr>
+    </template>
   </section>
 
   <div class="admin-rsvp-stats" id="admin-rsvp-stats" hidden></div>
