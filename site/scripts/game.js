@@ -7,9 +7,20 @@
   const topScoresEl = document.getElementById('wallaby-game-top-scores');
   const signInWarningEl = document.getElementById('wallaby-game-signin-warning');
   let btnHeld = false;
+  let lastTouchInteractionAt = 0;
 
   if (!canvas || !canvas.getContext) {
     return;
+  }
+
+  // Apply the vendor-specific tap highlight override from JS so CSS lint rules stay unchanged.
+  canvas.style.setProperty('-webkit-tap-highlight-color', 'transparent');
+  if (jumpBtn) {
+    jumpBtn.style.setProperty('-webkit-tap-highlight-color', 'transparent');
+  }
+
+  if (window.matchMedia('(pointer: coarse)').matches) {
+    canvas.tabIndex = -1;
   }
 
   const ctx = canvas.getContext('2d');
@@ -551,8 +562,44 @@
     }
   };
 
+  // Track recent touch input so we only blur focus that came from tapping on mobile.
+  const markTouchInteraction = (event) => {
+    if (event?.pointerType && event.pointerType !== 'mouse') {
+      lastTouchInteractionAt = Date.now();
+    }
+  };
+
+  const clearTouchFocus = (event) => {
+    if (!event?.pointerType || event.pointerType === 'mouse') {
+      return;
+    }
+
+    lastTouchInteractionAt = Date.now();
+
+    if (event.currentTarget instanceof HTMLElement) {
+      // Android browsers may assign focus after pointer events, so blur on the next frame.
+      requestAnimationFrame(() => {
+        event.currentTarget.blur();
+      });
+    }
+  };
+
+  const blurOnTouchFocus = (element) => {
+    // Catch the cases where Chrome/Brave focus the control after the pointer handlers have run.
+    element.addEventListener('focus', () => {
+      if (Date.now() - lastTouchInteractionAt > 500) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        element.blur();
+      });
+    });
+  };
+
   const pressInput = (e) => {
     if (e) e.preventDefault();
+    clearTouchFocus(e);
     btnHeld = true;
     if (jumpBtn) jumpBtn.classList.add('is-pressed');
     if (state.status !== 'running' || state.wallaby.grounded) {
@@ -560,10 +607,16 @@
     }
   };
 
-  const releaseInput = () => {
+  const releaseInput = (event) => {
+    clearTouchFocus(event);
     btnHeld = false;
     if (jumpBtn) jumpBtn.classList.remove('is-pressed');
   };
+
+  blurOnTouchFocus(canvas);
+  if (jumpBtn) {
+    blurOnTouchFocus(jumpBtn);
+  }
 
   const isJumpKey = (key) => key === ' ' || key === 'ArrowUp' || key === 'Enter';
 
@@ -573,10 +626,12 @@
     if (jumpBtn) jumpBtn.classList.add('is-pressed');
   };
 
+  canvas.addEventListener('pointerdown', markTouchInteraction);
   canvas.addEventListener('pointerdown', pressInput);
   canvas.addEventListener('pointerup', releaseInput);
   canvas.addEventListener('pointercancel', releaseInput);
   if (jumpBtn) {
+    jumpBtn.addEventListener('pointerdown', markTouchInteraction);
     jumpBtn.addEventListener('pointerdown', pressInput);
     jumpBtn.addEventListener('pointerup', releaseInput);
     jumpBtn.addEventListener('pointercancel', releaseInput);
