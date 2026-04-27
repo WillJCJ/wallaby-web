@@ -33,6 +33,7 @@
   display: block;
   touch-action: manipulation;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   outline: none;
 }
 
