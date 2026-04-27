@@ -570,6 +570,14 @@
     if (jumpBtn) jumpBtn.classList.remove('is-pressed');
   };
 
+  const isJumpKey = (key) => key === ' ' || key === 'ArrowUp' || key === 'Enter';
+
+  const holdInput = (event) => {
+    if (event) event.preventDefault();
+    btnHeld = true;
+    if (jumpBtn) jumpBtn.classList.add('is-pressed');
+  };
+
   canvas.addEventListener('pointerdown', pressInput);
   canvas.addEventListener('pointerup', releaseInput);
   canvas.addEventListener('pointercancel', releaseInput);
@@ -580,16 +588,32 @@
     jumpBtn.addEventListener('pointerleave', releaseInput);
   }
   canvas.addEventListener('keydown', (event) => {
-    if (event.key === ' ' || event.key === 'ArrowUp' || event.key === 'Enter') {
-      handleInput(event);
+    if (!isJumpKey(event.key)) return;
+    if (event.repeat) {
+      holdInput(event);
+      return;
     }
+    pressInput(event);
+  });
+  canvas.addEventListener('keyup', (event) => {
+    if (!isJumpKey(event.key)) return;
+    releaseInput();
   });
   window.addEventListener('keydown', (event) => {
     if (document.activeElement === canvas) return;
-    if (event.key === ' ' && event.target === document.body) {
-      handleInput(event);
+    if (event.target !== document.body) return;
+    if (!isJumpKey(event.key)) return;
+    if (event.repeat) {
+      holdInput(event);
+      return;
     }
+    pressInput(event);
   });
+  window.addEventListener('keyup', (event) => {
+    if (!isJumpKey(event.key)) return;
+    releaseInput();
+  });
+  window.addEventListener('blur', releaseInput);
 
   const rectsOverlap = (ax, ay, aw, ah, bx, by, bw, bh) => (
     ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by

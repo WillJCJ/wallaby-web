@@ -113,7 +113,7 @@
 .wallaby-game__top-scores .wallaby-game__score-name {
   flex: 1 1 auto;
   min-width: 0;
-  padding-left: 1.6rem;
+  padding-left: 1rem;
   margin-right: 1rem;
   overflow: hidden;
   text-overflow: ellipsis;
