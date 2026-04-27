@@ -40,5 +40,17 @@ import { apiFetch } from '/scripts/api-utils.js';
       showError(error.message || 'Unable to load travel details.');
     });
 
-  loadDetails();
+  const init = async () => {
+    if (typeof auth?.fetchSignedIn === 'function') {
+      const signedIn = await auth.fetchSignedIn();
+      if (signedIn !== true) {
+        setSectionVisible(false);
+        return;
+      }
+    }
+
+    loadDetails();
+  };
+
+  init();
 })();

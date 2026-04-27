@@ -26,3 +26,12 @@
 .page-intro-actions {
   margin-top: 0.75rem;
 }
+
+.page-intro a,
+.page-intro button,
+.page-intro input,
+.page-intro select,
+.page-intro textarea,
+.page-intro summary {
+  pointer-events: auto;
+}

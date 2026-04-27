@@ -24,6 +24,12 @@ export const sendAccessRequestDiscordNotification = async (env, requestEntry, or
   }
 
   const fields = [];
+  fields.push({
+    name: 'Admin page',
+    value: `[Review request](${origin}/admin)`,
+    inline: true,
+  });
+
   if (environmentBadge) {
     fields.push({
       name: 'Environment',
@@ -32,22 +38,15 @@ export const sendAccessRequestDiscordNotification = async (env, requestEntry, or
     });
   }
 
-  fields.push({
-      name: 'Admin page',
-    value: `[Open admin page](${origin}/admin.html)`,
-    inline: true,
-  });
-
   const response = await fetch(env.DISCORD_WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      content: `New access request from **${name}**${environmentBadge}`,
+      content: `New access request${environmentBadge}`,
       embeds: [
         {
           title: 'Review Request',
-          description: 'Open the admin page to review this request.',
-          url: `${origin}/admin.html`,
+          description: `${name} requsted access`,
           color: embedColor,
           fields,
           footer: {
