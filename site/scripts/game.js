@@ -233,7 +233,7 @@
   }
   bestEl.textContent = state.best;
 
-  let authEmail = null;
+  let isSignedIn = false;
   let runCounter = 0;
   let activeRun = null;
 
@@ -331,7 +331,7 @@
   };
 
   const startRunSync = async (run) => {
-    if (!authEmail || !run) {
+    if (!isSignedIn || !run) {
       return;
     }
 
@@ -359,7 +359,7 @@
     }
     run.finished = true;
 
-    if (!authEmail) {
+    if (!isSignedIn) {
       return;
     }
 
@@ -1267,20 +1267,21 @@
   resetRun();
 
   const initOnlineScores = () => {
-    const fetchAuthEmail = window.WallabyAuth?.fetchAuthEmail;
-    if (typeof fetchAuthEmail !== 'function') {
-      clearOnlineStatus();
+    clearOnlineStatus();
+    const auth = window.WallabyAuth;
+    const fetchSignedIn = auth?.fetchSignedIn;
+    if (typeof fetchSignedIn !== 'function') {
+      isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
       void refreshOnlineScores();
       return;
     }
 
-    clearOnlineStatus();
-    fetchAuthEmail()
-      .then((email) => {
-        authEmail = typeof email === 'string' && email ? email : null;
+    fetchSignedIn()
+      .then((signedIn) => {
+        isSignedIn = Boolean(signedIn) || Boolean(auth?.getStoredAuthEmail?.());
       })
       .catch(() => {
-        authEmail = null;
+        isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
       })
       .finally(() => {
         void refreshOnlineScores();
@@ -1290,8 +1291,7 @@
   initOnlineScores();
 
   window.addEventListener('wallabyauth:statechange', (event) => {
-    const email = event?.detail?.email;
-    authEmail = typeof email === 'string' && email ? email : null;
+    isSignedIn = Boolean(event?.detail?.email);
     void refreshOnlineScores();
   });
 
