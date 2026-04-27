@@ -1,0 +1,29 @@
+---
+permalink: /styles/partials/tokens.css
+---
+{%- assign defaultScheme = siteConfig.colourSchemes | where: 'id', siteConfig.defaultColourScheme | first -%}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root { /* Match fallback to default colour scheme and shared UI primitives. */ --tone-primary:
+{{ defaultScheme.tokens.tonePrimary }}; --tone-accent: {{ defaultScheme.tokens.toneAccent }}; --tone-ink:
+{{ defaultScheme.tokens.toneInk }}; --tone-secondary: {{ defaultScheme.tokens.toneSecondary }}; --tone-link:
+{{ defaultScheme.tokens.toneLink }}; --tone-soft: {{ defaultScheme.tokens.toneSoft }}; --tone-link-hover:
+{{ defaultScheme.tokens.toneLinkHover }}; --bg: {{ defaultScheme.tokens.bg }}; --bg-surface:
+{{ defaultScheme.tokens.bgSurface }}; --bg-card: {{ defaultScheme.tokens.bgCard }}; --border: var(--bg-surface); --text:
+{{ defaultScheme.tokens.text }}; --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%); --text-faint:
+var(--text); --text-strong: var(--accent); --text-on-accent: {{ defaultScheme.tokens.textOnAccent }}; --accent:
+{{ defaultScheme.tokens.accent }}; --success: {{ defaultScheme.tokens.success }}; --failure:
+{{ defaultScheme.tokens.failure }}; --caution: {{ defaultScheme.tokens.caution }}; --error: var(--failure);
+--shadow-soft: {{ siteConfig.uiPrimitives.shadowSoft }}; --shadow-strong: {{ siteConfig.uiPrimitives.shadowStrong }};
+--overlay-soft: {{ siteConfig.uiPrimitives.overlaySoft }}; --overlay-strong:
+{{ siteConfig.uiPrimitives.overlayStrong }}; --radius: {{ siteConfig.uiPrimitives.radius }}; --radius-sm:
+{{ siteConfig.uiPrimitives.radiusSm }}; --radius-md: {{ siteConfig.uiPrimitives.radiusMd }}; --radius-lg:
+{{ siteConfig.uiPrimitives.radiusLg }}; --radius-pill: {{ siteConfig.uiPrimitives.radiusPill }}; }
+
+.label-caption { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-faint); }
+
+html { font-family: system-ui, -apple-system, sans-serif; font-size: 16px; line-height: 1.6; color: var(--text);
+background: var(--bg); }
+
+body { min-height: 100vh; display: flex; flex-direction: column; }

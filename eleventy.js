@@ -21,8 +21,8 @@ export default function (eleventyConfig) {
     'liquid'
   ]);
   eleventyConfig.addPassthroughCopy('images/**');
-  eleventyConfig.addPassthroughCopy('site/styles/**');
-  eleventyConfig.addPassthroughCopy('site/scripts/**');
+  eleventyConfig.addPassthroughCopy('site/styles/**/*.css');
+  eleventyConfig.addPassthroughCopy('site/scripts/**/*.js');
   eleventyConfig.addPassthroughCopy('_headers');
 
   eleventyConfig.addFilter('age', function (dobString) {

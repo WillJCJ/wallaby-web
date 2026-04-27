@@ -19,8 +19,8 @@
     "wrangler": "^4.83.0"
   },
   "scripts": {
-    "lint": "eslint . && stylelint 'site/styles/**/*.css' && prettier --check 'site/**/*.html' 'site/styles/**/*.css' && markdownlint-cli2 '**/*.md'",
-    "lint:fix": "eslint --fix . && stylelint --fix 'site/styles/**/*.css' && prettier --write 'site/**/*.html' 'site/styles/**/*.css' && markdownlint-cli2 --fix '**/*.md'",
+    "lint": "eslint . && stylelint 'site/styles/**/*.css' && prettier --check 'site/**/*.html' 'site/styles/**/*.css' 'site/**/*.liquid' '!site/**/*.js.liquid' && markdownlint-cli2 '**/*.md'",
+    "lint:fix": "eslint --fix . && stylelint --fix 'site/styles/**/*.css' && prettier --write 'site/**/*.html' 'site/styles/**/*.css' 'site/**/*.liquid' '!site/**/*.js.liquid' && markdownlint-cli2 --fix '**/*.md'",
     "build:clean": "rm -rf dist",
     "build:html": "eleventy --config eleventy.js --input=site --output=dist",
     "build": "npm run build:clean && npm run build:html",
