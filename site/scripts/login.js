@@ -103,12 +103,11 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   };
 
   if (!isLocalHost) {
-    auth?.fetchAuthEmail().then((email) => {
-      if (!email) {
+    auth?.fetchSignedIn().then((isSignedIn) => {
+      if (!isSignedIn) {
         return;
       }
 
-      auth?.setStoredAuthEmail(email);
       redirectAfterLogin();
     });
     return;
@@ -130,13 +129,12 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     devSubmit.textContent = submitting ? 'Signing in...' : 'Sign in locally';
   };
 
-  auth?.fetchAuthEmail?.()
-    .then((email) => {
-      if (!email) {
+  auth?.fetchSignedIn?.()
+    .then((isSignedIn) => {
+      if (!isSignedIn) {
         return;
       }
 
-      auth?.setStoredAuthEmail(email);
       redirectAfterLogin();
     })
     .catch(() => {

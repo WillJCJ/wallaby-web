@@ -7,7 +7,6 @@ export const handleAuthStatus = async (request, env = {}) => {
   return jsonResponse(
     {
       signedIn: Boolean(email),
-      email,
     },
     {
       headers: {
