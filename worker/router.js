@@ -6,7 +6,6 @@ import {
   handlePublicAccessRequest,
   handleListAccessRequests,
   handleDismissAccessRequest,
-  handleApproveAccessRequest,
 } from './access-requests.js';
 import {
   handleGameHighScores,
@@ -166,10 +165,6 @@ export default {
 
     if (url.pathname === '/api/access-requests') {
       return handlePublicAccessRequest(request, env, executionCtx);
-    }
-
-    if (url.pathname === '/api/private/access-requests/approve') {
-      return handleApproveAccessRequest(request, env);
     }
 
     if (url.pathname === '/api/private/access-requests') {

@@ -24,10 +24,6 @@ Access requests:
   - List all pending access requests from KV, sorted newest-first. Admin only.
 - `DELETE /api/private/access-requests/:requestId`
   - Dismiss (delete) a pending access request from KV by its opaque request ID. Admin only.
-- `GET /api/private/access-requests/approve?rid=<id>&exp=<unix>&sig=<hmac>`
-  - One-click guest creation from a signed Discord approval link. Verifies HMAC signature
-    and expiry, creates the guest in D1, removes the KV entry, then redirects to
-    `/admin.html`. Admin only (bearer link).
 
 Guests and admin:
 

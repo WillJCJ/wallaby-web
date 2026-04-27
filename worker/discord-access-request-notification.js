@@ -1,6 +1,6 @@
 import { isLocalHost, isProductionHost } from './host.js';
 
-export const sendAccessRequestDiscordNotification = async (env, requestEntry, origin, approvalLink) => {
+export const sendAccessRequestDiscordNotification = async (env, requestEntry, origin) => {
   if (!env.DISCORD_WEBHOOK_URL) return;
 
   const { name } = requestEntry;
@@ -32,16 +32,8 @@ export const sendAccessRequestDiscordNotification = async (env, requestEntry, or
     });
   }
 
-  if (approvalLink) {
-    fields.push({
-      name: 'One-click create',
-      value: `[Create guest now](${approvalLink})`,
-      inline: true,
-    });
-  }
-
   fields.push({
-    name: 'Manual review',
+      name: 'Admin page',
     value: `[Open admin page](${origin}/admin.html)`,
     inline: true,
   });
@@ -54,8 +46,8 @@ export const sendAccessRequestDiscordNotification = async (env, requestEntry, or
       embeds: [
         {
           title: 'Review Request',
-          description: 'Create this guest directly from Discord or open the admin page for manual review.',
-          url: approvalLink || `${origin}/admin.html`,
+          description: 'Open the admin page to review this request.',
+          url: `${origin}/admin.html`,
           color: embedColor,
           fields,
           footer: {

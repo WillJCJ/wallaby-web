@@ -25,8 +25,7 @@ After a valid access request is saved to KV, the Worker POSTs a formatted embed 
 The embed includes:
 
 - Requester's name in the title
-- One-click "Create guest now" link (signed, expires after 7 days)
-- Manual "Open admin page" link
+- "Open admin page" link
 - Footer showing environment (production/preview/local)
 - Colour-coded for easy visual scanning
 
@@ -51,8 +50,6 @@ Set per environment:
 ```bash
 wrangler secret put DISCORD_WEBHOOK_URL --env production
 wrangler secret put DISCORD_WEBHOOK_URL --env preview
-wrangler secret put ACCESS_REQUEST_APPROVAL_SECRET --env production
-wrangler secret put ACCESS_REQUEST_APPROVAL_SECRET --env preview
 ```
 
 Example webhook URL (do not share):
@@ -70,7 +67,6 @@ Add local values in `.dev.vars`:
 
 ```text
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
-ACCESS_REQUEST_APPROVAL_SECRET=replace-with-a-long-random-string
 ```
 
 Then submit an access request in local dev. The notification link uses the request origin,

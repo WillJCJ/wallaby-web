@@ -3,7 +3,6 @@ import {
   handlePublicAccessRequest,
   handleListAccessRequests,
   handleDismissAccessRequest,
-  handleApproveAccessRequest,
 } from '../access-requests.js';
 
 // ---------------------------------------------------------------------------
@@ -165,7 +164,6 @@ describe('handlePublicAccessRequest', () => {
     const env = {
       ...makeEnv(),
       DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc',
-      ACCESS_REQUEST_APPROVAL_SECRET: 'test-secret',
     };
     const req = makeRequest('POST', { name: 'Alice Smith', email: 'alice@example.com' });
     await handlePublicAccessRequest(req, env);
@@ -181,11 +179,9 @@ describe('handlePublicAccessRequest', () => {
     expect(discordCall[1].method).toBe('POST');
     const bodyObj = JSON.parse(discordCall[1].body);
     expect(bodyObj.content).toContain('Alice Smith');
-    expect(bodyObj.embeds[0].url).toContain('/api/private/access-requests/approve');
-    expect(bodyObj.embeds[0].url).toContain('rid=req-789');
+    expect(bodyObj.embeds[0].url).toContain('/admin.html');
     expect(bodyObj.embeds[0].footer.text).toContain('preview');
     expect(bodyObj.content).not.toContain('alice@example.com');
-    expect(bodyObj.embeds[0].url).not.toContain('alice%40example.com');
 
     vi.unstubAllGlobals();
     uuidSpy.mockRestore();
@@ -400,77 +396,3 @@ describe('handleDismissAccessRequest', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// handleApproveAccessRequest — GET /api/private/access-requests/approve
-// ---------------------------------------------------------------------------
-
-describe('handleApproveAccessRequest', () => {
-  it('creates a guest from a signed request link and redirects to admin', async () => {
-    const uuidSpy = vi.spyOn(crypto, 'randomUUID')
-      .mockReturnValueOnce('request-123')
-      .mockReturnValueOnce('guest-123');
-    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
-    vi.stubGlobal('fetch', mockFetch);
-
-    const kv = makeKv();
-    const run = vi.fn().mockResolvedValue({ success: true });
-    const bind = vi.fn(() => ({ run }));
-    const prepare = vi.fn(() => ({ bind }));
-    const env = {
-      ...makeEnv(),
-      GUEST_REQUESTS_KV: kv,
-      GUESTS_DB: { prepare },
-      DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc',
-      ACCESS_REQUEST_APPROVAL_SECRET: 'test-secret',
-    };
-
-    const createReq = makeRequest('POST', { name: 'Alice Smith', email: 'alice@example.com' });
-    await handlePublicAccessRequest(createReq, env);
-    await new Promise((r) => setTimeout(r, 0));
-
-    const [, discordOptions] = mockFetch.mock.calls.find(([url]) =>
-      typeof url === 'string' && url.includes('discord.com')
-    );
-    const webhookBody = JSON.parse(discordOptions.body);
-    const approvalUrl = webhookBody.embeds[0].url;
-
-    const approveRes = await handleApproveAccessRequest(new Request(approvalUrl), env);
-
-    expect(approveRes.status).toBe(302);
-    expect(approveRes.headers.get('location')).toContain('/admin.html?approval=created');
-    expect(prepare).toHaveBeenCalled();
-    expect(bind).toHaveBeenCalledWith(
-      'guest-123',
-      'Alice Smith',
-      'alice@example.com',
-      'pending',
-      0,
-      '',
-      '',
-      'discord-approval-link'
-    );
-    expect(run).toHaveBeenCalled();
-    expect(kv.delete).toHaveBeenCalledWith('request:request-123');
-
-    vi.unstubAllGlobals();
-    uuidSpy.mockRestore();
-  });
-
-  it('rejects invalid signatures and does not create a guest', async () => {
-    const run = vi.fn().mockResolvedValue({ success: true });
-    const bind = vi.fn(() => ({ run }));
-    const prepare = vi.fn(() => ({ bind }));
-    const env = {
-      ...makeEnv(),
-      GUESTS_DB: { prepare },
-      ACCESS_REQUEST_APPROVAL_SECRET: 'test-secret',
-    };
-
-    const req = new Request('http://example.com/api/private/access-requests/approve?rid=request-1&exp=4102444800&sig=bad');
-    const res = await handleApproveAccessRequest(req, env);
-
-    expect(res.status).toBe(302);
-    expect(res.headers.get('location')).toContain('/admin.html?approval=invalid-link');
-    expect(prepare).not.toHaveBeenCalled();
-  });
-});
