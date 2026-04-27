@@ -6,6 +6,7 @@ import {
   handlePublicAccessRequest,
   handleListAccessRequests,
   handleDismissAccessRequest,
+  handleApproveAccessRequest,
 } from './access-requests.js';
 import {
   handleGameHighScores,
@@ -167,13 +168,17 @@ export default {
       return handlePublicAccessRequest(request, env, executionCtx);
     }
 
-    if (url.pathname === '/api/private/admin/access-requests') {
+    if (url.pathname === '/api/private/access-requests/approve') {
+      return handleApproveAccessRequest(request, env);
+    }
+
+    if (url.pathname === '/api/private/access-requests') {
       return handleListAccessRequests(request, env);
     }
 
-    if (url.pathname.startsWith('/api/private/admin/access-requests/')) {
-      const email = decodeURIComponent(url.pathname.slice('/api/private/admin/access-requests/'.length));
-      return handleDismissAccessRequest(request, env, email);
+    if (url.pathname.startsWith('/api/private/access-requests/')) {
+      const requestId = decodeURIComponent(url.pathname.slice('/api/private/access-requests/'.length));
+      return handleDismissAccessRequest(request, env, requestId);
     }
 
     if (

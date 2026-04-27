@@ -19,7 +19,8 @@ After a valid access request is saved to KV, the Worker POSTs a formatted embed 
 
 The embed includes:
 - Requester's name in the title
-- Direct link to admin page ("Review Request" button)
+- One-click "Create guest now" link (signed, expires after 7 days)
+- Manual "Open admin page" link
 - Footer showing environment (production/preview/local)
 - Colour-coded for easy visual scanning
 
@@ -43,6 +44,8 @@ Set per environment:
 ```bash
 wrangler secret put DISCORD_WEBHOOK_URL --env production
 wrangler secret put DISCORD_WEBHOOK_URL --env preview
+wrangler secret put ACCESS_REQUEST_APPROVAL_SECRET --env production
+wrangler secret put ACCESS_REQUEST_APPROVAL_SECRET --env preview
 ```
 
 Example webhook URL (do not share):
@@ -59,6 +62,7 @@ Add local values in `.dev.vars`:
 
 ```text
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+ACCESS_REQUEST_APPROVAL_SECRET=replace-with-a-long-random-string
 ```
 
 Then submit an access request in local dev. The notification link uses the request origin, so in local runs it points to the local admin page (for example, `http://127.0.0.1:8787/admin.html` or `http://localhost:8787/admin.html`).
@@ -69,5 +73,6 @@ If `DISCORD_WEBHOOK_URL` is not set locally, notifications are skipped.
 
 1. Submit a test access request on the login page.
 2. Check that a notification appears in your Discord channel within a few seconds.
-3. Confirm the link in the notification points to the correct admin page for the environment.
-4. Click the "Review Request" link to go directly to the admin panel.
+3. Confirm the one-click link includes `rid`, `exp`, and `sig` query params.
+   The link path should be `/api/private/access-requests/approve`.
+4. Click "Create guest now" and confirm it redirects to admin with `?approval=created`.

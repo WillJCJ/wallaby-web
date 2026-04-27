@@ -17,11 +17,20 @@ The design goal is to keep private data and privileged actions protected even wh
 - Cloudflare Access gates private API families, with Google as the sign-in identity provider.
 - Access allowlist membership is tied to approved guest emails via policy sync.
 - Admin actions require an authenticated email in the configured admin allowlist.
+- URL paths and query strings reference people by opaque IDs only (for example KV request IDs and `guest_id`), not by email.
 - D1 queries use prepared statements with bound parameters.
 - Public access requests require a valid Turnstile token when the secret is configured.
 - Public request responses avoid account enumeration patterns.
 - UI status rendering writes user-visible text through text nodes rather than HTML injection.
 - Security headers and CSP are set in `_headers`.
+
+## Identifier policy
+
+- Never place email addresses in URL paths or query strings.
+- For person references in routes and request parameters, use only opaque identifiers:
+	- Access requests: KV request ID
+	- Guest records: `guest_id`
+- If an email is required for business logic, keep it in request bodies or protected storage only, never in URL addressable identifiers.
 
 ## Areas of concern
 
@@ -108,3 +117,4 @@ Run this checklist before major releases:
 6. Confirm edge rate limiting exists for public write endpoints.
 7. Confirm `npm test` and lint pass.
 8. Confirm CSP and headers in `_headers` still match runtime behaviour.
+9. Confirm person-referencing URLs use IDs only (KV request IDs or `guest_id`) and do not include emails.

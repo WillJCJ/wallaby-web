@@ -2,7 +2,14 @@ import { validateAccessRequestPayload, parseJsonBody } from './validation.js';
 import { requireAuthenticatedEmail } from './auth.js';
 import { requireAdmin } from './auth.js';
 import { jsonResponse, badRequest, notFound, methodNotAllowed, internalError } from './response.js';
-import { isLocalHost, isProductionHost } from './host.js';
+import { requireGuestsDb } from './db.js';
+import { sendAccessRequestDiscordNotification } from './discord-access-request-notification.js';
+
+const ACCESS_REQUEST_KEY_PREFIX = 'request:';
+const ACCESS_REQUEST_TTL_SECONDS = 60 * 60 * 24 * 30;
+const APPROVAL_LINK_TTL_SECONDS = 60 * 60 * 24 * 7;
+
+const encoder = new TextEncoder();
 
 const requireKv = (env) => {
   if (!env.GUEST_REQUESTS_KV) {
@@ -39,61 +46,87 @@ const verifyTurnstile = async (token, env) => {
   }
 };
 
-const sendAdminNotification = async (env, name, origin) => {
-  if (!env.DISCORD_WEBHOOK_URL) return;
+const makeAccessRequestKey = (requestId) => `${ACCESS_REQUEST_KEY_PREFIX}${requestId}`;
 
-  const url = new URL(origin);
-  const hostname = url.hostname;
-  
-  // Determine environment and colors
-  let environment = 'production';
-  let embedColor = 3447003; // Blue
-  let environmentBadge = '';
-  
-  if (isLocalHost(hostname)) {
-    environment = 'local';
-    embedColor = 0x3498db; // Bright blue
-    environmentBadge = ' 🔷 Local';
-  } else if (!isProductionHost(hostname)) {
-    environment = 'preview';
-    embedColor = 0xf39c12; // Orange
-    environmentBadge = ' ⚠️ Preview';
+const timingSafeEqual = (a, b) => {
+  const aBytes = encoder.encode(a);
+  const bBytes = encoder.encode(b);
+
+  if (aBytes.length !== bBytes.length) {
+    return false;
   }
 
-  const fields = [];
-  if (environmentBadge) {
-    fields.push({
-      name: 'Environment',
-      value: environmentBadge.trim(),
-      inline: true,
-    });
+  let result = 0;
+  for (let i = 0; i < aBytes.length; i += 1) {
+    result |= aBytes[i] ^ bBytes[i];
   }
 
-  const response = await fetch(env.DISCORD_WEBHOOK_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      content: `New access request from **${name}**${environmentBadge}`,
-      embeds: [
-        {
-          title: 'Review Request',
-          description: `Click the button below to review and approve/deny this request.`,
-          url: `${origin}/admin.html`,
-          color: embedColor,
-          fields,
-          footer: {
-            text: `Wallaby Fest • ${environment}`,
-          },
-        },
-      ],
-    }),
+  return result === 0;
+};
+
+const toBase64Url = (buffer) => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+};
+
+const getApprovalLinkSigningSecret = (env) => {
+  const secret = env.ACCESS_REQUEST_APPROVAL_SECRET;
+  return typeof secret === 'string' && secret.trim() ? secret.trim() : null;
+};
+
+const signApprovalLink = async (secret, requestId, expiresAt) => {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const payload = `${requestId}.${expiresAt}`;
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return toBase64Url(signature);
+};
+
+const buildApprovalLink = async (env, origin, requestId) => {
+  const secret = getApprovalLinkSigningSecret(env);
+  if (!secret) {
+    return null;
+  }
+
+  const expiresAt = Math.floor(Date.now() / 1000) + APPROVAL_LINK_TTL_SECONDS;
+  const sig = await signApprovalLink(secret, requestId, expiresAt);
+  const approvalUrl = new URL('/api/private/access-requests/approve', origin);
+  approvalUrl.searchParams.set('rid', requestId);
+  approvalUrl.searchParams.set('exp', String(expiresAt));
+  approvalUrl.searchParams.set('sig', sig);
+  return approvalUrl.toString();
+};
+
+const redirectToAdminWithStatus = (requestUrl, status) => {
+  const location = new URL('/admin.html', requestUrl.origin);
+  location.searchParams.set('approval', status);
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: location.toString(),
+      'cache-control': 'no-store',
+    },
   });
+};
 
-  if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    const detail = body ? ` ${body.slice(0, 200)}` : '';
-    throw new Error(`Discord webhook rejected notification (${response.status}).${detail}`);
-  }
+const isDuplicateGuestEmailError = (error) => {
+  const message = error instanceof Error ? error.message : String(error || '');
+  return /unique constraint failed: guests\.email|\bUNIQUE\b/i.test(message);
 };
 
 // POST /api/access-requests — public, unauthenticated
@@ -121,17 +154,29 @@ export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   }
 
   const { name, email } = validated.value;
-  const payload = JSON.stringify({ name, email, requestedAt: new Date().toISOString() });
+  const requestId = crypto.randomUUID();
+  const key = makeAccessRequestKey(requestId);
+  const requestEntry = {
+    requestId,
+    name,
+    email,
+    requestedAt: new Date().toISOString(),
+  };
+  const payload = JSON.stringify(requestEntry);
 
   try {
-    await env.GUEST_REQUESTS_KV.put(email, payload, { expirationTtl: 60 * 60 * 24 * 30 });
+    await env.GUEST_REQUESTS_KV.put(key, payload, { expirationTtl: ACCESS_REQUEST_TTL_SECONDS });
   } catch {
     return internalError('Unable to save request');
   }
 
   // Keep the notification alive after returning the response, and log failures
   // so preview/production issues are visible in Worker logs.
-  const notificationPromise = sendAdminNotification(env, name, new URL(request.url).origin)
+  const origin = new URL(request.url).origin;
+  const notificationPromise = buildApprovalLink(env, origin, requestId)
+    .then((approvalLink) =>
+      sendAccessRequestDiscordNotification(env, requestEntry, origin, approvalLink)
+    )
     .catch((error) => {
       const message = error instanceof Error ? error.message : String(error);
       console.error('Discord notification failed', {
@@ -149,7 +194,7 @@ export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   return jsonResponse({ ok: true }, { status: 200 });
 };
 
-// GET /api/private/admin/access-requests — admin only
+// GET /api/private/access-requests — admin only
 export const handleListAccessRequests = async (request, env) => {
   if (request.method !== 'GET') {
     return methodNotAllowed();
@@ -177,7 +222,13 @@ export const handleListAccessRequests = async (request, env) => {
     try {
       const raw = await env.GUEST_REQUESTS_KV.get(key.name);
       if (raw) {
-        requests.push(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        requests.push({
+          ...parsed,
+          requestId: parsed.requestId || (key.name.startsWith(ACCESS_REQUEST_KEY_PREFIX)
+            ? key.name.slice(ACCESS_REQUEST_KEY_PREFIX.length)
+            : null),
+        });
       }
     } catch {
       // Skip malformed entries
@@ -193,8 +244,8 @@ export const handleListAccessRequests = async (request, env) => {
   return jsonResponse({ requests });
 };
 
-// DELETE /api/private/admin/access-requests/:email — admin only
-export const handleDismissAccessRequest = async (request, env, email) => {
+// DELETE /api/private/access-requests/:requestId — admin only
+export const handleDismissAccessRequest = async (request, env, requestId) => {
   if (request.method !== 'DELETE') {
     return methodNotAllowed();
   }
@@ -208,16 +259,105 @@ export const handleDismissAccessRequest = async (request, env, email) => {
   const kvError = requireKv(env);
   if (kvError) return kvError;
 
-  const existing = await env.GUEST_REQUESTS_KV.get(email);
+  const key = makeAccessRequestKey(requestId);
+  const existing = await env.GUEST_REQUESTS_KV.get(key);
   if (!existing) {
     return notFound('Request not found');
   }
 
   try {
-    await env.GUEST_REQUESTS_KV.delete(email);
+    await env.GUEST_REQUESTS_KV.delete(key);
   } catch {
     return internalError('Unable to dismiss request');
   }
 
   return jsonResponse({ ok: true });
+};
+
+// GET /api/private/access-requests/approve?rid=<id>&exp=<unix>&sig=<hmac>
+export const handleApproveAccessRequest = async (request, env) => {
+  if (request.method !== 'GET') {
+    return methodNotAllowed();
+  }
+
+  const kvError = requireKv(env);
+  if (kvError) return kvError;
+
+  const dbError = requireGuestsDb(env);
+  if (dbError) return dbError;
+
+  const requestUrl = new URL(request.url);
+  const requestId = requestUrl.searchParams.get('rid') || '';
+  const expiresAtRaw = requestUrl.searchParams.get('exp') || '';
+  const providedSig = requestUrl.searchParams.get('sig') || '';
+
+  if (!requestId || !expiresAtRaw || !providedSig) {
+    return redirectToAdminWithStatus(requestUrl, 'invalid-link');
+  }
+
+  const expiresAt = Number.parseInt(expiresAtRaw, 10);
+  if (!Number.isFinite(expiresAt) || expiresAt <= 0 || expiresAt < Math.floor(Date.now() / 1000)) {
+    return redirectToAdminWithStatus(requestUrl, 'expired-link');
+  }
+
+  const secret = getApprovalLinkSigningSecret(env);
+  if (!secret) {
+    return redirectToAdminWithStatus(requestUrl, 'approval-secret-missing');
+  }
+
+  const expectedSig = await signApprovalLink(secret, requestId, expiresAt);
+  if (!timingSafeEqual(expectedSig, providedSig)) {
+    return redirectToAdminWithStatus(requestUrl, 'invalid-link');
+  }
+
+  const key = makeAccessRequestKey(requestId);
+  const existing = await env.GUEST_REQUESTS_KV.get(key);
+  if (!existing) {
+    return redirectToAdminWithStatus(requestUrl, 'request-not-found');
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(existing);
+  } catch {
+    return redirectToAdminWithStatus(requestUrl, 'request-invalid');
+  }
+
+  if (!parsed?.name || !parsed?.email) {
+    return redirectToAdminWithStatus(requestUrl, 'request-invalid');
+  }
+
+  const guestId = crypto.randomUUID();
+  try {
+    const insert = await env.GUESTS_DB
+      .prepare(
+        `INSERT INTO guests (guest_id, name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, updated_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .bind(
+        guestId,
+        parsed.name,
+        parsed.email,
+        'pending',
+        0,
+        '',
+        '',
+        'discord-approval-link'
+      )
+      .run();
+
+    if (!insert.success) {
+      return redirectToAdminWithStatus(requestUrl, 'create-failed');
+    }
+
+    await env.GUEST_REQUESTS_KV.delete(key);
+    return redirectToAdminWithStatus(requestUrl, 'created');
+  } catch (error) {
+    if (isDuplicateGuestEmailError(error)) {
+      await env.GUEST_REQUESTS_KV.delete(key).catch(() => {});
+      return redirectToAdminWithStatus(requestUrl, 'already-exists');
+    }
+
+    return redirectToAdminWithStatus(requestUrl, 'create-failed');
+  }
 };

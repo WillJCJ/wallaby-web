@@ -92,6 +92,7 @@ npm test
 - Do not rewrite history on shared branches.
 - If uncertain, document assumptions in the PR description.
 - Don't generate text content leave that to the humands. Just use lorem ipsum or whatever.
+- Before making security-related changes, read `docs/security.md` and follow its identifier and hardening guidance.
 
 ## Coding Choice and Style
 

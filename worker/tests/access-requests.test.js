@@ -3,6 +3,7 @@ import {
   handlePublicAccessRequest,
   handleListAccessRequests,
   handleDismissAccessRequest,
+  handleApproveAccessRequest,
 } from '../access-requests.js';
 
 // ---------------------------------------------------------------------------
@@ -42,6 +43,13 @@ const makeKv = (store = {}) => {
 const makeEnv = (overrides = {}) => ({
   ADMIN_EMAILS: 'admin@example.com',
   GUEST_REQUESTS_KV: makeKv(),
+  GUESTS_DB: {
+    prepare: vi.fn(() => ({
+      bind: vi.fn(() => ({
+        run: vi.fn().mockResolvedValue({ success: true }),
+      })),
+    })),
+  },
   ...overrides,
 });
 
@@ -113,6 +121,7 @@ describe('handlePublicAccessRequest', () => {
   });
 
   it('writes to KV and returns 200 on a valid submission (no Turnstile secret = dev mode)', async () => {
+    const uuidSpy = vi.spyOn(crypto, 'randomUUID').mockReturnValue('req-123');
     const kv = makeKv();
     const env = { ...makeEnv(), GUEST_REQUESTS_KV: kv };
     const req = makeRequest('POST', { name: 'Alice Smith', email: 'Alice@Example.com' });
@@ -121,20 +130,23 @@ describe('handlePublicAccessRequest', () => {
     const body = await res.json();
     expect(body.ok).toBe(true);
     expect(kv.put).toHaveBeenCalledWith(
-      'alice@example.com',
+      'request:req-123',
       expect.stringContaining('"name":"Alice Smith"'),
       expect.objectContaining({ expirationTtl: expect.any(Number) })
     );
+    uuidSpy.mockRestore();
   });
 
   it('returns 200 (non-enumerating) for a duplicate email submission', async () => {
+    const uuidSpy = vi.spyOn(crypto, 'randomUUID').mockReturnValue('req-456');
     const existing = JSON.stringify({ name: 'Old', email: 'alice@example.com', requestedAt: '2024-01-01T00:00:00Z' });
-    const kv = makeKv({ 'alice@example.com': existing });
+    const kv = makeKv({ 'request:existing': existing });
     const env = { ...makeEnv(), GUEST_REQUESTS_KV: kv };
     const req = makeRequest('POST', { name: 'Alice', email: 'alice@example.com' });
     const res = await handlePublicAccessRequest(req, env);
     expect(res.status).toBe(200);
     expect(kv.put).toHaveBeenCalled();
+    uuidSpy.mockRestore();
   });
 
   it('accepts names with European special characters', async () => {
@@ -146,10 +158,15 @@ describe('handlePublicAccessRequest', () => {
   });
 
   it('sends Discord notification when DISCORD_WEBHOOK_URL is set', async () => {
+    const uuidSpy = vi.spyOn(crypto, 'randomUUID').mockReturnValue('req-789');
     const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
     vi.stubGlobal('fetch', mockFetch);
 
-    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const env = {
+      ...makeEnv(),
+      DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc',
+      ACCESS_REQUEST_APPROVAL_SECRET: 'test-secret',
+    };
     const req = makeRequest('POST', { name: 'Alice Smith', email: 'alice@example.com' });
     await handlePublicAccessRequest(req, env);
 
@@ -164,11 +181,14 @@ describe('handlePublicAccessRequest', () => {
     expect(discordCall[1].method).toBe('POST');
     const bodyObj = JSON.parse(discordCall[1].body);
     expect(bodyObj.content).toContain('Alice Smith');
-    expect(bodyObj.embeds[0].url).toContain('http://example.com/admin.html');
+    expect(bodyObj.embeds[0].url).toContain('/api/private/access-requests/approve');
+    expect(bodyObj.embeds[0].url).toContain('rid=req-789');
     expect(bodyObj.embeds[0].footer.text).toContain('preview');
     expect(bodyObj.content).not.toContain('alice@example.com');
+    expect(bodyObj.embeds[0].url).not.toContain('alice%40example.com');
 
     vi.unstubAllGlobals();
+    uuidSpy.mockRestore();
   });
 
   it('sends JSON content-type header for Discord webhook', async () => {
@@ -206,7 +226,7 @@ describe('handlePublicAccessRequest', () => {
     );
     const bodyObj = JSON.parse(discordCall[1].body);
     expect(bodyObj.content).not.toContain('⚠️');
-    expect(bodyObj.embeds[0].fields).toHaveLength(0);
+    expect(bodyObj.embeds[0].fields.some((field) => field.name === 'Environment')).toBe(false);
     expect(bodyObj.embeds[0].footer.text).toContain('production');
 
     vi.unstubAllGlobals();
@@ -283,7 +303,7 @@ describe('handlePublicAccessRequest', () => {
 });
 
 // ---------------------------------------------------------------------------
-// handleListAccessRequests — GET /api/private/admin/access-requests
+// handleListAccessRequests — GET /api/private/access-requests
 // ---------------------------------------------------------------------------
 
 describe('handleListAccessRequests', () => {
@@ -323,20 +343,21 @@ describe('handleListAccessRequests', () => {
 
   it('returns requests sorted newest-first by requestedAt', async () => {
     const kv = makeKv({
-      'alice@example.com': JSON.stringify({ name: 'Alice', email: 'alice@example.com', requestedAt: '2024-01-01T10:00:00Z' }),
-      'bob@example.com': JSON.stringify({ name: 'Bob', email: 'bob@example.com', requestedAt: '2024-06-01T10:00:00Z' }),
+      'request:alice-1': JSON.stringify({ requestId: 'alice-1', name: 'Alice', email: 'alice@example.com', requestedAt: '2024-01-01T10:00:00Z' }),
+      'request:bob-1': JSON.stringify({ requestId: 'bob-1', name: 'Bob', email: 'bob@example.com', requestedAt: '2024-06-01T10:00:00Z' }),
     });
     const req = makeAdminRequest();
     const res = await handleListAccessRequests(req, { ...makeEnv(), GUEST_REQUESTS_KV: kv });
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.requests[0].email).toBe('bob@example.com');
+    expect(body.requests[0].requestId).toBe('bob-1');
     expect(body.requests[1].email).toBe('alice@example.com');
   });
 });
 
 // ---------------------------------------------------------------------------
-// handleDismissAccessRequest — DELETE /api/private/admin/access-requests/:email
+// handleDismissAccessRequest — DELETE /api/private/access-requests/:requestId
 // ---------------------------------------------------------------------------
 
 describe('handleDismissAccessRequest', () => {
@@ -344,37 +365,112 @@ describe('handleDismissAccessRequest', () => {
     makeRequest(method, null, 'admin@example.com');
 
   it('returns 405 for non-DELETE requests', async () => {
-    const res = await handleDismissAccessRequest(makeAdminDelete('GET'), makeEnv(), 'alice@example.com');
+    const res = await handleDismissAccessRequest(makeAdminDelete('GET'), makeEnv(), 'alice-1');
     expect(res.status).toBe(405);
   });
 
   it('returns 401 for unauthenticated requests', async () => {
     const req = makeRequest('DELETE');
-    const res = await handleDismissAccessRequest(req, makeEnv(), 'alice@example.com');
+    const res = await handleDismissAccessRequest(req, makeEnv(), 'alice-1');
     expect(res.status).toBe(401);
   });
 
   it('returns 403 for non-admin users', async () => {
     const req = makeRequest('DELETE', null, 'guest@example.com');
-    const res = await handleDismissAccessRequest(req, makeEnv(), 'alice@example.com');
+    const res = await handleDismissAccessRequest(req, makeEnv(), 'alice-1');
     expect(res.status).toBe(403);
   });
 
   it('returns 404 when the KV key does not exist', async () => {
     const req = makeAdminDelete();
-    const res = await handleDismissAccessRequest(req, makeEnv(), 'nobody@example.com');
+    const res = await handleDismissAccessRequest(req, makeEnv(), 'nobody');
     expect(res.status).toBe(404);
   });
 
   it('deletes the KV entry and returns ok: true', async () => {
     const kv = makeKv({
-      'alice@example.com': JSON.stringify({ name: 'Alice', email: 'alice@example.com', requestedAt: '2024-01-01T00:00:00Z' }),
+      'request:alice-1': JSON.stringify({ requestId: 'alice-1', name: 'Alice', email: 'alice@example.com', requestedAt: '2024-01-01T00:00:00Z' }),
     });
     const req = makeAdminDelete();
-    const res = await handleDismissAccessRequest(req, { ...makeEnv(), GUEST_REQUESTS_KV: kv }, 'alice@example.com');
+    const res = await handleDismissAccessRequest(req, { ...makeEnv(), GUEST_REQUESTS_KV: kv }, 'alice-1');
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(kv.delete).toHaveBeenCalledWith('alice@example.com');
+    expect(kv.delete).toHaveBeenCalledWith('request:alice-1');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// handleApproveAccessRequest — GET /api/private/access-requests/approve
+// ---------------------------------------------------------------------------
+
+describe('handleApproveAccessRequest', () => {
+  it('creates a guest from a signed request link and redirects to admin', async () => {
+    const uuidSpy = vi.spyOn(crypto, 'randomUUID')
+      .mockReturnValueOnce('request-123')
+      .mockReturnValueOnce('guest-123');
+    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const kv = makeKv();
+    const run = vi.fn().mockResolvedValue({ success: true });
+    const bind = vi.fn(() => ({ run }));
+    const prepare = vi.fn(() => ({ bind }));
+    const env = {
+      ...makeEnv(),
+      GUEST_REQUESTS_KV: kv,
+      GUESTS_DB: { prepare },
+      DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc',
+      ACCESS_REQUEST_APPROVAL_SECRET: 'test-secret',
+    };
+
+    const createReq = makeRequest('POST', { name: 'Alice Smith', email: 'alice@example.com' });
+    await handlePublicAccessRequest(createReq, env);
+    await new Promise((r) => setTimeout(r, 0));
+
+    const [, discordOptions] = mockFetch.mock.calls.find(([url]) =>
+      typeof url === 'string' && url.includes('discord.com')
+    );
+    const webhookBody = JSON.parse(discordOptions.body);
+    const approvalUrl = webhookBody.embeds[0].url;
+
+    const approveRes = await handleApproveAccessRequest(new Request(approvalUrl), env);
+
+    expect(approveRes.status).toBe(302);
+    expect(approveRes.headers.get('location')).toContain('/admin.html?approval=created');
+    expect(prepare).toHaveBeenCalled();
+    expect(bind).toHaveBeenCalledWith(
+      'guest-123',
+      'Alice Smith',
+      'alice@example.com',
+      'pending',
+      0,
+      '',
+      '',
+      'discord-approval-link'
+    );
+    expect(run).toHaveBeenCalled();
+    expect(kv.delete).toHaveBeenCalledWith('request:request-123');
+
+    vi.unstubAllGlobals();
+    uuidSpy.mockRestore();
+  });
+
+  it('rejects invalid signatures and does not create a guest', async () => {
+    const run = vi.fn().mockResolvedValue({ success: true });
+    const bind = vi.fn(() => ({ run }));
+    const prepare = vi.fn(() => ({ bind }));
+    const env = {
+      ...makeEnv(),
+      GUESTS_DB: { prepare },
+      ACCESS_REQUEST_APPROVAL_SECRET: 'test-secret',
+    };
+
+    const req = new Request('http://example.com/api/private/access-requests/approve?rid=request-1&exp=4102444800&sig=bad');
+    const res = await handleApproveAccessRequest(req, env);
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toContain('/admin.html?approval=invalid-link');
+    expect(prepare).not.toHaveBeenCalled();
   });
 });

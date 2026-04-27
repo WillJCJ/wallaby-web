@@ -138,12 +138,12 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   };
 
   const fetchAccessRequests = async () => {
-    const data = await (await apiFetch('/api/private/admin/access-requests')).json();
+    const data = await (await apiFetch('/api/private/access-requests')).json();
     return Array.isArray(data?.requests) ? data.requests : [];
   };
 
-  const dismissAccessRequest = async (email) => {
-    await apiFetch(`/api/private/admin/access-requests/${encodeURIComponent(email)}`, {
+  const dismissAccessRequest = async (requestId) => {
+    await apiFetch(`/api/private/access-requests/${encodeURIComponent(requestId)}`, {
       method: 'DELETE',
     });
   };
@@ -266,7 +266,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
         dismissButton.disabled = true;
         dismissButton.textContent = 'Dismissing...';
         try {
-          await dismissAccessRequest(req.email);
+          await dismissAccessRequest(req.requestId);
           await refreshAccessRequests();
         } catch (error) {
           setStatus(error.message, 'failure');
