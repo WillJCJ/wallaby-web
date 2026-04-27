@@ -2,8 +2,10 @@
   const canvas = document.getElementById('wallaby-game-canvas');
   const scoreEl = document.getElementById('wallaby-game-score');
   const bestEl = document.getElementById('wallaby-game-best');
-  const hintEl = document.getElementById('wallaby-game-hint');
   const jumpBtn = document.getElementById('wallaby-game-jump-btn');
+  const onlineStatusEl = document.getElementById('wallaby-game-online-status');
+  const topScoresEl = document.getElementById('wallaby-game-top-scores');
+  const personalBestEl = document.getElementById('wallaby-game-personal-best');
   let btnHeld = false;
 
   if (!canvas || !canvas.getContext) {
@@ -12,6 +14,9 @@
 
   const ctx = canvas.getContext('2d');
   const BEST_KEY = 'wallabyfest-game-best';
+  const HIGH_SCORES_ENDPOINT = '/api/game/high-scores';
+  const START_RUN_ENDPOINT = '/api/private/game/runs/start';
+  const TOP_SCORES_LIMIT = 10;
 
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
@@ -215,6 +220,7 @@
     nightBlend: 0,
     wasNight: false,
     moonPhaseIndex: 0,
+    lastRunWasHighScore: false,
   };
 
   try {
@@ -226,6 +232,162 @@
     // storage may be unavailable; ignore
   }
   bestEl.textContent = state.best;
+
+  let authEmail = null;
+  let runCounter = 0;
+  let activeRun = null;
+
+  const clearOnlineStatus = () => {
+    if (!onlineStatusEl) return;
+    onlineStatusEl.hidden = true;
+    onlineStatusEl.textContent = '';
+    onlineStatusEl.className = 'wallaby-game__online-status';
+  };
+
+  const showOnlineStatusError = (message) => {
+    if (!onlineStatusEl) return;
+    onlineStatusEl.textContent = message;
+    onlineStatusEl.hidden = false;
+    onlineStatusEl.className = 'wallaby-game__online-status wallaby-game__online-status--error';
+  };
+
+  const normaliseLeaderboard = (payload) => {
+    if (!payload || !Array.isArray(payload.leaderboard)) {
+      return [];
+    }
+
+    return payload.leaderboard
+      .map((row) => ({
+        displayName: typeof row.displayName === 'string' ? row.displayName : 'Guest',
+        score: Number.parseInt(row.score, 10) || 0,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, TOP_SCORES_LIMIT);
+  };
+
+  const renderLeaderboard = (rows) => {
+    if (!topScoresEl) return;
+    topScoresEl.textContent = '';
+
+    if (!rows.length) {
+      const empty = document.createElement('li');
+      empty.className = 'wallaby-game__empty';
+      empty.textContent = 'No online scores yet.';
+      topScoresEl.appendChild(empty);
+      return;
+    }
+
+    rows.forEach((row) => {
+      const li = document.createElement('li');
+      const name = document.createElement('span');
+      const score = document.createElement('span');
+      name.className = 'wallaby-game__score-name';
+      name.textContent = row.displayName;
+      score.className = 'wallaby-game__score-value';
+      score.textContent = String(row.score);
+      li.append(name, score);
+      topScoresEl.appendChild(li);
+    });
+  };
+
+  const renderMyBest = (myBest) => {
+    if (!personalBestEl) return;
+    if (!myBest || typeof myBest.score !== 'number') {
+      personalBestEl.hidden = true;
+      personalBestEl.textContent = '';
+      return;
+    }
+
+    personalBestEl.hidden = false;
+    personalBestEl.textContent = `Your online best: ${myBest.score}`;
+  };
+
+  const apiJson = async (url, options = {}) => {
+    const response = await fetch(url, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      ...options,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed (${response.status})`);
+    }
+
+    return response.json().catch(() => ({}));
+  };
+
+  const refreshOnlineScores = async () => {
+    try {
+      const payload = await apiJson(HIGH_SCORES_ENDPOINT, {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+      });
+      renderLeaderboard(normaliseLeaderboard(payload));
+      renderMyBest(payload.myBest || null);
+      clearOnlineStatus();
+    } catch {
+      showOnlineStatusError('Online leaderboard is unavailable.');
+    }
+  };
+
+  const startRunSync = async (run) => {
+    if (!authEmail || !run) {
+      return;
+    }
+
+    try {
+      const payload = await apiJson(START_RUN_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (activeRun && activeRun.token === run.token && typeof payload.runId === 'string') {
+        activeRun.runId = payload.runId;
+      }
+    } catch {
+      showOnlineStatusError('Could not start online run sync.');
+    }
+  };
+
+  const finishRunSync = async (run, score, durationMs) => {
+    if (!run || run.finished) {
+      return;
+    }
+    run.finished = true;
+
+    if (!authEmail) {
+      return;
+    }
+
+    if (!run.runId) {
+      showOnlineStatusError('Could not submit score online.');
+      return;
+    }
+
+    try {
+      const payload = await apiJson(
+        `/api/private/game/runs/${encodeURIComponent(run.runId)}/finish`,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            accept: 'application/json',
+          },
+          body: JSON.stringify({ score, durationMs }),
+        }
+      );
+
+      renderLeaderboard(normaliseLeaderboard(payload));
+      renderMyBest(payload.myBest || null);
+      clearOnlineStatus();
+    } catch {
+      showOnlineStatusError('Could not submit score online.');
+    }
+  };
 
   const randomBetween = (min, max) => min + Math.random() * (max - min);
 
@@ -314,6 +476,7 @@
     state.time = 0;
     state.speed = START_SPEED;
     state.score = 0;
+    state.lastRunWasHighScore = false;
     state.obstacles.length = 0;
     state.clouds.length = 0;
     state.trees.length = 0;
@@ -343,18 +506,28 @@
   const startGame = () => {
     resetRun();
     state.status = 'running';
-    hintEl.textContent = 'Hop the goats. Good luck!';
     if (jumpBtn) {
       jumpBtn.textContent = 'Jump';
       jumpBtn.setAttribute('aria-label', 'Jump');
     }
     jump();
+
+    runCounter += 1;
+    activeRun = {
+      token: runCounter,
+      runId: null,
+      finished: false,
+    };
+    void startRunSync(activeRun);
   };
 
   const endGame = () => {
     state.status = 'over';
     const finalScore = Math.floor(state.score);
-    if (finalScore > state.best) {
+    const hasNewHighScore = finalScore > state.best;
+    const runToFinish = activeRun;
+    activeRun = null;
+    if (hasNewHighScore) {
       state.best = finalScore;
       bestEl.textContent = state.best;
       try {
@@ -363,11 +536,13 @@
         // ignore storage errors
       }
     }
-    hintEl.textContent = 'Crashed! Tap or press space to run again.';
+    state.lastRunWasHighScore = hasNewHighScore;
     if (jumpBtn) {
       jumpBtn.textContent = 'Restart';
       jumpBtn.setAttribute('aria-label', 'Restart game');
     }
+
+    void finishRunSync(runToFinish, finalScore, Math.max(0, Math.round(state.time * 1000)));
   };
 
   const handleInput = (event) => {
@@ -1065,12 +1240,10 @@
       ctx.fillStyle = activeColours.accent;
       ctx.fillText('Tap, click, or press space to start', WIDTH / 2, HEIGHT / 2 + 20);
     } else if (state.status === 'over') {
-      ctx.fillText('Ouch!', WIDTH / 2, HEIGHT / 2 - 18);
+      ctx.fillText(state.lastRunWasHighScore ? 'New high score!' : 'Ouch!', WIDTH / 2, HEIGHT / 2 - 18);
       ctx.font = '16px system-ui, -apple-system, sans-serif';
       ctx.fillStyle = activeColours.text;
       ctx.fillText(`Score: ${Math.floor(state.score)}   Best: ${state.best}`, WIDTH / 2, HEIGHT / 2 + 8);
-      ctx.fillStyle = activeColours.accent;
-      ctx.fillText('Tap or press space to run again', WIDTH / 2, HEIGHT / 2 + 32);
     }
   };
 
@@ -1092,6 +1265,35 @@
 
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
   resetRun();
+
+  const initOnlineScores = () => {
+    const fetchAuthEmail = window.WallabyAuth?.fetchAuthEmail;
+    if (typeof fetchAuthEmail !== 'function') {
+      clearOnlineStatus();
+      void refreshOnlineScores();
+      return;
+    }
+
+    clearOnlineStatus();
+    fetchAuthEmail()
+      .then((email) => {
+        authEmail = typeof email === 'string' && email ? email : null;
+      })
+      .catch(() => {
+        authEmail = null;
+      })
+      .finally(() => {
+        void refreshOnlineScores();
+      });
+  };
+
+  initOnlineScores();
+
+  window.addEventListener('wallabyauth:statechange', (event) => {
+    const email = event?.detail?.email;
+    authEmail = typeof email === 'string' && email ? email : null;
+    void refreshOnlineScores();
+  });
 
   let lastTime = performance.now();
   const loop = (now) => {

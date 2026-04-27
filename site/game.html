@@ -27,7 +27,14 @@ title: Wallaby Run - Wallaby Fest
     type="button"
     aria-label="Start game"
   >Start Game</button>
-  <p class="wallaby-game__hint" id="wallaby-game-hint">Tap the canvas or press space to start.</p>
+
+  <section class="wallaby-game__leaderboard" aria-live="polite" aria-label="High scores">
+    <p id="wallaby-game-online-status" class="wallaby-game__online-status" hidden>
+      Checking online scores...
+    </p>
+    <ol id="wallaby-game-top-scores" class="wallaby-game__top-scores"></ol>
+    <p id="wallaby-game-personal-best" class="wallaby-game__personal-best" hidden></p>
+  </section>
 </div>
 
 <script src="/scripts/game.js" defer></script>

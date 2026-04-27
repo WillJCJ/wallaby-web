@@ -25,6 +25,7 @@
     "dev:wrangler": "MINIFY=false wrangler dev --live-reload --var DEV_AUTH_ENABLED:true --var DEV_AUTH_ALLOWED_HOSTS:localhost,127.0.0.1,::1 --var ADMIN_EMAILS:admin@example.com",
     "d1:migrate:local": "wrangler d1 execute wallabyfest-guests-preview --local --file migrations/0001_create_guests.sql && wrangler d1 execute wallabyfest-guests-preview --local --file migrations/0002_add_guest_access_state.sql",
     "d1:seed:local": "npm run d1:migrate:local && wrangler d1 execute wallabyfest-guests-preview --local --file scripts/seed-local-guests.sql",
+    "d1:reset-high-scores": "node scripts/reset-high-scores.js",
     "r2:sync-local": "node scripts/sync-r2-local.js",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -41,11 +41,103 @@
   box-shadow: 0 0 0 2px var(--shadow-soft);
 }
 
-.wallaby-game__hint {
-  color: var(--tone-ink);
-  font-size: 0.9rem;
+.wallaby-game__leaderboard {
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  padding: 0.8rem 0.9rem;
+  display: inline-grid;
+  gap: 0.45rem;
+}
+
+.wallaby-game__online-status {
   margin: 0;
-  text-align: center;
+  font-size: 0.85rem;
+  color: var(--tone-ink);
+}
+
+.wallaby-game__online-status--ok {
+  color: var(--success, #2f7a39);
+}
+
+.wallaby-game__online-status--local {
+  color: var(--caution, #8b5e1a);
+}
+
+.wallaby-game__online-status--error {
+  color: var(--failure, #a33a2d);
+}
+
+.wallaby-game__top-scores {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+  list-style-type: none;
+  counter-reset: scores-counter;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.wallaby-game__top-scores li {
+  counter-increment: scores-counter;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.wallaby-game__top-scores li::before {
+  content: counter(scores-counter);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5ch;
+  flex-shrink: 0;
+}
+
+.wallaby-game__top-scores li:first-child::before {
+  content: '';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5ch;
+  flex-shrink: 0;
+  height: 1em;
+  background-color: var(--accent);
+  mask: url('/images/trophy.svg') no-repeat center / contain;
+}
+
+.wallaby-game__top-scores .wallaby-game__score-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 1.6rem;
+  margin-right: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wallaby-game__top-scores .wallaby-game__score-value {
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.wallaby-game__top-scores .wallaby-game__empty {
+  list-style: none;
+  color: var(--tone-ink);
+  font-style: italic;
+}
+
+.wallaby-game__personal-best {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--tone-ink);
 }
 
 .wallaby-game__jump-btn {
