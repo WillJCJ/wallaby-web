@@ -67,6 +67,36 @@ footer {
   overflow: visible;
 }
 
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.9rem 1.4rem;
+  margin: 1rem 0;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-faint);
+  font-size: inherit;
+  text-decoration: none;
+  font-weight: 600;
+  text-size-adjust: 100%;
+}
+
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: var(--text-main);
+}
+
+.footer-link__icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
 #footer-version {
   margin-top: 0.4rem;
   font-size: 0.68rem;

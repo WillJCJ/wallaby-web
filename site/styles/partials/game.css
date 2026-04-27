@@ -36,6 +36,10 @@
   outline: none;
 }
 
+.wallaby-game__canvas:focus {
+  outline: none;
+}
+
 .wallaby-game__canvas:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--shadow-soft);
@@ -184,6 +188,7 @@
   color: #fff;
   background: #5ba83d;
   border: none;
+  appearance: none;
   border-radius: var(--radius);
   cursor: pointer;
   touch-action: manipulation;
@@ -191,6 +196,14 @@
   transform: translateY(0);
   box-shadow: 0 6px 0 #3a7225;
   transition: transform 60ms ease, box-shadow 60ms ease;
+}
+
+.wallaby-game__jump-btn:focus {
+  outline: none;
+}
+
+.wallaby-game__jump-btn:active {
+  background: #5ba83d;
 }
 
 .wallaby-game__jump-btn.is-pressed {

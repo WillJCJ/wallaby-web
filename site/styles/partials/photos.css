@@ -182,6 +182,7 @@ body:has(.photo-item:target)::before {
   padding: 2.5rem 5rem;
   box-sizing: border-box;
   margin: 0;
+  pointer-events: none;
 }
 
 /* Wrapper constrains the media to its bounds */
@@ -192,6 +193,7 @@ body:has(.photo-item:target)::before {
   align-items: center;
   justify-content: center;
   line-height: 0;
+  pointer-events: auto;
 }
 
 /* Smooth unblur when is-loading is removed — transition must live on the base selector */
@@ -216,6 +218,7 @@ body:has(.photo-item:target)::before {
   max-height: calc(100dvh - 5rem);
   width: auto;
   height: auto;
+  object-fit: contain;
   display: block;
   background: #000;
 }

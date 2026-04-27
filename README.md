@@ -67,8 +67,12 @@ npm test
 
 Test files live in `worker/tests/` and mirror the module they cover (for example, `worker/tests/auth.test.js` tests `worker/auth.js`).
 
-Tests run automatically on every push and pull request via the CI workflow in `.github/workflows/test.yml`.
+Tests run automatically on every push to `main` and on pull requests via the CI workflow in `.github/workflows/ci.yml`.
 
 ## Cloudflare Setup
 
 All Cloudflare setup instructions are in [docs/cloudflare/README.md](docs/cloudflare/README.md).
+
+## Security Notes
+
+Security concerns, mitigations, and hardening backlog are documented in [docs/security.md](docs/security.md).

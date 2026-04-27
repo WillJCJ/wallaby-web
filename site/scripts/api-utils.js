@@ -22,7 +22,7 @@ export const apiFetch = async (url, options = {}) => {
   } catch (error) {
     if (isPrivateApiRequest) {
       window.WallabyAuth?.setStoredAuthEmail(null);
-      throw new Error('Authentication required', { cause: error });
+      throw new Error('Authentication required. Try refreshing?', { cause: error });
     }
 
     throw error;
@@ -31,7 +31,7 @@ export const apiFetch = async (url, options = {}) => {
   if (!response.ok) {
     if (response.status === 401 && isPrivateApiRequest) {
       window.WallabyAuth?.setStoredAuthEmail(null);
-      throw new Error('Authentication required');
+      throw new Error('Authentication required. Try refreshing?');
     }
 
     const body = await response.json().catch(() => ({}));

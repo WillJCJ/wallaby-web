@@ -103,7 +103,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   const setSubmittingState = (submitting) => {
     isSubmitting = submitting;
     submitButton.disabled = submitting || createLockedUntilFieldChange;
-    submitButton.textContent = submitting ? 'Adding...' : 'Add guest';
+    submitButton.textContent = submitting ? 'Creating...' : 'Create guest';
   };
 
   const clearAddGuestStatus = () => {
@@ -479,8 +479,9 @@ import { createStatusSetter } from '/scripts/status-utils.js';
       sendInvitationButton.disabled = true;
       sendInvitationButton.textContent = 'Sending...';
       try {
-        await sendGuestInvitation(guest.id);
-        setStatus('Invitation sent to ' + (guest.email || guest.name), 'success');
+        const response = await sendGuestInvitation(guest.id);
+        const message = response?.message || 'Invitation queued';
+        setStatus(`${message} for ${guest.email || guest.name}.`, 'success');
       } catch (error) {
         setStatus(error.message, 'failure');
       } finally {
