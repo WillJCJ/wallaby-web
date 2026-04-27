@@ -17,6 +17,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
   const requestStatus = document.getElementById('request-access-status');
   const requestSubmit = document.getElementById('request-access-submit');
   const requestTurnstile = document.getElementById('request-turnstile');
+  const requestPanel = document.getElementById('request-access-panel');
   const useTurnstile = !isLocalHost;
 
   let turnstileToken = null;
@@ -45,11 +46,6 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     requestToggle.addEventListener('click', () => {
       requestForm.hidden = false;
       requestToggle.hidden = true;
-
-      // Ensure users can see the full form, including actions near the bottom.
-      requestAnimationFrame(() => {
-        requestForm.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
-      });
     });
   }
 
@@ -57,6 +53,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     requestCancel.addEventListener('click', () => {
       requestForm.hidden = true;
       requestToggle.hidden = false;
+      requestPanel?.classList.remove('request-access-panel--submitted');
       setRequestStatus('');
       requestForm.reset();
       turnstileToken = null;
@@ -77,13 +74,20 @@ import { createStatusSetter } from '/scripts/status-utils.js';
         if (turnstileToken) {
           body.turnstileToken = turnstileToken;
         }
-        await fetch('/api/access-requests', {
+        const response = await fetch('/api/access-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
+        if (!response.ok) {
+          throw new Error('Request access failed');
+        }
         requestForm.hidden = true;
-        if (requestToggle) requestToggle.hidden = false;
+        requestPanel?.classList.add('request-access-panel--submitted');
+        if (requestToggle) {
+          requestToggle.hidden = true;
+          requestToggle.disabled = true;
+        }
         setRequestStatus('Your request has been received! Maybe ping Will a WhatsApp.', 'success');
       } catch {
         setRequestStatus('Unable to send your request. Please try again later.', 'failure');
