@@ -275,3 +275,60 @@ describe('router /api/photos/*', () => {
     expect(mockGet).toHaveBeenCalledWith('photos/sample.jpg');
   });
 });
+
+// ---------------------------------------------------------------------------
+// /api/videos/*
+// ---------------------------------------------------------------------------
+
+describe('router /api/videos/*', () => {
+  it('returns 503 when PHOTOS_BUCKET binding is unavailable', async () => {
+    const req = makeRequest('https://example.com/api/videos/clip.mp4');
+    const res = await router.fetch(req, makeEnv({ PHOTOS_BUCKET: null }));
+    expect(res.status).toBe(503);
+  });
+
+  it('returns 404 when video does not exist in R2', async () => {
+    const req = makeRequest('https://example.com/api/videos/missing.mp4');
+    const env = makeEnv({ PHOTOS_BUCKET: { get: vi.fn().mockResolvedValue(null) } });
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns video content with correct headers', async () => {
+    const req = makeRequest('https://example.com/api/videos/clip.mp4');
+    const mockGet = vi.fn().mockResolvedValue({
+      body: 'video-bytes',
+      httpMetadata: { contentType: 'video/mp4' },
+      httpEtag: '"etag-vid"',
+      size: 5000000,
+    });
+    const env = makeEnv({ PHOTOS_BUCKET: { get: mockGet } });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('video-bytes');
+    expect(res.headers.get('content-type')).toBe('video/mp4');
+    expect(res.headers.get('accept-ranges')).toBe('bytes');
+    expect(res.headers.get('cache-control')).toBe('public, max-age=3600');
+    expect(mockGet).toHaveBeenCalledWith('videos/clip.mp4', {});
+  });
+
+  it('handles Range requests and returns 206', async () => {
+    const req = makeRequest('https://example.com/api/videos/clip.mp4', {
+      headers: { range: 'bytes=0-1023' },
+    });
+    const mockGet = vi.fn().mockResolvedValue({
+      body: 'partial-bytes',
+      httpMetadata: {},
+      size: 5000000,
+      range: { offset: 0, length: 1024 },
+    });
+    const env = makeEnv({ PHOTOS_BUCKET: { get: mockGet } });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(206);
+    expect(res.headers.get('content-range')).toBe('bytes 0-1023/5000000');
+    expect(res.headers.get('content-length')).toBe('1024');
+    expect(mockGet).toHaveBeenCalledWith('videos/clip.mp4', { offset: 0, length: 1024 });
+  });
+});

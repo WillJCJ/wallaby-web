@@ -20,23 +20,57 @@
   };
   const transitionActive = () => transitionToken !== null;
 
+  const getItems = () => Array.from(document.querySelectorAll('.photo-item[id]'));
+  const getOpenItem = () => {
+    const hash = location.hash;
+    if (!hash || hash === '#photos-top') return null;
+    const id = decodeURIComponent(hash.slice(1));
+    return document.getElementById(id);
+  };
   const getOpenIndex = () => {
-    const m = location.hash.match(/^#photo-(\d+)$/);
-    return m ? parseInt(m[1], 10) : null;
+    const openItem = getOpenItem();
+    if (!openItem) return null;
+    const items = getItems();
+    const index = items.indexOf(openItem);
+    return index >= 0 ? index + 1 : null;
+  };
+  const getItemByIndex = (n) => getItems()[n - 1] || null;
+
+  const mediaSelector = '.photo-thumb-link img, .photo-thumb-link video';
+  const lightboxMediaSelector = '.lightbox-media-wrap img, .lightbox-media-wrap video';
+
+  const pauseOtherVideos = (exceptId = null) => {
+    document.querySelectorAll('.lightbox-video').forEach((video) => {
+      const parent = video.closest('.photo-item');
+      if (!parent) return;
+      if (parent.id === exceptId) return;
+      video.pause();
+    });
   };
 
-  const total = () => document.querySelectorAll('.photo-item').length;
+  const total = () => getItems().length;
+  const setHash = (hash, { replace = false } = {}) => {
+    if (replace) {
+      location.replace(hash);
+      return;
+    }
+    location.hash = hash;
+  };
 
   const goTo = (n) => {
-    const current = getOpenIndex();
-    if (!document.startViewTransition || current === null) {
-      location.hash = `#photo-${n}`;
+    const current = getOpenItem();
+    const next = getItemByIndex(n);
+    if (!current || !next) return;
+
+    if (!document.startViewTransition) {
+      setHash(`#${next.id}`, { replace: true });
       return;
     }
 
-    const direction = n > current ? 'forward' : 'back';
-    const currentWrap = document.getElementById(`photo-${current}`)?.querySelector('.lightbox-img-wrap');
-    const nextWrap = document.getElementById(`photo-${n}`)?.querySelector('.lightbox-img-wrap');
+    const currentIndex = getOpenIndex();
+    const direction = currentIndex !== null && n > currentIndex ? 'forward' : 'back';
+    const currentWrap = current.querySelector('.lightbox-media-wrap');
+    const nextWrap = next.querySelector('.lightbox-media-wrap');
 
     // Set the named transition on the outgoing element only before the snapshot.
     if (currentWrap) currentWrap.style.viewTransitionName = 'lightbox-photo';
@@ -46,46 +80,51 @@
       // Swap names: old is captured, transfer the name to the incoming element.
       if (currentWrap) currentWrap.style.viewTransitionName = '';
       if (nextWrap) nextWrap.style.viewTransitionName = 'lightbox-photo';
-      location.hash = `#photo-${n}`;
+      pauseOtherVideos(next.id);
+      setHash(`#${next.id}`, { replace: true });
     }).then(() => {
       if (nextWrap) nextWrap.style.viewTransitionName = '';
       delete document.documentElement.dataset.navDirection;
     });
   };
-  const openPhoto = (n) => {
+  const openPhoto = (id) => {
+    const item = document.getElementById(id);
+    if (!item) return;
     if (!document.startViewTransition) {
-      location.hash = `#photo-${n}`;
+      location.hash = `#${id}`;
       return;
     }
-    const thumbImg = document.getElementById(`photo-${n}`)?.querySelector('.photo-thumb-link img');
-    const lightboxImg = document.getElementById(`photo-${n}`)?.querySelector('.lightbox-img-wrap img');
-    if (thumbImg) thumbImg.style.viewTransitionName = 'photo-zoom';
+    const thumbMedia = item.querySelector(mediaSelector);
+    const lightboxMedia = item.querySelector(lightboxMediaSelector);
+    if (thumbMedia) thumbMedia.style.viewTransitionName = 'photo-zoom';
     svt(() => {
-      if (thumbImg) thumbImg.style.viewTransitionName = '';
-      if (lightboxImg) lightboxImg.style.viewTransitionName = 'photo-zoom';
-      location.hash = `#photo-${n}`;
+      if (thumbMedia) thumbMedia.style.viewTransitionName = '';
+      if (lightboxMedia) lightboxMedia.style.viewTransitionName = 'photo-zoom';
+      pauseOtherVideos(id);
+      location.hash = `#${id}`;
     }).then(() => {
-      if (lightboxImg) lightboxImg.style.viewTransitionName = '';
-      document.getElementById(`photo-${n}`)?.querySelector('.lightbox-close-btn')?.focus();
+      if (lightboxMedia) lightboxMedia.style.viewTransitionName = '';
+      item.querySelector('.lightbox-close-btn')?.focus();
     });
   };
 
   const closePhoto = () => {
-    const i = getOpenIndex();
-    if (!document.startViewTransition || i === null) {
+    const openItem = getOpenItem();
+    if (!document.startViewTransition || !openItem) {
       location.hash = '#photos-top';
       return;
     }
-    const thumbImg = document.getElementById(`photo-${i}`)?.querySelector('.photo-thumb-link img');
-    const lightboxImg = document.getElementById(`photo-${i}`)?.querySelector('.lightbox-img-wrap img');
-    if (lightboxImg) lightboxImg.style.viewTransitionName = 'photo-zoom';
+    const thumbMedia = openItem.querySelector(mediaSelector);
+    const lightboxMedia = openItem.querySelector(lightboxMediaSelector);
+    pauseOtherVideos();
+    if (lightboxMedia) lightboxMedia.style.viewTransitionName = 'photo-zoom';
     svt(() => {
-      if (lightboxImg) lightboxImg.style.viewTransitionName = '';
-      if (thumbImg) thumbImg.style.viewTransitionName = 'photo-zoom';
+      if (lightboxMedia) lightboxMedia.style.viewTransitionName = '';
+      if (thumbMedia) thumbMedia.style.viewTransitionName = 'photo-zoom';
       location.hash = '#photos-top';
     }).then(() => {
-      if (thumbImg) thumbImg.style.viewTransitionName = '';
-      document.getElementById(`photo-${i}`)?.querySelector('.photo-thumb-link')?.focus();
+      if (thumbMedia) thumbMedia.style.viewTransitionName = '';
+      openItem.querySelector('.photo-thumb-link')?.focus();
       const status = document.getElementById('lightbox-status');
       if (status) status.textContent = '';
     });
@@ -108,12 +147,12 @@
     if (i === null) return;
 
     const status = document.getElementById('lightbox-status');
-    if (status) status.textContent = `Photo ${i} of ${total()}`;
+    if (status) status.textContent = `Media ${i} of ${total()}`;
 
-    const item = document.getElementById(`photo-${i}`);
+    const item = getOpenItem();
     if (!item) return;
-    const img = item.querySelector('.photo-lightbox img');
-    const wrap = item.querySelector('.lightbox-img-wrap');
+    const img = item.querySelector('.photo-lightbox img[data-hires]');
+    const wrap = item.querySelector('.lightbox-media-wrap');
     if (!img || !wrap) return;
 
     const setLoading = (loading) => wrap.classList.toggle('is-loading', loading);
@@ -155,8 +194,9 @@
     const thumb = e.target.closest('.photo-thumb-link');
     if (!thumb) return;
     e.preventDefault();
-    const m = thumb.getAttribute('href')?.match(/#photo-(\d+)/);
-    if (m) openPhoto(parseInt(m[1], 10));
+    const href = thumb.getAttribute('href') || '';
+    const id = href.startsWith('#') ? decodeURIComponent(href.slice(1)) : '';
+    if (id) openPhoto(id);
   });
 
   // ── Nav arrow clicks → directional slide ──
@@ -164,8 +204,11 @@
     const nav = e.target.closest('.lightbox-nav');
     if (!nav || nav.classList.contains('lightbox-nav--disabled')) return;
     e.preventDefault();
-    const m = nav.getAttribute('href')?.match(/#photo-(\d+)/);
-    if (m) goTo(parseInt(m[1], 10));
+    const i = getOpenIndex();
+    if (i === null) return;
+    const dir = nav.dataset.navDir;
+    if (dir === 'prev' && i > 1) goTo(i - 1);
+    else if (dir === 'next' && i < total()) goTo(i + 1);
   });
 
   // ── Close → zoom back to thumbnail ──
@@ -209,7 +252,7 @@
       const touch = e.changedTouches[0];
       const target = document.elementFromPoint(touch.clientX, touch.clientY);
       if (target &&
-          !target.closest('.lightbox-img-wrap') &&
+          !target.closest('.lightbox-media-wrap') &&
           !target.closest('.lightbox-nav') &&
           !target.closest('.lightbox-close-btn')) {
         closePhoto();
@@ -219,4 +262,5 @@
     if (dx > 0 && i > 1)       goTo(i - 1);
     else if (dx < 0 && i < total()) goTo(i + 1);
   }, { passive: true });
+
 })();

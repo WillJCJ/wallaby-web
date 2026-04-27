@@ -15,8 +15,21 @@
   background: var(--bg-surface);
   color: var(--text-muted);
   text-decoration: none;
+  border: none;
   border-radius: 6px;
   font-weight: 600;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+a.login-button:link,
+a.login-button:visited,
+a.login-button:hover,
+a.login-button:active {
+  color: var(--text-muted);
+  text-decoration: none;
 }
 
 .private-status {
@@ -124,6 +137,10 @@ textarea.profile-field-editor {
   display: none;
 }
 
+#request-access-form {
+  border-top: none;
+}
+
 .guest-profile-form h3 {
   font-size: 1rem;
   color: var(--text-strong);
@@ -175,6 +192,14 @@ textarea.profile-field-editor {
 .request-access-toggle {
   border: none;
   cursor: pointer;
+}
+
+.request-access-panel:has(#request-access-form:not([hidden])) .request-access-toggle {
+  display: none;
+}
+
+.request-access-panel.request-access-panel--submitted .request-access-toggle {
+  display: none;
 }
 
 .request-access-cancel {

@@ -9,11 +9,66 @@ import {
 } from './access-requests.js';
 import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
 
+// Parse a Range header value (e.g. "bytes=0-1023") into R2 get() options.
+const parseRange = (header) => {
+  const match = /^bytes=(\d+)-(\d*)$/.exec(header);
+  if (!match) return {};
+  const offset = parseInt(match[1], 10);
+  const end = match[2] ? parseInt(match[2], 10) : undefined;
+  return end !== undefined ? { offset, length: end - offset + 1 } : { offset };
+};
+
 
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname.startsWith('/api/videos/')) {
+      if (!env.PHOTOS_BUCKET) {
+        return new Response('Photos bucket is not configured', { status: 503 });
+      }
+
+      const segment = decodeURIComponent(url.pathname.slice('/api/videos/'.length));
+      if (!segment) {
+        return new Response('Video key is required', { status: 400 });
+      }
+
+      const key = `videos/${segment}`;
+      const rangeHeader = request.headers.get('range');
+      const options = rangeHeader ? parseRange(rangeHeader) : {};
+      const object = await env.PHOTOS_BUCKET.get(key, options);
+
+      if (!object) {
+        return new Response('Video not found', { status: 404 });
+      }
+
+      const extension = segment.split('.').pop()?.toLowerCase() || '';
+      const mimeTypes = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime' };
+      const contentType = object.httpMetadata?.contentType || mimeTypes[extension] || 'video/mp4';
+
+      const headers = new Headers();
+      headers.set('content-type', contentType);
+      headers.set('accept-ranges', 'bytes');
+      headers.set('cache-control', 'public, max-age=3600');
+      if (object.httpEtag) headers.set('etag', object.httpEtag);
+      if (object.size != null) headers.set('content-length', String(object.size));
+
+      if (request.method === 'HEAD') {
+        return new Response(null, { status: 200, headers });
+      }
+
+      const status = rangeHeader ? 206 : 200;
+      if (rangeHeader && object.range) {
+        const { offset = 0, length } = object.range;
+        const total = object.size ?? '*';
+        const end = length != null ? offset + length - 1 : total - 1;
+        headers.set('content-range', `bytes ${offset}-${end}/${total}`);
+        if (length != null) headers.set('content-length', String(length));
+      }
+
+      return new Response(object.body, { status, headers });
+    }
 
     if (url.pathname.startsWith('/api/photos/')) {
       if (!env.PHOTOS_BUCKET) {

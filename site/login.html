@@ -9,7 +9,6 @@ title: Guest Login - Wallaby Fest
 
 <section class="login-panel">
   <p id="login-status" class="private-status" aria-live="polite" hidden></p>
-  <p id="request-access-status" class="private-status" aria-live="polite" hidden></p>
   <p>Click the button below to get a login code.</p>
   <p>Will only work if you've requested access.</p>
 
@@ -17,6 +16,7 @@ title: Guest Login - Wallaby Fest
 
   <div class="request-access-panel" id="request-access-panel">
     <p class="request-access-intro">You can request access and Will will approve it eventually.</p>
+    <p id="request-access-status" class="private-status" aria-live="polite" hidden></p>
     <button type="button" class="login-button request-access-toggle" id="request-access-toggle">Request access</button>
 
     <form class="guest-profile-form" id="request-access-form" hidden>
