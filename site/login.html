@@ -4,40 +4,50 @@ title: Guest Login - Wallaby Fest
 ---
 <div class="page-intro">
   <h2>Guest Login</h2>
-  <p>Sign in with Cloudflare Access to view your profile.</p>
+  <p>Sign in with Google through Cloudflare Access to view your profile.</p>
 </div>
 
 <section class="login-panel">
-  <p id="login-status" class="private-status" aria-live="polite" hidden></p>
-  <p>Use the button below to sign in with Cloudflare Access.</p>
-  <p>This works once your guest access has been approved.</p>
-
-  <a class="login-button" id="cf-login-link" href="/profile/">Sign in</a>
-
   <div class="request-access-panel" id="request-access-panel">
     <p class="request-access-intro">You can request access and Will will approve it eventually.</p>
     <p id="request-access-status" class="private-status" aria-live="polite" hidden></p>
-    <button type="button" class="login-button request-access-toggle" id="request-access-toggle">Request access</button>
+    <button type="button" class="login-button request-access-button request-access-toggle" id="request-access-toggle">
+      Request access
+    </button>
 
     <form class="guest-profile-form" id="request-access-form" hidden>
       <h3>Request access</h3>
       <label for="request-name">Name</label>
-      <input id="request-name" name="name" type="text" required maxlength="120" autocomplete="name" />
+      <input id="request-name" name="name" type="text" required maxlength="120" autocomplete="name">
       <label for="request-email">Email</label>
-      <input id="request-email" name="email" type="email" required maxlength="320" autocomplete="email" />
+      <input id="request-email" name="email" type="email" required maxlength="320" autocomplete="email">
       <div class="request-access-actions">
         <button type="submit" class="login-button" id="request-access-submit">Send request</button>
-        <div class="cf-turnstile" id="request-turnstile" data-sitekey="0x4AAAAAADCtP9eKZZoFvBDA" data-callback="onTurnstileSuccess" data-theme="auto"></div>
+        <div
+          class="cf-turnstile"
+          id="request-turnstile"
+          data-sitekey="0x4AAAAAADCtP9eKZZoFvBDA"
+          data-callback="onTurnstileSuccess"
+          data-theme="auto"
+        ></div>
       </div>
       <button type="button" class="login-button request-access-cancel" id="request-access-cancel">Cancel</button>
     </form>
   </div>
 
+  <div class="sign-in-panel">
+    <p id="login-status" class="private-status" aria-live="polite" hidden></p>
+
+    <p>Already have an account?</p>
+
+    <a class="login-button login-button--accent" id="cf-login-link" href="/profile/">Log In</a>
+  </div>
+
   <form class="guest-profile-form" id="dev-auth-form" hidden>
     <h3>Local Dev Login</h3>
     <label for="dev-auth-email">Email</label>
-    <input id="dev-auth-email" name="email" type="email" required maxlength="320" autocomplete="email" />
-    <button type="submit" class="login-button" id="dev-auth-submit">Sign in locally</button>
+    <input id="dev-auth-email" name="email" type="email" required maxlength="320" autocomplete="email">
+    <button type="submit" class="login-button login-button--accent" id="dev-auth-submit">Sign in locally</button>
   </form>
 </section>
 

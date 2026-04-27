@@ -163,7 +163,7 @@
   --text-muted: color-mix(in srgb, var(--text) 84%, var(--bg) 16%);
   --text-on-accent: #f5f5f4;
   --accent: #c8b8a8;
-  --success: #4f8a3b;
+  --success: #99ca89;
   --failure: #b14a3e;
   --caution: #b8863b;
 }

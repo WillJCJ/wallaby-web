@@ -26,7 +26,7 @@ const parseRange = (header) => {
 
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, executionCtx) {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith('/api/videos/')) {
@@ -164,16 +164,16 @@ export default {
     }
 
     if (url.pathname === '/api/access-requests') {
-      return handlePublicAccessRequest(request, env);
+      return handlePublicAccessRequest(request, env, executionCtx);
     }
 
-    if (url.pathname === '/api/private/admin/access-requests') {
+    if (url.pathname === '/api/private/access-requests') {
       return handleListAccessRequests(request, env);
     }
 
-    if (url.pathname.startsWith('/api/private/admin/access-requests/')) {
-      const email = decodeURIComponent(url.pathname.slice('/api/private/admin/access-requests/'.length));
-      return handleDismissAccessRequest(request, env, email);
+    if (url.pathname.startsWith('/api/private/access-requests/')) {
+      const requestId = decodeURIComponent(url.pathname.slice('/api/private/access-requests/'.length));
+      return handleDismissAccessRequest(request, env, requestId);
     }
 
     if (
@@ -210,14 +210,14 @@ export default {
         return handleAuthStatus(request, env);
 
       case '/api/env':
-        {
-          const metadata = env.CF_VERSION_METADATA;
-          const versionId =
+      {
+        const metadata = env.CF_VERSION_METADATA;
+        const versionId =
             metadata?.id ||
             metadata?.version_id ||
             metadata?.versionId ||
             null;
-          const versionTimestamp =
+        const versionTimestamp =
             metadata?.timestamp ||
             metadata?.created_at ||
             metadata?.createdAt ||
@@ -236,7 +236,7 @@ export default {
             },
           }
         );
-        }
+      }
 
       case '/api/private/details':
         return handlePrivateDetails(request, env);

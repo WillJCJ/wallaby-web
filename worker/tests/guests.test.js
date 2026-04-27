@@ -263,6 +263,26 @@ describe('handleGuestsApi DELETE /api/private/guests/:id', () => {
     expect(body.ok).toBe(true);
   });
 
+  it('deletes dependent game rows before deleting the guest', async () => {
+    const db = makeDb();
+    const req = makeRequest('DELETE');
+    await handleGuestsApi(req, { ADMIN_EMAILS: 'admin@example.com', GUESTS_DB: db }, '/api/private/guests/550e8400-e29b-41d4-a716-446655440000');
+
+    expect(db.prepare).toHaveBeenNthCalledWith(1, 'DELETE FROM game_scores WHERE guest_id = ?');
+    expect(db.prepare).toHaveBeenNthCalledWith(2, 'DELETE FROM game_runs WHERE guest_id = ?');
+    expect(db.prepare).toHaveBeenNthCalledWith(3, 'DELETE FROM guests WHERE guest_id = ?');
+  });
+
+  it('returns 500 when deleting dependent rows fails', async () => {
+    const db = makeDb();
+    db._prepared.run
+      .mockResolvedValueOnce({ success: false, meta: { changed_db: false } });
+
+    const req = makeRequest('DELETE');
+    const res = await handleGuestsApi(req, { ADMIN_EMAILS: 'admin@example.com', GUESTS_DB: db }, '/api/private/guests/550e8400-e29b-41d4-a716-446655440000');
+    expect(res.status).toBe(500);
+  });
+
   it('returns 404 when no row was deleted', async () => {
     const db = makeDb();
     db._prepared.run.mockResolvedValue({ success: true, meta: { changed_db: false } });

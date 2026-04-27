@@ -5,12 +5,33 @@ title: Wallaby Fest
 <div class="page-intro">
   <h2>Home</h2>
   <p>Wallaby Fest was founded in 2022 to share Jackie's lovely home and animals with my friends.</p>
-  <p>I hope you can all make it this year! You'll soon be able to sign in to RSVP and get more details.</p>
+  <p>I hope you can all make it this year!</p>
+  <p><a href="/login">Request access</a> to RSVP and get more details.</p>
 </div>
 <div class="cards">
   <div class="card">
     <h3>Date</h3>
     <p>11th July</p>
+    <div
+      id="home-countdown"
+      class="home-countdown"
+      aria-live="polite"
+      aria-label="Festival countdown timer"
+    >
+      <div class="home-countdown__unit">
+        <span id="home-countdown-days" class="home-countdown__flip">0</span>
+        <span class="home-countdown__label">Days</span>
+      </div>
+      <div class="home-countdown__unit">
+        <span id="home-countdown-hours" class="home-countdown__flip">00</span>
+        <span class="home-countdown__label">Hours</span>
+      </div>
+      <div class="home-countdown__unit">
+        <span id="home-countdown-minutes" class="home-countdown__flip">00</span>
+        <span class="home-countdown__label">Minutes</span>
+      </div>
+    </div>
+    <p id="home-countdown-status" class="home-countdown__status" hidden></p>
   </div>
   <div class="card">
     <h3>Lineup</h3>
@@ -25,6 +46,7 @@ title: Wallaby Fest
   </div>
   <div class="card">
     <h3>Getting here</h3>
-    <p>Soon, you'll be able to log in for details on getting here.</p>
+    <p><a href="/login">Request access</a> for details on getting here.</p>
   </div>
 </div>
+<script type="module" src="/scripts/home-countdown.js"></script>

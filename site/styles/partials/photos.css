@@ -37,7 +37,7 @@
 }
 
 .photo-item--video {
-  background: #000;
+  background: var(--bg-surface);
 }
 
 .photo-thumb-link {
@@ -50,7 +50,7 @@
 
 /* Blurry LQIP placeholder shown before the real image loads */
 .photo-thumb-link::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -6%;
   background-image: var(--lqip);
@@ -62,10 +62,10 @@
 
 /* Loading logo shown in each grid cell until the thumbnail is ready */
 .photo-thumb-link::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: url('/images/logos/logo-loading.svg') center / 3.75rem no-repeat;
+  background: url("/images/logos/logo-loading.svg") center / 3.75rem no-repeat;
   transition: opacity 0.2s ease;
 }
 
@@ -120,7 +120,7 @@ body:has(.photo-item:target) {
 
 /* Persistent dark backdrop — stays visible when navigating between photos */
 body:has(.photo-item:target)::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   z-index: 99;
@@ -142,8 +142,13 @@ body:has(.photo-item:target)::before {
 }
 
 @keyframes lightbox-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Backdrop — click anywhere not on the image/arrows to close */
@@ -198,7 +203,9 @@ body:has(.photo-item:target)::before {
 
 /* Smooth unblur when is-loading is removed — transition must live on the base selector */
 .lightbox-media-wrap img {
-  transition: filter 0.45s ease, transform 0.45s ease;
+  transition:
+    filter 0.45s ease,
+    transform 0.45s ease;
 }
 
 /* While hi-res loads: blur the thumbnail underneath and show the loading logo */
@@ -207,10 +214,10 @@ body:has(.photo-item:target)::before {
 }
 
 .lightbox-media-wrap.is-loading::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: url('/images/logos/logo-loading.svg') center / 5rem no-repeat;
+  background: url("/images/logos/logo-loading.svg") center / 5rem no-repeat;
 }
 
 .lightbox-video {
@@ -220,7 +227,7 @@ body:has(.photo-item:target)::before {
   height: auto;
   object-fit: contain;
   display: block;
-  background: #000;
+  background: var(--bg-surface);
 }
 
 .lightbox-figure img {
@@ -327,7 +334,7 @@ body:has(.photo-item:target)::before {
 
 .lightbox-close-btn::before,
 .lightbox-close-btn::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 1rem;
   height: 2px;
@@ -345,7 +352,7 @@ body:has(.photo-item:target)::before {
 
 .lightbox-nav--prev::before,
 .lightbox-nav--next::before {
-  content: '';
+  content: "";
   display: block;
 
   /*

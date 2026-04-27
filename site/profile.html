@@ -4,8 +4,14 @@ title: Your Profile - Wallaby Fest
 ---
 <div class="page-intro">
   <h2>Your Profile</h2>
-  <p>View and edit your details.</p>
 </div>
+
+<section class="profile-privacy-note" aria-label="Privacy notice">
+  <h3>Who can see this information?</h3>
+  <p>Only Will can view all of these details.</p>
+  <p>Your email is only used for signing in.</p>
+  <p>Your first name and initial is used publicly if you get a high score on the game.</p>
+</section>
 
 <section class="private-details" id="guest-profile" aria-live="polite">
   <p class="private-status" id="guest-profile-status">Loading your profile...</p>
@@ -46,8 +52,15 @@ title: Your Profile - Wallaby Fest
             step="1"
             hidden
             aria-label="Edit additional guests"
-          />
-          <button type="button" class="profile-field-action" data-action="additionalGuests" aria-label="Edit additional guests">&#9998;</button>
+          >
+          <button
+            type="button"
+            class="profile-field-action"
+            data-action="additionalGuests"
+            aria-label="Edit additional guests"
+          >
+            &#9998;
+          </button>
         </div>
       </dd>
     </div>
@@ -64,7 +77,14 @@ title: Your Profile - Wallaby Fest
             hidden
             aria-label="Edit dietary requirements"
           ></textarea>
-          <button type="button" class="profile-field-action" data-action="dietaryRequirements" aria-label="Edit dietary requirements">&#9998;</button>
+          <button
+            type="button"
+            class="profile-field-action"
+            data-action="dietaryRequirements"
+            aria-label="Edit dietary requirements"
+          >
+            &#9998;
+          </button>
         </div>
       </dd>
     </div>
@@ -81,7 +101,9 @@ title: Your Profile - Wallaby Fest
             hidden
             aria-label="Edit RSVP message"
           ></textarea>
-          <button type="button" class="profile-field-action" data-action="rsvpMessage" aria-label="Edit RSVP message">&#9998;</button>
+          <button type="button" class="profile-field-action" data-action="rsvpMessage" aria-label="Edit RSVP message">
+            &#9998;
+          </button>
         </div>
       </dd>
     </div>

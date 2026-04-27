@@ -18,7 +18,10 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: visible;
-  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
   pointer-events: auto;
 }
 
@@ -110,7 +113,6 @@
   align-items: baseline;
   gap: 0.5rem;
 }
-
 
 .wallaby-card-details {
   display: none;

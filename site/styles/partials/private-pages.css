@@ -24,6 +24,21 @@
   cursor: pointer;
 }
 
+.login-button--accent {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.login-button--accent:hover,
+.login-button--accent:focus-visible {
+  background: color-mix(in srgb, var(--accent) 88%, black);
+}
+
+.request-access-button {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+}
+
 a.login-button:link,
 a.login-button:visited,
 a.login-button:hover,
@@ -32,8 +47,37 @@ a.login-button:active {
   text-decoration: none;
 }
 
+a.login-button.login-button--accent:link,
+a.login-button.login-button--accent:visited,
+a.login-button.login-button--accent:hover,
+a.login-button.login-button--accent:active {
+  color: var(--text-on-accent);
+}
+
 .private-status {
   margin-bottom: 1rem;
+}
+
+.profile-privacy-note {
+  max-width: 720px;
+  margin: 0 auto 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.profile-privacy-note h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  color: var(--text-strong);
+}
+
+.profile-privacy-note p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
 .private-status--success {
@@ -179,6 +223,10 @@ textarea.profile-field-editor {
 /* Request-access panel on login page */
 .request-access-panel {
   margin-top: 1.5rem;
+}
+
+.sign-in-panel {
+  margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
 }
@@ -194,7 +242,8 @@ textarea.profile-field-editor {
   cursor: pointer;
 }
 
-.request-access-panel:has(#request-access-form:not([hidden])) .request-access-toggle {
+.request-access-panel:has(#request-access-form:not([hidden]))
+  .request-access-toggle {
   display: none;
 }
 

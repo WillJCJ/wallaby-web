@@ -44,4 +44,15 @@ The checked-in `wrangler.toml` already defines separate D1, KV, and R2 bindings 
 - `[[env.production.r2_buckets]]`
 - `[[env.preview.r2_buckets]]`
 
+It also defines distinct Access policy ids per environment:
+
+- `[env.production.vars].CF_ACCESS_POLICY_ID`
+- `[env.preview.vars].CF_ACCESS_POLICY_ID`
+
+Keep preview and production Access apps and reusable policies separate so
+approval/revoke tests in preview never change production access.
+
+`DEV_AUTH_ENABLED` stays `false` in preview and production.
+Localhost development continues to use local-only `dev-auth`.
+
 If you recreate any of those resources, update the corresponding ids in `wrangler.toml` before deploying.

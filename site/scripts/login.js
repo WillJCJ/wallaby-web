@@ -88,7 +88,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
           requestToggle.hidden = true;
           requestToggle.disabled = true;
         }
-        setRequestStatus('Your request has been received! Maybe ping Will a WhatsApp.', 'success');
+        setRequestStatus('Your request has been received! Will just got a ping on his phone to add you.', 'success');
       } catch {
         setRequestStatus('Unable to send your request. Please try again later.', 'failure');
       } finally {

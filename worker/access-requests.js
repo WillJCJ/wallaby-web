@@ -2,6 +2,10 @@ import { validateAccessRequestPayload, parseJsonBody } from './validation.js';
 import { requireAuthenticatedEmail } from './auth.js';
 import { requireAdmin } from './auth.js';
 import { jsonResponse, badRequest, notFound, methodNotAllowed, internalError } from './response.js';
+import { sendAccessRequestDiscordNotification } from './discord-access-request-notification.js';
+
+const ACCESS_REQUEST_KEY_PREFIX = 'request:';
+const ACCESS_REQUEST_TTL_SECONDS = 60 * 60 * 24 * 30;
 
 const requireKv = (env) => {
   if (!env.GUEST_REQUESTS_KV) {
@@ -38,8 +42,10 @@ const verifyTurnstile = async (token, env) => {
   }
 };
 
+const makeAccessRequestKey = (requestId) => `${ACCESS_REQUEST_KEY_PREFIX}${requestId}`;
+
 // POST /api/access-requests — public, unauthenticated
-export const handlePublicAccessRequest = async (request, env) => {
+export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   if (request.method !== 'POST') {
     return methodNotAllowed();
   }
@@ -63,12 +69,36 @@ export const handlePublicAccessRequest = async (request, env) => {
   }
 
   const { name, email } = validated.value;
-  const payload = JSON.stringify({ name, email, requestedAt: new Date().toISOString() });
+  const requestId = crypto.randomUUID();
+  const key = makeAccessRequestKey(requestId);
+  const requestEntry = {
+    requestId,
+    name,
+    email,
+    requestedAt: new Date().toISOString(),
+  };
+  const payload = JSON.stringify(requestEntry);
 
   try {
-    await env.GUEST_REQUESTS_KV.put(email, payload, { expirationTtl: 60 * 60 * 24 * 30 });
+    await env.GUEST_REQUESTS_KV.put(key, payload, { expirationTtl: ACCESS_REQUEST_TTL_SECONDS });
   } catch {
     return internalError('Unable to save request');
+  }
+
+  // Keep the notification alive after returning the response, and log failures
+  // so preview/production issues are visible in Worker logs.
+  const origin = new URL(request.url).origin;
+  const notificationPromise = sendAccessRequestDiscordNotification(env, requestEntry, origin)
+    .catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Discord notification failed', {
+        message,
+        hasWebhookUrl: Boolean(env.DISCORD_WEBHOOK_URL),
+      });
+    });
+
+  if (executionCtx && typeof executionCtx.waitUntil === 'function') {
+    executionCtx.waitUntil(notificationPromise);
   }
 
   // Always return the same response regardless of whether the email was
@@ -76,7 +106,7 @@ export const handlePublicAccessRequest = async (request, env) => {
   return jsonResponse({ ok: true }, { status: 200 });
 };
 
-// GET /api/private/admin/access-requests — admin only
+// GET /api/private/access-requests — admin only
 export const handleListAccessRequests = async (request, env) => {
   if (request.method !== 'GET') {
     return methodNotAllowed();
@@ -104,7 +134,13 @@ export const handleListAccessRequests = async (request, env) => {
     try {
       const raw = await env.GUEST_REQUESTS_KV.get(key.name);
       if (raw) {
-        requests.push(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        requests.push({
+          ...parsed,
+          requestId: parsed.requestId || (key.name.startsWith(ACCESS_REQUEST_KEY_PREFIX)
+            ? key.name.slice(ACCESS_REQUEST_KEY_PREFIX.length)
+            : null),
+        });
       }
     } catch {
       // Skip malformed entries
@@ -120,8 +156,8 @@ export const handleListAccessRequests = async (request, env) => {
   return jsonResponse({ requests });
 };
 
-// DELETE /api/private/admin/access-requests/:email — admin only
-export const handleDismissAccessRequest = async (request, env, email) => {
+// DELETE /api/private/access-requests/:requestId — admin only
+export const handleDismissAccessRequest = async (request, env, requestId) => {
   if (request.method !== 'DELETE') {
     return methodNotAllowed();
   }
@@ -135,16 +171,18 @@ export const handleDismissAccessRequest = async (request, env, email) => {
   const kvError = requireKv(env);
   if (kvError) return kvError;
 
-  const existing = await env.GUEST_REQUESTS_KV.get(email);
+  const key = makeAccessRequestKey(requestId);
+  const existing = await env.GUEST_REQUESTS_KV.get(key);
   if (!existing) {
     return notFound('Request not found');
   }
 
   try {
-    await env.GUEST_REQUESTS_KV.delete(email);
+    await env.GUEST_REQUESTS_KV.delete(key);
   } catch {
     return internalError('Unable to dismiss request');
   }
 
   return jsonResponse({ ok: true });
 };
+

@@ -8,6 +8,7 @@ Cloudflare setup docs are split by topic:
 - [R2](r2.md)
 - [Worker config](worker-config.md)
 - [Environments](environments.md)
+- [Discord notifications](discord.md)
 
 Recommended order:
 
