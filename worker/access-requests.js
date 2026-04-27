@@ -2,6 +2,7 @@ import { validateAccessRequestPayload, parseJsonBody } from './validation.js';
 import { requireAuthenticatedEmail } from './auth.js';
 import { requireAdmin } from './auth.js';
 import { jsonResponse, badRequest, notFound, methodNotAllowed, internalError } from './response.js';
+import { isLocalHost, isProductionHost } from './host.js';
 
 const requireKv = (env) => {
   if (!env.GUEST_REQUESTS_KV) {
@@ -38,8 +39,65 @@ const verifyTurnstile = async (token, env) => {
   }
 };
 
+const sendAdminNotification = async (env, name, origin) => {
+  if (!env.DISCORD_WEBHOOK_URL) return;
+
+  const url = new URL(origin);
+  const hostname = url.hostname;
+  
+  // Determine environment and colors
+  let environment = 'production';
+  let embedColor = 3447003; // Blue
+  let environmentBadge = '';
+  
+  if (isLocalHost(hostname)) {
+    environment = 'local';
+    embedColor = 0x3498db; // Bright blue
+    environmentBadge = ' 🔷 Local';
+  } else if (!isProductionHost(hostname)) {
+    environment = 'preview';
+    embedColor = 0xf39c12; // Orange
+    environmentBadge = ' ⚠️ Preview';
+  }
+
+  const fields = [];
+  if (environmentBadge) {
+    fields.push({
+      name: 'Environment',
+      value: environmentBadge.trim(),
+      inline: true,
+    });
+  }
+
+  const response = await fetch(env.DISCORD_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      content: `New access request from **${name}**${environmentBadge}`,
+      embeds: [
+        {
+          title: 'Review Request',
+          description: `Click the button below to review and approve/deny this request.`,
+          url: `${origin}/admin.html`,
+          color: embedColor,
+          fields,
+          footer: {
+            text: `Wallaby Fest • ${environment}`,
+          },
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    const detail = body ? ` ${body.slice(0, 200)}` : '';
+    throw new Error(`Discord webhook rejected notification (${response.status}).${detail}`);
+  }
+};
+
 // POST /api/access-requests — public, unauthenticated
-export const handlePublicAccessRequest = async (request, env) => {
+export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   if (request.method !== 'POST') {
     return methodNotAllowed();
   }
@@ -69,6 +127,21 @@ export const handlePublicAccessRequest = async (request, env) => {
     await env.GUEST_REQUESTS_KV.put(email, payload, { expirationTtl: 60 * 60 * 24 * 30 });
   } catch {
     return internalError('Unable to save request');
+  }
+
+  // Keep the notification alive after returning the response, and log failures
+  // so preview/production issues are visible in Worker logs.
+  const notificationPromise = sendAdminNotification(env, name, new URL(request.url).origin)
+    .catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Discord notification failed', {
+        message,
+        hasWebhookUrl: Boolean(env.DISCORD_WEBHOOK_URL),
+      });
+    });
+
+  if (executionCtx && typeof executionCtx.waitUntil === 'function') {
+    executionCtx.waitUntil(notificationPromise);
   }
 
   // Always return the same response regardless of whether the email was

@@ -333,6 +333,26 @@ const handleGuestsCollection = async (request, env, adminEmail) => {
   return methodNotAllowed();
 };
 
+const runDeleteByGuestId = async (env, sql, guestId) => {
+  const result = await env.GUESTS_DB
+    .prepare(sql)
+    .bind(guestId)
+    .run();
+
+  if (!result.success) {
+    throw new Error('delete_failed');
+  }
+
+  return result;
+};
+
+const deleteGuestWithRelatedRows = async (env, guestId) => {
+  // Remove child records first to satisfy guest foreign key constraints.
+  await runDeleteByGuestId(env, 'DELETE FROM game_scores WHERE guest_id = ?', guestId);
+  await runDeleteByGuestId(env, 'DELETE FROM game_runs WHERE guest_id = ?', guestId);
+  return runDeleteByGuestId(env, 'DELETE FROM guests WHERE guest_id = ?', guestId);
+};
+
 const handleGuestById = async (request, env, adminEmail, guestId) => {
   if (!isValidUuid(guestId)) {
     return badRequest('Invalid guest id');
@@ -397,10 +417,12 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
   }
 
   if (request.method === 'DELETE') {
-    const deleted = await env.GUESTS_DB
-      .prepare('DELETE FROM guests WHERE guest_id = ?')
-      .bind(guestId)
-      .run();
+    let deleted;
+    try {
+      deleted = await deleteGuestWithRelatedRows(env, guestId);
+    } catch {
+      return internalError('Unable to delete guest');
+    }
 
     if (!deleted.success) {
       return internalError('Unable to delete guest');

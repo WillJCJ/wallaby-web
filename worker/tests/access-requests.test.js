@@ -144,6 +144,142 @@ describe('handlePublicAccessRequest', () => {
     const res = await handlePublicAccessRequest(req, env);
     expect(res.status).toBe(200);
   });
+
+  it('sends Discord notification when DISCORD_WEBHOOK_URL is set', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const req = makeRequest('POST', { name: 'Alice Smith', email: 'alice@example.com' });
+    await handlePublicAccessRequest(req, env);
+
+    // Give the fire-and-forget a tick to run
+    await new Promise((r) => setTimeout(r, 0));
+
+    const discordCall = mockFetch.mock.calls.find(([url]) =>
+      typeof url === 'string' && url.includes('discord.com')
+    );
+    expect(discordCall).toBeDefined();
+    expect(discordCall[0]).toBe('https://discord.com/api/webhooks/123/abc');
+    expect(discordCall[1].method).toBe('POST');
+    const bodyObj = JSON.parse(discordCall[1].body);
+    expect(bodyObj.content).toContain('Alice Smith');
+    expect(bodyObj.embeds[0].url).toContain('http://example.com/admin.html');
+    expect(bodyObj.embeds[0].footer.text).toContain('preview');
+    expect(bodyObj.content).not.toContain('alice@example.com');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('sends JSON content-type header for Discord webhook', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const req = makeRequest('POST', { name: 'Bob', email: 'bob@example.com' });
+    await handlePublicAccessRequest(req, env);
+    await new Promise((r) => setTimeout(r, 0));
+
+    const discordCall = mockFetch.mock.calls.find(([url]) =>
+      typeof url === 'string' && url.includes('discord.com')
+    );
+    expect(discordCall[1].headers['Content-Type']).toBe('application/json');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('does not show environment badge for production domain', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const req = new Request('https://wallabyfest.co.uk/api/access-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Prod User', email: 'prod@example.com' }),
+    });
+    await handlePublicAccessRequest(req, env);
+    await new Promise((r) => setTimeout(r, 0));
+
+    const discordCall = mockFetch.mock.calls.find(([url]) =>
+      typeof url === 'string' && url.includes('discord.com')
+    );
+    const bodyObj = JSON.parse(discordCall[1].body);
+    expect(bodyObj.content).not.toContain('⚠️');
+    expect(bodyObj.embeds[0].fields).toHaveLength(0);
+    expect(bodyObj.embeds[0].footer.text).toContain('production');
+
+    vi.unstubAllGlobals();
+  });
+
+  it('does not send Discord notification when DISCORD_WEBHOOK_URL is absent', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const env = makeEnv(); // no DISCORD_WEBHOOK_URL
+    const req = makeRequest('POST', { name: 'Carol', email: 'carol@example.com' });
+    await handlePublicAccessRequest(req, env);
+    await new Promise((r) => setTimeout(r, 0));
+
+    const discordCall = mockFetch.mock.calls.find(([url]) =>
+      typeof url === 'string' && url.includes('discord.com')
+    );
+    expect(discordCall).toBeUndefined();
+
+    vi.unstubAllGlobals();
+  });
+
+  it('returns 200 even when Discord notification fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
+
+    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const req = makeRequest('POST', { name: 'Dave', email: 'dave@example.com' });
+    const res = await handlePublicAccessRequest(req, env);
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(res.status).toBe(200);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('registers notification with waitUntil when execution context is provided', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', mockFetch);
+
+    const waitUntil = vi.fn();
+    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const req = makeRequest('POST', { name: 'Eve', email: 'eve@example.com' });
+    const res = await handlePublicAccessRequest(req, env, { waitUntil });
+
+    expect(res.status).toBe(200);
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllGlobals();
+  });
+
+  it('logs Discord non-2xx failures for debugging', async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response('forbidden', { status: 403 }));
+    vi.stubGlobal('fetch', mockFetch);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    const waitUntil = vi.fn();
+    const env = { ...makeEnv(), DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/abc' };
+    const req = makeRequest('POST', { name: 'Frank', email: 'frank@example.com' });
+    const res = await handlePublicAccessRequest(req, env, { waitUntil });
+
+    expect(res.status).toBe(200);
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+    await waitUntil.mock.calls[0][0];
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Discord notification failed',
+      expect.objectContaining({
+        message: expect.stringContaining('403'),
+      })
+    );
+
+    vi.unstubAllGlobals();
+    errorSpy.mockRestore();
+  });
 });
 
 // ---------------------------------------------------------------------------

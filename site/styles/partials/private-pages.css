@@ -179,6 +179,10 @@ textarea.profile-field-editor {
 /* Request-access panel on login page */
 .request-access-panel {
   margin-top: 1.5rem;
+}
+
+.sign-in-panel {
+  margin-top: 1.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
 }

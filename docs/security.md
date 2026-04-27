@@ -14,7 +14,8 @@ The design goal is to keep private data and privileged actions protected even wh
 
 ## Current mitigations
 
-- Cloudflare Access gates private API families and private pages.
+- Cloudflare Access gates private API families, with Google as the sign-in identity provider.
+- Access allowlist membership is tied to approved guest emails via policy sync.
 - Admin actions require an authenticated email in the configured admin allowlist.
 - D1 queries use prepared statements with bound parameters.
 - Public access requests require a valid Turnstile token when the secret is configured.
@@ -27,6 +28,8 @@ The design goal is to keep private data and privileged actions protected even wh
 ### 1. Access boundary configuration drift
 
 Private route protection depends on Cloudflare Access configuration outside this repository. If protected path rules are broadened, narrowed, or removed incorrectly, private endpoints can become reachable in unintended ways.
+
+Google IdP or policy-rule drift can also weaken controls if it allows users outside the approved-email allowlist.
 
 ### 2. Public endpoint abuse
 
@@ -98,8 +101,10 @@ Reason:
 Run this checklist before major releases:
 
 1. Confirm Access protected paths still match private API and page shells.
-2. Confirm `DEV_AUTH_ENABLED` is disabled in production.
-3. Confirm Turnstile secret is present in production.
-4. Confirm edge rate limiting exists for public write endpoints.
-5. Confirm `npm test` and lint pass.
-6. Confirm CSP and headers in `_headers` still match runtime behaviour.
+2. Confirm Google IdP is enabled on the intended Access apps only.
+3. Confirm Access reusable policies include approved guest emails only.
+4. Confirm `DEV_AUTH_ENABLED` is disabled in production.
+5. Confirm Turnstile secret is present in production.
+6. Confirm edge rate limiting exists for public write endpoints.
+7. Confirm `npm test` and lint pass.
+8. Confirm CSP and headers in `_headers` still match runtime behaviour.

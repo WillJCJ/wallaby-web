@@ -26,7 +26,7 @@ const parseRange = (header) => {
 
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, executionCtx) {
     const url = new URL(request.url);
 
     if (url.pathname.startsWith('/api/videos/')) {
@@ -164,7 +164,7 @@ export default {
     }
 
     if (url.pathname === '/api/access-requests') {
-      return handlePublicAccessRequest(request, env);
+      return handlePublicAccessRequest(request, env, executionCtx);
     }
 
     if (url.pathname === '/api/private/admin/access-requests') {
