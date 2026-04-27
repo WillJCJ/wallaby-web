@@ -12,6 +12,8 @@ Configured in `wrangler.toml` under:
 - `[env.production]`
 - `[env.preview]`
 
+The shared top-level config is used for local development and mirrors the preview-style bindings.
+
 ## Recommended branch mapping
 
 - `main` branch -> `--env production`
@@ -31,10 +33,15 @@ Preview:
 wrangler deploy --env preview
 ```
 
-## Required follow-up
+## Current binding split
 
-Set your preview database id in `wrangler.toml`:
+The checked-in `wrangler.toml` already defines separate D1, KV, and R2 bindings for both environments:
 
-- `env.preview.d1_databases[0].database_id`
+- `[[env.production.d1_databases]]`
+- `[[env.preview.d1_databases]]`
+- `[[env.production.kv_namespaces]]`
+- `[[env.preview.kv_namespaces]]`
+- `[[env.production.r2_buckets]]`
+- `[[env.preview.r2_buckets]]`
 
-Replace placeholder `REPLACE_WITH_PREVIEW_DATABASE_ID` with the real value from `wrangler d1 create wallabyfest-guests-preview`.
+If you recreate any of those resources, update the corresponding ids in `wrangler.toml` before deploying.

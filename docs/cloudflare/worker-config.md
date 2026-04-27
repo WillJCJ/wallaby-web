@@ -19,13 +19,15 @@ directory = "dist"
 not_found_handling = "404-page"
 ```
 
-## Route
+## Production route
 
 ```toml
-[[routes]]
+[[env.production.routes]]
 pattern = "wallabyfest.co.uk"
 custom_domain = true
 ```
+
+Preview runs on `workers.dev` with `workers_dev = true` and `preview_urls = true` under `[env.preview]`.
 
 ## D1 binding requirement
 
@@ -39,7 +41,7 @@ If this binding name does not match, guest endpoints will fail with database con
 
 ## R2 binding requirement
 
-Photo endpoints expect:
+Photo and video endpoints expect:
 
 ```toml
 [[r2_buckets]]
@@ -47,7 +49,7 @@ binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
 ```
 
-If this binding name does not match, `GET /api/photos/:key` will return `503 Photos bucket is not configured`.
+If this binding name does not match, `GET /api/photos/:key` and `GET /api/videos/:key` will return `503 Photos bucket is not configured`.
 
 See [R2](r2.md) for bucket creation, uploads, and photo metadata conventions.
 
@@ -71,9 +73,29 @@ Each KV entry uses the requester's email as the key and stores:
 
 Entries expire automatically after 30 days (TTL set on write).
 
+## KV binding — guest last seen
+
+Guest profile activity is tracked in a second KV namespace.
+
+Create the namespace for each environment:
+
+```bash
+wrangler kv namespace create GUEST_LAST_SEEN_KV
+```
+
+Copy the returned `id` values into `wrangler.toml` under the appropriate `[[kv_namespaces]]` entries.
+
+Each KV entry uses the guest id as the key and stores:
+
+```json
+{ "lastSeen": "ISO-8601" }
+```
+
+Entries expire automatically after 30 days (TTL set on write).
+
 ## Turnstile (bot protection on access request form)
 
-The public `POST /api/access-requests` endpoint optionally verifies a Cloudflare Turnstile token. Add the secret key as a Worker secret:
+The public `POST /api/access-requests` endpoint verifies a Cloudflare Turnstile token when `TURNSTILE_SECRET_KEY` is set. Add the secret key as a Worker secret:
 
 ```bash
 wrangler secret put TURNSTILE_SECRET_KEY
@@ -81,9 +103,10 @@ wrangler secret put TURNSTILE_SECRET_KEY
 
 On `wrangler dev` (localhost), if `TURNSTILE_SECRET_KEY` is absent the verification step is skipped automatically.
 
-To enable the Turnstile widget in the browser:
+The Turnstile widget is already enabled in [site/login.html](../../site/login.html). To replace or rotate it:
+
 1. Create a Turnstile site in the Cloudflare dashboard (Turnstile → Add Site).
 2. Set the site key in `site/login.html` on the `data-sitekey` attribute of the `.cf-turnstile` element.
-3. Uncomment the Turnstile script tag at the bottom of `site/login.html`.
+3. Keep the front-end callback aligned with `data-callback="onTurnstileSuccess"` unless the client code changes too.
 
 Cloudflare recommends also adding a rate-limit rule in the Cloudflare dashboard for `POST /api/access-requests` (for example, 5 requests per email per 10 minutes) as a secondary defence.
