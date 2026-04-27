@@ -210,14 +210,14 @@ export default {
         return handleAuthStatus(request, env);
 
       case '/api/env':
-        {
-          const metadata = env.CF_VERSION_METADATA;
-          const versionId =
+      {
+        const metadata = env.CF_VERSION_METADATA;
+        const versionId =
             metadata?.id ||
             metadata?.version_id ||
             metadata?.versionId ||
             null;
-          const versionTimestamp =
+        const versionTimestamp =
             metadata?.timestamp ||
             metadata?.created_at ||
             metadata?.createdAt ||
@@ -236,7 +236,7 @@ export default {
             },
           }
         );
-        }
+      }
 
       case '/api/private/details':
         return handlePrivateDetails(request, env);

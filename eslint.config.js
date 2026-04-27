@@ -3,21 +3,22 @@ import pluginJs from '@eslint/js';
 import html from 'eslint-plugin-html';
 
 export default [
-    {
-        ignores: ['dist/**', '.wrangler/**']
+  {
+    ignores: ['dist/**', '.wrangler/**']
+  },
+  { languageOptions: { globals: globals.browser } },
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: { globals: globals.node }
+  },
+  pluginJs.configs.recommended,
+  {
+    plugins: {
+      html
     },
-    { languageOptions: { globals: globals.browser } },
-    {
-        files: ['scripts/**/*.js'],
-        languageOptions: { globals: globals.node }
-    },
-    pluginJs.configs.recommended,
-    {
-        plugins: {
-            html
-        },
-        rules: {
-            'max-len': ['off', { 'code': 150 }]
-        }
+    rules: {
+      indent: ['error', 2, { SwitchCase: 1 }],
+      'max-len': ['off', { code: 150 }]
     }
+  }
 ];

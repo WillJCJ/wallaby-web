@@ -242,7 +242,8 @@ textarea.profile-field-editor {
   cursor: pointer;
 }
 
-.request-access-panel:has(#request-access-form:not([hidden])) .request-access-toggle {
+.request-access-panel:has(#request-access-form:not([hidden]))
+  .request-access-toggle {
   display: none;
 }
 

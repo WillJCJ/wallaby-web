@@ -2,6 +2,7 @@
   "name": "wallaby-web",
   "type": "module",
   "devDependencies": {
+    "@shopify/prettier-plugin-liquid": "^1.10.0",
     "@11ty/eleventy": "^3.0.0-beta.1",
     "@eslint/js": "^10.0.0",
     "clean-css": "^5.3.1",
@@ -10,6 +11,7 @@
     "globals": "^17.5.0",
     "html-minifier-next": "^6.1.2",
     "markdownlint-cli2": "^0.22.1",
+    "prettier": "^3.6.2",
     "sharp": "^0.34.5",
     "stylelint": "^17.8.0",
     "stylelint-config-standard": "^40.0.0",
@@ -17,8 +19,8 @@
     "wrangler": "^4.83.0"
   },
   "scripts": {
-    "lint": "eslint . && stylelint 'site/styles/**/*.css' && markdownlint-cli2 '**/*.md'",
-    "lint:fix": "eslint --fix . && stylelint --fix 'site/styles/**/*.css' && markdownlint-cli2 --fix '**/*.md'",
+    "lint": "eslint . && stylelint 'site/styles/**/*.css' && prettier --check 'site/**/*.html' 'site/styles/**/*.css' && markdownlint-cli2 '**/*.md'",
+    "lint:fix": "eslint --fix . && stylelint --fix 'site/styles/**/*.css' && prettier --write 'site/**/*.html' 'site/styles/**/*.css' && markdownlint-cli2 --fix '**/*.md'",
     "build:clean": "rm -rf dist",
     "build:html": "eleventy --config eleventy.js --input=site --output=dist",
     "build": "npm run build:clean && npm run build:html",

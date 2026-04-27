@@ -68,18 +68,26 @@
   }
 
   @keyframes photo-slide-out-left {
-    to { transform: translateX(-100dvw); }
+    to {
+      transform: translateX(-100dvw);
+    }
   }
 
   @keyframes photo-slide-in-right {
-    from { transform: translateX(100dvw); }
+    from {
+      transform: translateX(100dvw);
+    }
   }
 
   @keyframes photo-slide-out-right {
-    to { transform: translateX(100dvw); }
+    to {
+      transform: translateX(100dvw);
+    }
   }
 
   @keyframes photo-slide-in-left {
-    from { transform: translateX(-100dvw); }
+    from {
+      transform: translateX(-100dvw);
+    }
   }
 }

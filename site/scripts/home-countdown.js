@@ -1,0 +1,99 @@
+(() => {
+  const countdownRootEl = document.getElementById('home-countdown');
+  const countdownDaysEl = document.getElementById('home-countdown-days');
+  const countdownHoursEl = document.getElementById('home-countdown-hours');
+  const countdownMinutesEl = document.getElementById('home-countdown-minutes');
+  const countdownStatusEl = document.getElementById('home-countdown-status');
+
+  const HOME_COUNTDOWN_CONFIG = {
+    EVENT_SCHEDULE: ['2026-07-11T13:00:00', '2027-07-03T13:00:00'],
+  };
+
+  if (!countdownRootEl || !countdownDaysEl || !countdownHoursEl || !countdownMinutesEl || !countdownStatusEl) {
+    return;
+  }
+
+  const getSchedule = () => {
+    const rawSchedule = HOME_COUNTDOWN_CONFIG?.EVENT_SCHEDULE;
+    if (!Array.isArray(rawSchedule)) {
+      return [];
+    }
+
+    return rawSchedule
+      .map((entry) => new Date(entry))
+      .filter((date) => !Number.isNaN(date.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+  };
+
+  const getEndOfEventDay = (eventDate) => {
+    const year = eventDate.getFullYear();
+    const month = eventDate.getMonth();
+    const day = eventDate.getDate();
+    return new Date(year, month, day + 1, 0, 0, 0, 0);
+  };
+
+  const schedule = getSchedule();
+
+  const getCurrentWindow = (now) => {
+    for (const eventDate of schedule) {
+      const eventStart = eventDate.getTime();
+      const holdUntil = getEndOfEventDay(eventDate).getTime();
+
+      if (now.getTime() < eventStart) {
+        return { type: 'countdown', eventDate };
+      }
+
+      if (now.getTime() < holdUntil) {
+        return { type: 'hold' };
+      }
+    }
+
+    return { type: 'ended' };
+  };
+
+  const renderValues = (days, hours, minutes) => {
+    countdownDaysEl.textContent = String(days);
+    countdownHoursEl.textContent = String(hours).padStart(2, '0');
+    countdownMinutesEl.textContent = String(minutes).padStart(2, '0');
+  };
+
+  const update = () => {
+    if (schedule.length === 0) {
+      renderValues(0, 0, 0);
+      countdownStatusEl.hidden = false;
+      countdownStatusEl.textContent = 'Countdown unavailable';
+      return;
+    }
+
+    const now = new Date();
+    const currentWindow = getCurrentWindow(now);
+
+    if (currentWindow.type === 'hold') {
+      renderValues(0, 0, 0);
+      countdownStatusEl.hidden = false;
+      countdownStatusEl.textContent = 'Wallaby Fest is today!';
+      return;
+    }
+
+    if (currentWindow.type === 'ended') {
+      renderValues(0, 0, 0);
+      countdownStatusEl.hidden = false;
+      countdownStatusEl.textContent = 'See you at the next Wallaby Fest';
+      return;
+    }
+
+    const diffMs = currentWindow.eventDate.getTime() - now.getTime();
+
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    renderValues(days, hours, minutes);
+    countdownStatusEl.hidden = true;
+    countdownStatusEl.textContent = '';
+  };
+
+  update();
+  window.setInterval(update, 1000);
+})();

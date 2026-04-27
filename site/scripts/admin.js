@@ -598,7 +598,7 @@ import { createStatusSetter } from '/scripts/status-utils.js';
     saveButton.addEventListener('click', async () => {
       saveButton.disabled = true;
       saveButton.textContent = 'Saving...';
-    setStatus(`Saving ${editName.value.trim() || guest.name}...`, 'warning');
+      setStatus(`Saving ${editName.value.trim() || guest.name}...`, 'warning');
 
       try {
         await apiFetch(`/api/private/guests/${guest.id}`, {

@@ -94,7 +94,7 @@
   background: var(--bg-card);
 }
 
-.admin-guest-row[aria-expanded='true'] {
+.admin-guest-row[aria-expanded="true"] {
   background: var(--bg-card);
 }
 
@@ -140,7 +140,9 @@
   margin: 0.18rem 0 0;
   font-size: 0.7rem;
   color: var(--text-muted);
-  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-family:
+    ui-monospace, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 .admin-col-actions {
@@ -432,7 +434,10 @@
   --admin-request-col-name: 22%;
   --admin-request-col-email: 30%;
   --admin-request-col-requested: 22%;
-  --admin-request-col-actions: calc(100% - var(--admin-request-col-name) - var(--admin-request-col-email) - var(--admin-request-col-requested));
+  --admin-request-col-actions: calc(
+    100% - var(--admin-request-col-name) - var(--admin-request-col-email) -
+      var(--admin-request-col-requested)
+  );
 }
 
 .admin-request-col--name {
