@@ -72,3 +72,7 @@ Tests run automatically on every push to `main` and on pull requests via the CI 
 ## Cloudflare Setup
 
 All Cloudflare setup instructions are in [docs/cloudflare/README.md](docs/cloudflare/README.md).
+
+## Security Notes
+
+Security concerns, mitigations, and hardening backlog are documented in [docs/security.md](docs/security.md).
