@@ -58,9 +58,13 @@ Guest records in D1 drive Access allowlist membership through admin endpoints.
 
 ## Access request flow
 
-The public `POST /api/access-requests` endpoint allows anyone to submit their name and email for consideration. Submissions write to KV only — D1 and the Access allowlist are not touched at this stage.
+The public `POST /api/access-requests` endpoint allows anyone to submit their name and
+email for consideration. Submissions write to KV only — D1 and the Access allowlist are
+not touched at this stage.
 
-Admins review pending requests on the admin page. Choosing "Create guest" creates a D1 record and triggers an Access policy sync, which adds the guest's email to the allowlist. Choosing "Dismiss" deletes the KV entry without creating a guest record.
+Admins review pending requests on the admin page. Choosing "Create guest" creates a D1
+record and triggers an Access policy sync, which adds the guest's email to the allowlist.
+Choosing "Dismiss" deletes the KV entry without creating a guest record.
 
 This keeps D1 and Access policy changes exclusively under authenticated admin control.
 
@@ -69,7 +73,8 @@ This keeps D1 and Access policy changes exclusively under authenticated admin co
 - `POST /api/private/guests/sync`: runs a full sync (`{"mode":"full"}`) or dry run (`{"mode":"dry-run"}`).
 - `GET /api/private/guests/sync-status`: returns aggregate sync state and drift details.
 
-Dry-run and sync-status compare desired guest emails against managed email rules in the configured Access reusable policy to detect drift.
+Dry-run and sync-status compare desired guest emails against managed email rules in the
+configured Access reusable policy to detect drift.
 
 ## Auth flow
 

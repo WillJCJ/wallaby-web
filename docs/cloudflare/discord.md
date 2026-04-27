@@ -1,6 +1,8 @@
 # Discord Notifications
 
-The Worker sends a push notification to a Discord channel via webhook when a new access request is submitted. The notification includes the requester's name, a direct link to the admin page, and the environment it came from (if not production).
+The Worker sends a push notification to a Discord channel via webhook when a new access
+request is submitted. The notification includes the requester's name, a direct link to the
+admin page, and the environment it came from (if not production).
 
 ## How it works
 
@@ -9,22 +11,27 @@ After a valid access request is saved to KV, the Worker POSTs a formatted embed 
 ### Notification Format
 
 **Production (wallabyfest.co.uk):**
+
 - Blue embed, no environment badge
 
 **Preview (.workers.dev):**
+
 - Orange embed with ⚠️ Preview badge in title and embed field
 
 **Local (localhost/127.0.0.1):**
+
 - Bright blue embed with 🔷 Local badge
 
 The embed includes:
+
 - Requester's name in the title
 - One-click "Create guest now" link (signed, expires after 7 days)
 - Manual "Open admin page" link
 - Footer showing environment (production/preview/local)
 - Colour-coded for easy visual scanning
 
-If `DISCORD_WEBHOOK_URL` is not set, the notification step is skipped silently. Notification failures never affect the HTTP response returned to the requester.
+If `DISCORD_WEBHOOK_URL` is not set, the notification step is skipped silently.
+Notification failures never affect the HTTP response returned to the requester.
 
 ## Create a Discord webhook
 
@@ -50,9 +57,10 @@ wrangler secret put ACCESS_REQUEST_APPROVAL_SECRET --env preview
 
 Example webhook URL (do not share):
 
-```
+```text
 https://discord.com/api/webhooks/1234567890/ABC_DEF_GHI
 ```
+<!-- markdownlint-disable-next-line MD034 -->
 
 ## Local development
 
@@ -65,7 +73,9 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOO
 ACCESS_REQUEST_APPROVAL_SECRET=replace-with-a-long-random-string
 ```
 
-Then submit an access request in local dev. The notification link uses the request origin, so in local runs it points to the local admin page (for example, `http://127.0.0.1:8787/admin.html` or `http://localhost:8787/admin.html`).
+Then submit an access request in local dev. The notification link uses the request origin,
+so in local runs it points to the local admin page
+(for example, `http://127.0.0.1:8787/admin.html` or `http://localhost:8787/admin.html`).
 
 If `DISCORD_WEBHOOK_URL` is not set locally, notifications are skipped.
 

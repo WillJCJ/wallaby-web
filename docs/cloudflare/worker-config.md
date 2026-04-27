@@ -18,13 +18,16 @@ Core and status:
 Access requests:
 
 - `POST /api/access-requests`
-  - Public (unauthenticated). Submit an access request with name, email, and Turnstile token. Saves to KV and triggers a Discord notification.
+  - Public (unauthenticated). Submit an access request with name, email, and Turnstile
+    token. Saves to KV and triggers a Discord notification.
 - `GET /api/private/access-requests`
   - List all pending access requests from KV, sorted newest-first. Admin only.
 - `DELETE /api/private/access-requests/:requestId`
   - Dismiss (delete) a pending access request from KV by its opaque request ID. Admin only.
 - `GET /api/private/access-requests/approve?rid=<id>&exp=<unix>&sig=<hmac>`
-  - One-click guest creation from a signed Discord approval link. Verifies HMAC signature and expiry, creates the guest in D1, removes the KV entry, then redirects to `/admin.html`. Admin only (bearer link).
+  - One-click guest creation from a signed Discord approval link. Verifies HMAC signature
+    and expiry, creates the guest in D1, removes the KV entry, then redirects to
+    `/admin.html`. Admin only (bearer link).
 
 Guests and admin:
 
@@ -135,7 +138,8 @@ binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
 ```
 
-If this binding name does not match, `GET /api/photos/:key` and `GET /api/videos/:key` will return `503 Photos bucket is not configured`.
+If this binding name does not match, `GET /api/photos/:key` and `GET /api/videos/:key`
+will return `503 Photos bucket is not configured`.
 
 See [R2](r2.md) for bucket creation, uploads, and photo metadata conventions.
 
@@ -181,7 +185,8 @@ Entries expire automatically after 30 days (TTL set on write).
 
 ## Turnstile (bot protection on access request form)
 
-The public `POST /api/access-requests` endpoint verifies a Cloudflare Turnstile token when `TURNSTILE_SECRET_KEY` is set. Add the secret key as a Worker secret:
+The public `POST /api/access-requests` endpoint verifies a Cloudflare Turnstile token
+when `TURNSTILE_SECRET_KEY` is set. Add the secret key as a Worker secret:
 
 ```bash
 wrangler secret put TURNSTILE_SECRET_KEY
@@ -195,4 +200,6 @@ The Turnstile widget is already enabled in [site/login.html](../../site/login.ht
 2. Set the site key in `site/login.html` on the `data-sitekey` attribute of the `.cf-turnstile` element.
 3. Keep the front-end callback aligned with `data-callback="onTurnstileSuccess"` unless the client code changes too.
 
-Cloudflare recommends also adding a rate-limit rule in the Cloudflare dashboard for `POST /api/access-requests` (for example, 5 requests per email per 10 minutes) as a secondary defence.
+Cloudflare recommends also adding a rate-limit rule in the Cloudflare dashboard for
+`POST /api/access-requests` (for example, 5 requests per email per 10 minutes) as a
+secondary defence.

@@ -1,21 +1,25 @@
 # AGENTS.md
 
 ## Purpose
+
 This file defines repository working standards for human contributors and coding agents.
 Follow these rules unless a maintainer explicitly overrides them in a task.
 
 ## Git Branch Standards
+
 Use short, descriptive branch names in this format:
 
-<type>/<short-kebab-description>
+`<type>/<short-kebab-description>`
 
 Examples:
+
 - feat/wallaby-card-expand
 - fix/csp-script-loading
 - docs/update-readme
 - chore/eslint-ignore-wrangler
 
 Allowed branch types:
+
 - feat
 - fix
 - docs
@@ -29,22 +33,26 @@ Allowed branch types:
 - revert
 
 Rules:
+
 - Use lowercase only.
 - Use kebab-case for the description.
 - Keep branch names under 50 characters when possible.
 - One branch should represent one primary change.
 
 ## Commit Message Standards
+
 Prefix every commit with a bracketed type:
 
 [type] Imperative summary
 
 Examples:
+
 - [feat] Add expandable wallaby cards
 - [fix] Serve wallabies script via passthrough copy
 - [docs] Clarify local dev workflow
 
 Allowed commit types:
+
 - feat
 - fix
 - docs
@@ -58,11 +66,13 @@ Allowed commit types:
 - revert
 
 Rules:
+
 - Use imperative mood ("Add", "Fix", "Update").
 - Keep subject line concise (target: <= 72 chars).
 - Add a body for non-trivial changes explaining why.
 
 ## Pull Request Standards
+
 - Keep PRs focused and reasonably small.
 - Use the repository PR template at `.github/pull_request_template.md`.
 - Include a short summary and why the change was needed.
@@ -71,6 +81,7 @@ Rules:
 - Create a merge commit when merging a PR, don't rebase or squash.
 
 ## Quality Gates Before Merge
+
 - Run lint and fix all errors.
 - Run project build and confirm output is correct.
 - Run `npm test` and confirm all tests pass.
@@ -78,7 +89,10 @@ Rules:
 - Confirm CSP/security headers are not weakened unintentionally.
 
 ## Worker Tests
-Unit tests for every `worker/` module live in `worker/tests/`. When modifying any file in `worker/`, update the corresponding test file in `worker/tests/` to reflect the change. When adding a new `worker/` module, add a matching test file.
+
+Unit tests for every `worker/` module live in `worker/tests/`. When modifying any file
+in `worker/`, update the corresponding test file in `worker/tests/` to reflect the
+change. When adding a new `worker/` module, add a matching test file.
 
 Run tests with:
 
@@ -87,6 +101,7 @@ npm test
 ```
 
 ## Working Agreement for Agents
+
 - Do not commit secrets, tokens, or environment credentials.
 - Do not use destructive git commands unless explicitly requested.
 - Do not rewrite history on shared branches.
@@ -101,6 +116,7 @@ before involving javascript.
 Prefer concise and elegant solutions.
 
 ## Writing Style
+
 - Use direct present-tense wording when describing behaviour.
 - Avoid temporal framing like "now includes", "new feature", or "recently added".
 - Apply the same tone in README text, PR descriptions, comments, and user-facing copy.
@@ -110,7 +126,9 @@ Prefer concise and elegant solutions.
 - Wallaby Fest should never be called Wallabyfest it's two words always in title case.
 
 ## Optional Nice-to-Haves
+
 Teams often also define:
+
 - Review SLA (for example: first review within 1 business day)
 - Label conventions (type, priority, area)
 - Merge strategy (squash vs merge commit)
