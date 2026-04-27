@@ -26,7 +26,7 @@ const toInt = (value) => {
 
 const splitNameParts = (name) => String(name || '').trim().split(/\s+/).filter(Boolean);
 
-export const formatDisplayName = (name, email = '') => {
+export const formatDisplayName = (name) => {
   const parts = splitNameParts(name);
   if (parts.length >= 2) {
     const firstName = parts[0];
@@ -38,8 +38,7 @@ export const formatDisplayName = (name, email = '') => {
     return parts[0];
   }
 
-  const localPart = String(email).split('@')[0] || 'Guest';
-  return localPart || 'Guest';
+  return 'Anonymous';
 };
 
 export const getMaxPlausibleScore = (elapsedMs) => {
@@ -76,7 +75,7 @@ const loadLeaderboard = async (db) => {
   const results = rows?.results || [];
   return results.map((row, index) => ({
     rank: index + 1,
-    displayName: formatDisplayName(row.name, row.email),
+    displayName: formatDisplayName(row.name),
     score: row.score,
     durationMs: row.duration_ms,
     updatedAt: null,
@@ -108,7 +107,7 @@ const loadMyBest = async (db, guestId) => {
   }
 
   return {
-    displayName: formatDisplayName(row.name, row.email),
+    displayName: formatDisplayName(row.name),
     score: row.score,
     durationMs: row.duration_ms,
     updatedAt: null,

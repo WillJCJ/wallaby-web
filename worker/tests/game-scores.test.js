@@ -45,15 +45,15 @@ const makeDb = ({
 
 describe('game-scores formatDisplayName', () => {
   it('formats first name plus initial', () => {
-    expect(formatDisplayName('Will Connor Jones', 'x@example.com')).toBe('Will C');
+    expect(formatDisplayName('Will Connor Jones')).toBe('Will C');
   });
 
   it('uses first name when no surname exists', () => {
-    expect(formatDisplayName('Wallaby', 'x@example.com')).toBe('Wallaby');
+    expect(formatDisplayName('Wallaby')).toBe('Wallaby');
   });
 
-  it('falls back to email local part when name missing', () => {
-    expect(formatDisplayName('', 'jo.bloggs@example.com')).toBe('jo.bloggs');
+  it('falls back to "Anonymous" when name missing', () => {
+    expect(formatDisplayName('')).toBe('Anonymous');
   });
 });
 
