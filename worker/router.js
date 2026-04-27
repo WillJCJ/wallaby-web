@@ -7,6 +7,11 @@ import {
   handleListAccessRequests,
   handleDismissAccessRequest,
 } from './access-requests.js';
+import {
+  handleGameHighScores,
+  handleGameRunStart,
+  handleGameRunFinish,
+} from './game-scores.js';
 import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
 
 // Parse a Range header value (e.g. "bytes=0-1023") into R2 get() options.
@@ -180,6 +185,24 @@ export default {
 
     if (url.pathname.startsWith('/api/dev-auth/')) {
       return handleDevAuthApi(request, env, url.pathname);
+    }
+
+    if (
+      url.pathname === '/api/game/high-scores' ||
+      url.pathname === '/api/private/game/high-scores'
+    ) {
+      return handleGameHighScores(request, env);
+    }
+
+    if (url.pathname === '/api/private/game/runs/start') {
+      return handleGameRunStart(request, env);
+    }
+
+    if (
+      url.pathname.startsWith('/api/private/game/runs/') &&
+      url.pathname.endsWith('/finish')
+    ) {
+      return handleGameRunFinish(request, env, url.pathname);
     }
 
     switch (url.pathname) {

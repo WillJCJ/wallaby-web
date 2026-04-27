@@ -332,3 +332,38 @@ describe('router /api/videos/*', () => {
     expect(mockGet).toHaveBeenCalledWith('videos/clip.mp4', { offset: 0, length: 1024 });
   });
 });
+
+// /api/private/game/*
+// ---------------------------------------------------------------------------
+
+describe('router /api/private/game/*', () => {
+  it('allows unauthenticated high-score requests', async () => {
+    const req = makeRequest('https://example.com/api/game/high-scores');
+    const env = makeEnv({
+      GUESTS_DB: {
+        prepare: () => ({
+          bind: () => ({
+            all: async () => ({ results: [] }),
+          }),
+        }),
+      },
+    });
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.leaderboard).toEqual([]);
+    expect(body.myBest).toBeNull();
+  });
+
+  it('returns 401 for unauthenticated run start request', async () => {
+    const req = makeRequest('https://example.com/api/private/game/runs/start', { method: 'POST' });
+    const res = await router.fetch(req, makeEnv());
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 401 for unauthenticated run finish request', async () => {
+    const req = makeRequest('https://example.com/api/private/game/runs/test-run/finish', { method: 'POST' });
+    const res = await router.fetch(req, makeEnv());
+    expect(res.status).toBe(401);
+  });
+});

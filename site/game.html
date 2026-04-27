@@ -16,12 +16,28 @@ title: Wallaby Run - Wallaby Fest
     id="wallaby-game-canvas"
     class="wallaby-game__canvas"
     width="800"
-    height="260"
+    height="300"
     role="img"
     aria-label="Wallaby Run game. Tap or press space to make the wallaby jump."
     tabindex="0"
   ></canvas>
-  <p class="wallaby-game__hint" id="wallaby-game-hint">Tap the canvas or press space to start.</p>
+  <button
+    id="wallaby-game-jump-btn"
+    class="wallaby-game__jump-btn"
+    type="button"
+    aria-label="Start game"
+  >Start Game</button>
+
+  <section class="wallaby-game__leaderboard" aria-live="polite" aria-label="High scores">
+    <p id="wallaby-game-signin-warning" class="wallaby-game__signin-warning" hidden>
+      Sign in to save your score.
+      <a class="wallaby-game__login-btn" href="/login.html">Login</a>
+    </p>
+    <p id="wallaby-game-online-status" class="wallaby-game__online-status" hidden>
+      Checking online scores...
+    </p>
+    <ol id="wallaby-game-top-scores" class="wallaby-game__top-scores"></ol>
+  </section>
 </div>
 
 <script src="/scripts/game.js" defer></script>
