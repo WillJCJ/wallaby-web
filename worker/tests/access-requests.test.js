@@ -178,10 +178,12 @@ describe('handlePublicAccessRequest', () => {
     expect(discordCall[0]).toBe('https://discord.com/api/webhooks/123/abc');
     expect(discordCall[1].method).toBe('POST');
     const bodyObj = JSON.parse(discordCall[1].body);
-    expect(bodyObj.content).toContain('Alice Smith');
-    expect(bodyObj.embeds[0].url).toContain('/admin.html');
+    expect(bodyObj.content).toContain('New access request');
+    expect(bodyObj.embeds[0].description).toContain('Alice Smith');
+    expect(bodyObj.embeds[0].fields[0].name).toBe('Admin page');
+    expect(bodyObj.embeds[0].fields[0].value).toContain('/admin)');
     expect(bodyObj.embeds[0].footer.text).toContain('preview');
-    expect(bodyObj.content).not.toContain('alice@example.com');
+    expect(JSON.stringify(bodyObj)).not.toContain('alice@example.com');
 
     vi.unstubAllGlobals();
     uuidSpy.mockRestore();
