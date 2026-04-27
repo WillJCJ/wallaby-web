@@ -80,8 +80,10 @@ footer {
   align-items: center;
   gap: 0.45rem;
   color: var(--text-faint);
+  font-size: inherit;
   text-decoration: none;
   font-weight: 600;
+  text-size-adjust: 100%;
 }
 
 .footer-link:hover,
