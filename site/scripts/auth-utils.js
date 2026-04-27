@@ -34,7 +34,7 @@
     notifyAuthStateChange(email);
   };
 
-  const fetchAuthEmail = async () => {
+  const fetchSignedIn = async () => {
     try {
       const response = await fetch('/api/auth/status', {
         credentials: 'same-origin',
@@ -48,8 +48,7 @@
       }
 
       const data = await response.json().catch(() => null);
-      const email = data?.email || null;
-      return typeof email === 'string' && email ? email : null;
+      return data?.signedIn ? true : null;
     } catch {
       return null;
     }
@@ -96,7 +95,7 @@
     AUTH_STATE_CHANGE_EVENT,
     getStoredAuthEmail,
     setStoredAuthEmail,
-    fetchAuthEmail,
+    fetchSignedIn,
     devLogin,
     devLogout,
   };

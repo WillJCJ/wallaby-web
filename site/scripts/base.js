@@ -5,7 +5,7 @@ const auth = window.WallabyAuth;
 
 const getStoredAuthEmail = auth?.getStoredAuthEmail || (() => null);
 const setStoredAuthEmail = auth?.setStoredAuthEmail || (() => {});
-const fetchAuthEmail = auth?.fetchAuthEmail || (async () => null);
+const fetchSignedIn = auth?.fetchSignedIn || (async () => null);
 const AUTH_STATE_CHANGE_EVENT = auth?.AUTH_STATE_CHANGE_EVENT || 'wallabyauth:statechange';
 const FLASH_STORAGE_KEY = 'wallabyfest-flash-message';
 
@@ -212,10 +212,10 @@ const initializeAuthNav = async () => {
 	const storedEmail = getStoredAuthEmail();
 	applyAuthNavState(storedEmail);
 
-	const identityEmail = await fetchAuthEmail();
+	const isSignedIn = await fetchSignedIn();
 
-	if (identityEmail) {
-		setStoredAuthEmail(identityEmail);
+	if (isSignedIn) {
+		setStoredAuthEmail(storedEmail || 'authenticated');
 		return;
 	}
 

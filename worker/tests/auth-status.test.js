@@ -11,7 +11,7 @@ const makeRequest = (cookie = '') =>
   });
 
 describe('handleAuthStatus', () => {
-  it('returns dev-auth identity on localhost when dev auth is enabled', async () => {
+  it('returns signedIn: true on localhost when dev auth is enabled', async () => {
     const req = new Request('http://localhost/api/auth/status', {
       headers: { cookie: 'wallabyfest-dev-auth-email=local%40example.com' },
     });
@@ -20,7 +20,7 @@ describe('handleAuthStatus', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.signedIn).toBe(true);
-    expect(body.email).toBe('local@example.com');
+    expect(body.email).toBeUndefined();
   });
 
   it('ignores dev-auth cookie on non-local hosts', async () => {
@@ -35,10 +35,10 @@ describe('handleAuthStatus', () => {
     const res = await handleAuthStatus(req, { DEV_AUTH_ENABLED: 'true' });
     const body = await res.json();
     expect(body.signedIn).toBe(false);
-    expect(body.email).toBeNull();
+    expect(body.email).toBeUndefined();
   });
 
-  it('returns signedIn: true with the email when identity lookup succeeds', async () => {
+  it('returns signedIn: true when identity lookup succeeds, without exposing email', async () => {
     const mockFetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ email: 'user@example.com' }), { status: 200 })
     );
@@ -48,30 +48,32 @@ describe('handleAuthStatus', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.signedIn).toBe(true);
-    expect(body.email).toBe('user@example.com');
+    expect(body.email).toBeUndefined();
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [requestArg] = mockFetch.mock.calls[0];
     expect(requestArg.url).toContain('/cdn-cgi/access/get-identity');
   });
 
-  it('resolves email from user_email field', async () => {
+  it('returns signedIn: true when identity has user_email field', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ user_email: 'alt@example.com' }), { status: 200 })
     ));
 
     const res = await handleAuthStatus(makeRequest());
     const body = await res.json();
-    expect(body.email).toBe('alt@example.com');
+    expect(body.signedIn).toBe(true);
+    expect(body.email).toBeUndefined();
   });
 
-  it('resolves email from nested identity.email field', async () => {
+  it('returns signedIn: true when identity has nested identity.email field', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ identity: { email: 'nested@example.com' } }), { status: 200 })
     ));
 
     const res = await handleAuthStatus(makeRequest());
     const body = await res.json();
-    expect(body.email).toBe('nested@example.com');
+    expect(body.signedIn).toBe(true);
+    expect(body.email).toBeUndefined();
   });
 
   it('returns signedIn: false when identity lookup returns a non-ok status', async () => {
@@ -82,7 +84,7 @@ describe('handleAuthStatus', () => {
     const res = await handleAuthStatus(makeRequest());
     const body = await res.json();
     expect(body.signedIn).toBe(false);
-    expect(body.email).toBeNull();
+    expect(body.email).toBeUndefined();
   });
 
   it('returns signedIn: false when the identity fetch throws', async () => {
@@ -91,7 +93,7 @@ describe('handleAuthStatus', () => {
     const res = await handleAuthStatus(makeRequest());
     const body = await res.json();
     expect(body.signedIn).toBe(false);
-    expect(body.email).toBeNull();
+    expect(body.email).toBeUndefined();
   });
 
   it('returns signedIn: false when the identity JSON is empty', async () => {
@@ -102,7 +104,7 @@ describe('handleAuthStatus', () => {
     const res = await handleAuthStatus(makeRequest());
     const body = await res.json();
     expect(body.signedIn).toBe(false);
-    expect(body.email).toBeNull();
+    expect(body.email).toBeUndefined();
   });
 
   it('returns signedIn: false when the identity body is malformed JSON', async () => {
@@ -113,7 +115,7 @@ describe('handleAuthStatus', () => {
     const res = await handleAuthStatus(makeRequest());
     const body = await res.json();
     expect(body.signedIn).toBe(false);
-    expect(body.email).toBeNull();
+    expect(body.email).toBeUndefined();
   });
 
   it('sets cache-control: no-store on the response', async () => {
