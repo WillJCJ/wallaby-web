@@ -41,6 +41,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
     needs: lint
     runs-on: ubuntu-latest
+    environment: Preview
     outputs:
       alias: ${{ steps.preview-meta.outputs.alias }}
       preview_url: ${{ steps.preview-meta.outputs.preview_url }}
