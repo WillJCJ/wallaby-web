@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { apiFetch } from '../scripts/api-utils.js';
 
-global.fetch = vi.fn();
+vi.stubGlobal('fetch', vi.fn());
 
 describe('apiFetch', () => {
   afterEach(() => {
