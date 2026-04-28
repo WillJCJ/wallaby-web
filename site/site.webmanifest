@@ -1,0 +1,23 @@
+{
+  "name": "Wallaby Fest",
+  "short_name": "Wallaby Fest",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ecf0f1",
+  "theme_color": "#ecf0f1",
+  "icons": [
+    {
+      "src": "/images/logos/logo_white_bg.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/logo_white_bg.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

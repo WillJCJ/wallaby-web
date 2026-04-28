@@ -13,11 +13,16 @@ const printUsage = () => {
 };
 
 const parseEnvArg = (argv) => {
-  for (let i = 0; i < argv.length; i += 1) {
-    const token = argv[i];
+  let readNextAsEnv = false;
+
+  for (const token of argv) {
+    if (readNextAsEnv) {
+      return token || null;
+    }
 
     if (token === '--env' || token === '-e') {
-      return argv[i + 1] || null;
+      readNextAsEnv = true;
+      continue;
     }
 
     if (token.startsWith('--env=')) {
@@ -31,7 +36,7 @@ const parseEnvArg = (argv) => {
 const normaliseEnvironment = (value) => {
   const env = String(value || '').trim().toLowerCase();
 
-  if (env === 'prod') return 'production';
+  if (env === 'prod') {return 'production';}
   return env;
 };
 

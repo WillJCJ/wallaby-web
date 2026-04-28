@@ -3,6 +3,7 @@ layout: layouts/base.html
 title: Not Found - Wallaby Fest
 permalink: /404.html
 ---
+
 <section class="cards">
   <article class="card">
     <h2>Why are you here? Page not found</h2>
@@ -10,10 +11,20 @@ permalink: /404.html
     <p><a href="/">Back to home</a></p>
     <img
       src="/images/wallabies/andrew-snoozing-960w.webp"
-      srcset="/images/wallabies/andrew-snoozing-480w.webp 480w, /images/wallabies/andrew-snoozing-960w.webp 960w, /images/wallabies/andrew-snoozing-1920w.webp 1920w"
+      srcset="
+        /images/wallabies/andrew-snoozing-480w.webp   480w,
+        /images/wallabies/andrew-snoozing-960w.webp   960w,
+        /images/wallabies/andrew-snoozing-1920w.webp 1920w
+      "
       sizes="(max-width: 640px) calc(100vw - 4rem), 640px"
       alt="Andrew the wallaby snoozing on a white blanket"
-      style="display: block; width: 100%; height: auto; margin-top: 1rem; border-radius: 8px;"
-    >
+      style="
+        display: block;
+        width: 100%;
+        height: auto;
+        margin-top: 1rem;
+        border-radius: 8px;
+      "
+    />
   </article>
 </section>

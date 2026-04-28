@@ -2,6 +2,7 @@
 layout: layouts/base.html
 title: Guest Admin - Wallaby Fest
 ---
+
 <div class="page-intro">
   <h2>Guest Admin</h2>
   <p>View and add guest records. Admin users only.</p>
@@ -15,10 +16,10 @@ title: Guest Admin - Wallaby Fest
     <div class="admin-requests-table-wrap">
       <table class="admin-guests-table admin-requests-table">
         <colgroup>
-          <col class="admin-request-col admin-request-col--name">
-          <col class="admin-request-col admin-request-col--email">
-          <col class="admin-request-col admin-request-col--requested">
-          <col class="admin-request-col admin-request-col--actions">
+          <col class="admin-request-col admin-request-col--name" />
+          <col class="admin-request-col admin-request-col--email" />
+          <col class="admin-request-col admin-request-col--requested" />
+          <col class="admin-request-col admin-request-col--actions" />
         </colgroup>
         <thead>
           <tr>
@@ -38,9 +39,13 @@ title: Guest Admin - Wallaby Fest
           <details class="admin-request-item" name="admin-request-item">
             <summary class="admin-request-summary">
               <span class="admin-request-name"></span>
-              <span class="admin-request-summary-email admin-request-column-email"></span>
+              <span
+                class="admin-request-summary-email admin-request-column-email"
+              ></span>
               <span class="admin-request-time"></span>
-              <span class="admin-request-summary-actions admin-request-column-actions">
+              <span
+                class="admin-request-summary-actions admin-request-column-actions"
+              >
                 <button
                   type="button"
                   class="login-button admin-request-create-button admin-request-create-button--summary"
@@ -81,23 +86,52 @@ title: Guest Admin - Wallaby Fest
   <div class="admin-rsvp-stats" id="admin-rsvp-stats" hidden>
     <p class="admin-rsvp-total" id="admin-rsvp-total"></p>
     <div class="admin-rsvp-bar" id="admin-rsvp-bar">
-      <div class="admin-rsvp-seg admin-rsvp-seg--yes" id="admin-rsvp-seg-yes" hidden></div>
-      <div class="admin-rsvp-seg admin-rsvp-seg--pending" id="admin-rsvp-seg-pending" hidden></div>
-      <div class="admin-rsvp-seg admin-rsvp-seg--no" id="admin-rsvp-seg-no" hidden></div>
+      <div
+        class="admin-rsvp-seg admin-rsvp-seg--yes"
+        id="admin-rsvp-seg-yes"
+        hidden
+      ></div>
+      <div
+        class="admin-rsvp-seg admin-rsvp-seg--pending"
+        id="admin-rsvp-seg-pending"
+        hidden
+      ></div>
+      <div
+        class="admin-rsvp-seg admin-rsvp-seg--no"
+        id="admin-rsvp-seg-no"
+        hidden
+      ></div>
     </div>
   </div>
 
   <section class="admin-add-panel" id="admin-add-panel" hidden>
-    <p class="private-status admin-form-status" id="guest-admin-form-status" hidden aria-live="polite"></p>
-    <button type="button" class="login-button" id="guest-admin-toggle">Add guest</button>
+    <p
+      class="private-status admin-form-status"
+      id="guest-admin-form-status"
+      hidden
+      aria-live="polite"
+    ></p>
+    <button type="button" class="login-button" id="guest-admin-toggle">
+      Add guest
+    </button>
 
-    <form class="guest-profile-form admin-guest-form-compact" id="guest-admin-form" hidden>
+    <form
+      class="guest-profile-form admin-guest-form-compact"
+      id="guest-admin-form"
+      hidden
+    >
       <h3>Create Guest</h3>
 
       <div class="admin-form-row">
         <div class="admin-form-field">
           <label for="admin-guest-name">Name</label>
-          <input id="admin-guest-name" name="name" type="text" required maxlength="120">
+          <input
+            id="admin-guest-name"
+            name="name"
+            type="text"
+            required
+            maxlength="120"
+          />
         </div>
         <div class="admin-form-field">
           <label for="admin-guest-rsvp">RSVP</label>
@@ -112,23 +146,42 @@ title: Guest Admin - Wallaby Fest
       <div class="admin-form-row">
         <div class="admin-form-field">
           <label for="admin-guest-email">Email</label>
-          <input id="admin-guest-email" name="email" type="email" required maxlength="320">
+          <input
+            id="admin-guest-email"
+            name="email"
+            type="email"
+            required
+            maxlength="320"
+          />
         </div>
         <div class="admin-form-field admin-form-field--narrow">
           <label for="admin-guest-additional-guests">Extra guests</label>
-          <input id="admin-guest-additional-guests" name="additionalGuests" type="number" min="0" step="1" value="0">
+          <input
+            id="admin-guest-additional-guests"
+            name="additionalGuests"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+          />
         </div>
       </div>
 
       <div class="admin-add-form-actions">
-        <button type="submit" class="login-button" id="guest-admin-submit">Create</button>
-        <button type="button" class="login-button" id="guest-admin-cancel">Cancel</button>
+        <button type="submit" class="login-button" id="guest-admin-submit">
+          Create
+        </button>
+        <button type="button" class="login-button" id="guest-admin-cancel">
+          Cancel
+        </button>
       </div>
     </form>
   </section>
 
   <div class="admin-guests-list" id="admin-guests-list" hidden>
-    <p class="admin-guest-empty" id="admin-guest-empty" hidden>No guests found.</p>
+    <p class="admin-guest-empty" id="admin-guest-empty" hidden>
+      No guests found.
+    </p>
     <div class="admin-guests-table-wrap" id="admin-guests-table-wrap">
       <table class="admin-guests-table">
         <thead>
@@ -152,10 +205,17 @@ title: Guest Admin - Wallaby Fest
       <td class="admin-col-number admin-guest-count-cell"></td>
       <td class="admin-col-actions admin-col-access">
         <span class="admin-access-state"></span>
-        <button type="button" class="login-button admin-guest-access-button"></button>
+        <button
+          type="button"
+          class="login-button admin-guest-access-button"
+        ></button>
       </td>
       <td class="admin-col-sync admin-guest-sync-cell">
-        <span class="admin-sync-icon admin-sync-icon-ok admin-guest-sync-ok" hidden>✓</span>
+        <span
+          class="admin-sync-icon admin-sync-icon-ok admin-guest-sync-ok"
+          hidden
+          >✓</span
+        >
         <span class="admin-sync-tooltip-wrap admin-guest-sync-warning" hidden>
           <button type="button" class="admin-sync-tooltip-trigger">⚠</button>
           <span class="admin-sync-tooltip"></span>
@@ -165,23 +225,37 @@ title: Guest Admin - Wallaby Fest
     <tr class="admin-guest-detail-row" hidden>
       <td class="admin-guest-detail-cell" colspan="5">
         <div class="admin-guest-detail-view">
-          <p class="admin-guest-detail-item"><strong>Email: </strong><span class="admin-guest-detail-email"></span></p>
           <p class="admin-guest-detail-item">
-            <strong>Dietary requirements: </strong><span class="admin-guest-detail-dietary"></span>
+            <strong>Email: </strong
+            ><span class="admin-guest-detail-email"></span>
           </p>
           <p class="admin-guest-detail-item">
-            <strong>RSVP message: </strong><span class="admin-guest-detail-rsvp-message"></span>
+            <strong>Dietary requirements: </strong
+            ><span class="admin-guest-detail-dietary"></span>
+          </p>
+          <p class="admin-guest-detail-item">
+            <strong>RSVP message: </strong
+            ><span class="admin-guest-detail-rsvp-message"></span>
           </p>
           <p class="admin-guest-detail-item admin-guest-detail-lastseen">
             <span class="admin-guest-detail-lastseen-main"
-              ><strong>Last seen: </strong><span class="admin-guest-last-seen-value">Loading...</span></span
+              ><strong>Last seen: </strong
+              ><span class="admin-guest-last-seen-value">Loading...</span></span
             >
             <span class="admin-guest-detail-id-inline"></span>
           </p>
           <p class="admin-guest-debug" hidden></p>
           <div class="admin-guest-detail-actions">
-            <button type="button" class="login-button admin-guest-edit-button admin-guest-edit-trigger">Edit</button>
-            <button type="button" class="login-button admin-guest-edit-button admin-guest-delete-trigger">
+            <button
+              type="button"
+              class="login-button admin-guest-edit-button admin-guest-edit-trigger"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="login-button admin-guest-edit-button admin-guest-delete-trigger"
+            >
               Delete
             </button>
           </div>
@@ -189,11 +263,21 @@ title: Guest Admin - Wallaby Fest
         <div class="admin-guest-edit-form" hidden>
           <label class="admin-guest-edit-field">
             <span>Name</span>
-            <input class="admin-guest-edit-name" type="text" maxlength="120" required>
+            <input
+              class="admin-guest-edit-name"
+              type="text"
+              maxlength="120"
+              required
+            />
           </label>
           <label class="admin-guest-edit-field">
             <span>Email</span>
-            <input class="admin-guest-edit-email" type="email" maxlength="320" required>
+            <input
+              class="admin-guest-edit-email"
+              type="email"
+              maxlength="320"
+              required
+            />
           </label>
           <label class="admin-guest-edit-field">
             <span>RSVP</span>
@@ -205,19 +289,40 @@ title: Guest Admin - Wallaby Fest
           </label>
           <label class="admin-guest-edit-field">
             <span>Additional guests</span>
-            <input class="admin-guest-edit-additional" type="number" min="0" step="1">
+            <input
+              class="admin-guest-edit-additional"
+              type="number"
+              min="0"
+              step="1"
+            />
           </label>
           <label class="admin-guest-edit-field">
             <span>Dietary requirements</span>
-            <input class="admin-guest-edit-dietary" type="text" maxlength="600">
+            <input
+              class="admin-guest-edit-dietary"
+              type="text"
+              maxlength="600"
+            />
           </label>
           <label class="admin-guest-edit-field">
             <span>RSVP message</span>
-            <input class="admin-guest-edit-rsvp-message" type="text" maxlength="1000">
+            <input
+              class="admin-guest-edit-rsvp-message"
+              type="text"
+              maxlength="1000"
+            />
           </label>
           <div class="admin-guest-edit-actions">
-            <button type="button" class="login-button admin-guest-edit-button admin-guest-save-button">Save</button>
-            <button type="button" class="login-button admin-guest-edit-button admin-guest-cancel-edit-button">
+            <button
+              type="button"
+              class="login-button admin-guest-edit-button admin-guest-save-button"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              class="login-button admin-guest-edit-button admin-guest-cancel-edit-button"
+            >
               Cancel
             </button>
           </div>
@@ -228,11 +333,19 @@ title: Guest Admin - Wallaby Fest
 
   <section class="admin-sync-panel" id="admin-sync-panel" hidden>
     <h3>Access Policy Sync</h3>
-    <p class="admin-sync-summary" id="admin-sync-summary">Checking sync status...</p>
+    <p class="admin-sync-summary" id="admin-sync-summary">
+      Checking sync status...
+    </p>
     <div class="admin-sync-actions">
-      <button type="button" class="login-button" id="admin-sync-run">Run sync</button>
-      <button type="button" class="login-button" id="admin-sync-dry-run">Dry run</button>
-      <button type="button" class="login-button" id="admin-sync-refresh">Refresh status</button>
+      <button type="button" class="login-button" id="admin-sync-run">
+        Run sync
+      </button>
+      <button type="button" class="login-button" id="admin-sync-dry-run">
+        Dry run
+      </button>
+      <button type="button" class="login-button" id="admin-sync-refresh">
+        Refresh status
+      </button>
     </div>
   </section>
 </section>

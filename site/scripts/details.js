@@ -1,12 +1,14 @@
-import { apiFetch } from '/scripts/api-utils.js';
+import { apiFetch } from './utils/api.js';
+import { getAuth } from './shared/auth-state.js';
+import { byId } from './shared/dom.js';
 
 (() => {
-  const section = document.getElementById('private-details');
-  const status = document.getElementById('private-status');
-  const list = document.getElementById('private-list');
-  const address = document.getElementById('private-address');
-  const gateCode = document.getElementById('private-gate-code');
-  const auth = window.WallabyAuth;
+  const section = byId('private-details');
+  const status = byId('private-status');
+  const list = byId('private-list');
+  const address = byId('private-address');
+  const gateCode = byId('private-gate-code');
+  const auth = getAuth();
 
   if (!section || !status || !list || !address || !gateCode) {
     return;

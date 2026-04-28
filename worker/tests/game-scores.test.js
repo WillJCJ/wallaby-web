@@ -21,9 +21,9 @@ const makeDb = ({
       bind() {
         return {
           first: async () => {
-            if (sql.includes('FROM game_runs')) return runRow;
-            if (sql.includes('FROM guests')) return guestRow;
-            if (sql.includes('FROM game_high_scores')) return myBestRow;
+            if (sql.includes('FROM game_runs')) {return runRow;}
+            if (sql.includes('FROM guests')) {return guestRow;}
+            if (sql.includes('FROM game_high_scores')) {return myBestRow;}
             return null;
           },
           all: async () => {
@@ -33,8 +33,8 @@ const makeDb = ({
             return { results: [] };
           },
           run: async () => {
-            if (sql.includes('UPDATE game_runs')) return updateRunResult;
-            if (sql.includes('INSERT INTO game_scores')) return updateScoreResult;
+            if (sql.includes('UPDATE game_runs')) {return updateRunResult;}
+            if (sql.includes('INSERT INTO game_scores')) {return updateScoreResult;}
             return { success: true };
           },
         };

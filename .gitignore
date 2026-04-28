@@ -237,3 +237,5 @@ terraform.rc
 .dev.vars.*
 
 .vscode/*
+
+.lighthouseci/*

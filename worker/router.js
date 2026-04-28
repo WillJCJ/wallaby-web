@@ -17,15 +17,23 @@ import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
 // Parse a Range header value (e.g. "bytes=0-1023") into R2 get() options.
 const parseRange = (header) => {
   const match = /^bytes=(\d+)-(\d*)$/.exec(header);
-  if (!match) return {};
+  if (!match) {return {};}
   const offset = parseInt(match[1], 10);
   const end = match[2] ? parseInt(match[2], 10) : undefined;
   return end !== undefined ? { offset, length: end - offset + 1 } : { offset };
 };
 
+const getVideoMimeType = (extension) => {
+  if (extension === 'mp4') {return 'video/mp4';}
+  if (extension === 'webm') {return 'video/webm';}
+  if (extension === 'mov') {return 'video/quicktime';}
+  return 'video/mp4';
+};
+
 
 
 export default {
+  // eslint-disable-next-line complexity -- Central worker entrypoint intentionally handles all route branches.
   async fetch(request, env, executionCtx) {
     const url = new URL(request.url);
 
@@ -49,15 +57,14 @@ export default {
       }
 
       const extension = segment.split('.').pop()?.toLowerCase() || '';
-      const mimeTypes = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime' };
-      const contentType = object.httpMetadata?.contentType || mimeTypes[extension] || 'video/mp4';
+      const contentType = object.httpMetadata?.contentType || getVideoMimeType(extension);
 
       const headers = new Headers();
       headers.set('content-type', contentType);
       headers.set('accept-ranges', 'bytes');
       headers.set('cache-control', 'public, max-age=3600');
-      if (object.httpEtag) headers.set('etag', object.httpEtag);
-      if (object.size != null) headers.set('content-length', String(object.size));
+      if (object.httpEtag) { headers.set('etag', object.httpEtag); }
+      if (object.size !== null && object.size !== undefined) { headers.set('content-length', String(object.size)); }
 
       if (request.method === 'HEAD') {
         return new Response(null, { status: 200, headers });
@@ -67,9 +74,9 @@ export default {
       if (rangeHeader && object.range) {
         const { offset = 0, length } = object.range;
         const total = object.size ?? '*';
-        const end = length != null ? offset + length - 1 : total - 1;
+        const end = length !== null && length !== undefined ? offset + length - 1 : total - 1;
         headers.set('content-range', `bytes ${offset}-${end}/${total}`);
-        if (length != null) headers.set('content-length', String(length));
+        if (length !== null && length !== undefined) { headers.set('content-length', String(length)); }
       }
 
       return new Response(object.body, { status, headers });
@@ -107,10 +114,10 @@ export default {
       if (isProduction && width !== null && !url.searchParams.has('raw')) {
         const q = url.searchParams.get('q');
         const image = { width };
-        if (q) image.quality = parseInt(q, 10);
+        if (q) {image.quality = parseInt(q, 10);}
         const accept = request.headers.get('accept') || '';
-        if (/image\/avif/.test(accept)) image.format = 'avif';
-        else if (/image\/webp/.test(accept)) image.format = 'webp';
+        if (/image\/avif/.test(accept)) {image.format = 'avif';}
+        else if (/image\/webp/.test(accept)) {image.format = 'webp';}
         const rawUrl = new URL(request.url);
         rawUrl.searchParams.set('raw', '1');
         return fetch(rawUrl.toString(), { cf: { image } });

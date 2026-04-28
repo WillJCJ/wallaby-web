@@ -1,3 +1,9 @@
+import { createOnlineHelpers } from './features/game/online.js';
+import { createSpawnHelpers } from './features/game/spawn.js';
+import { setupGameInput } from './features/game/input.js';
+import { createRunFlow } from './features/game/run-flow.js';
+import { getAuth } from './shared/auth-state.js';
+
 (() => {
   const canvas = document.getElementById('wallaby-game-canvas');
   const scoreEl = document.getElementById('wallaby-game-score');
@@ -6,8 +12,6 @@
   const onlineStatusEl = document.getElementById('wallaby-game-online-status');
   const topScoresEl = document.getElementById('wallaby-game-top-scores');
   const signInWarningEl = document.getElementById('wallaby-game-signin-warning');
-  let btnHeld = false;
-  let lastTouchInteractionAt = 0;
 
   if (!canvas || !canvas.getContext) {
     return;
@@ -199,6 +203,7 @@
   const buildActiveColours = (nightBlend) => {
     const active = {};
     Object.keys(COLOURS_DAY).forEach((key) => {
+      // eslint-disable-next-line security/detect-object-injection -- Keys come from internal static palette constants.
       active[key] = interpolateColour(COLOURS_DAY[key], COLOURS_NIGHT[key], nightBlend);
     });
     return active;
@@ -244,431 +249,56 @@
   }
   bestEl.textContent = state.best;
 
-  let isSignedIn = false;
-  let runCounter = 0;
-  let activeRun = null;
-
-  const clearOnlineStatus = () => {
-    if (!onlineStatusEl) return;
-    onlineStatusEl.hidden = true;
-    onlineStatusEl.textContent = '';
-    onlineStatusEl.className = 'wallaby-game__online-status';
-  };
-
-  const showOnlineStatusError = (message) => {
-    if (!onlineStatusEl) return;
-    onlineStatusEl.textContent = message;
-    onlineStatusEl.hidden = false;
-    onlineStatusEl.className = 'wallaby-game__online-status wallaby-game__online-status--error';
-  };
-
-  const renderSignInWarning = () => {
-    if (!signInWarningEl) return;
-    signInWarningEl.hidden = isSignedIn;
-  };
-
-  const normaliseLeaderboard = (payload) => {
-    if (!payload || !Array.isArray(payload.leaderboard)) {
-      return [];
-    }
-
-    return payload.leaderboard
-      .map((row) => ({
-        displayName: typeof row.displayName === 'string' ? row.displayName : 'Guest',
-        score: Number.parseInt(row.score, 10) || 0,
-        isViewer: Boolean(row.isViewer),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, TOP_SCORES_LIMIT);
-  };
-
-  const renderLeaderboard = (rows) => {
-    if (!topScoresEl) return;
-    topScoresEl.textContent = '';
-
-    if (!rows.length) {
-      const empty = document.createElement('li');
-      empty.className = 'wallaby-game__empty';
-      empty.textContent = 'No online scores yet.';
-      topScoresEl.appendChild(empty);
-      return;
-    }
-
-    rows.forEach((row) => {
-      const li = document.createElement('li');
-      const name = document.createElement('span');
-      const score = document.createElement('span');
-      name.className = 'wallaby-game__score-name';
-      if (row.isViewer) {
-        name.classList.add('wallaby-game__score-name--mine');
-      }
-      name.textContent = row.displayName;
-      score.className = 'wallaby-game__score-value';
-      score.textContent = String(row.score);
-      li.append(name, score);
-      topScoresEl.appendChild(li);
-    });
-  };
-
-  const apiJson = async (url, options = {}) => {
-    const response = await fetch(url, {
-      credentials: 'same-origin',
-      cache: 'no-store',
-      ...options,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed (${response.status})`);
-    }
-
-    return response.json().catch(() => ({}));
-  };
-
-  const refreshOnlineScores = async () => {
-    try {
-      const payload = await apiJson(HIGH_SCORES_ENDPOINT, {
-        method: 'GET',
-        headers: { accept: 'application/json' },
-      });
-      renderLeaderboard(normaliseLeaderboard(payload));
-      clearOnlineStatus();
-    } catch {
-      showOnlineStatusError('Online leaderboard is unavailable.');
-    }
-  };
-
-  const startRunSync = async (run) => {
-    if (!isSignedIn || !run) {
-      return;
-    }
-
-    try {
-      const payload = await apiJson(START_RUN_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          accept: 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (activeRun && activeRun.token === run.token && typeof payload.runId === 'string') {
-        activeRun.runId = payload.runId;
-      }
-    } catch {
-      showOnlineStatusError('Could not start online run sync.');
-    }
-  };
-
-  const finishRunSync = async (run, score, durationMs) => {
-    if (!run || run.finished) {
-      return;
-    }
-    run.finished = true;
-
-    if (!isSignedIn) {
-      return;
-    }
-
-    if (!run.runId) {
-      showOnlineStatusError('Could not submit score online.');
-      return;
-    }
-
-    try {
-      const payload = await apiJson(
-        `/api/private/game/runs/${encodeURIComponent(run.runId)}/finish`,
-        {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            accept: 'application/json',
-          },
-          body: JSON.stringify({ score, durationMs }),
-        }
-      );
-
-      renderLeaderboard(normaliseLeaderboard(payload));
-      clearOnlineStatus();
-    } catch {
-      showOnlineStatusError('Could not submit score online.');
-    }
-  };
+  const online = createOnlineHelpers({
+    onlineStatusEl,
+    signInWarningEl,
+    topScoresEl,
+    topScoresLimit: TOP_SCORES_LIMIT,
+    highScoresEndpoint: HIGH_SCORES_ENDPOINT,
+    startRunEndpoint: START_RUN_ENDPOINT,
+    getAuth,
+  });
 
   const randomBetween = (min, max) => min + Math.random() * (max - min);
-
-  const spawnCloud = (x) => {
-    state.clouds.push({
-      x: x ?? WIDTH + randomBetween(20, 120),
-      y: randomBetween(20, 90),
-      scale: randomBetween(0.6, 1.1),
-      speed: randomBetween(30, 55),
-    });
-  };
-
-  const spawnTree = (x) => {
-    state.trees.push({
-      x: x ?? WIDTH + randomBetween(40, 180),
-      // Trees sit on the horizon line (top of grass strip).
-      baseY: GROUND_Y + randomBetween(-2, 4),
-      scale: randomBetween(0.7, 1.15),
-      speed: randomBetween(55, 75),
-      variant: Math.random() < 0.5 ? 0 : 1,
-    });
-  };
-
-  const spawnCamp = (x) => {
-    state.camps.push({
-      x: x ?? WIDTH + randomBetween(80, 240),
-      baseY: GROUND_Y + randomBetween(-1, 3),
-      scale: randomBetween(0.9, 1.15),
-      speed: randomBetween(55, 75),
-      flicker: Math.random() * Math.PI * 2,
-    });
-  };
-
-  const spawnQuailGroup = (x) => {
-    const groupX = x ?? WIDTH + randomBetween(40, 180);
-    const count = 3 + Math.floor(Math.random() * 3);
-    const speed = randomBetween(55, 75);
-    const scale = randomBetween(0.7, 1.0);
-    for (let i = 0; i < count; i++) {
-      state.quails.push({
-        x: groupX + i * randomBetween(10, 16),
-        baseY: GROUND_Y + randomBetween(-2, 4),
-        scale: scale * randomBetween(0.85, 1.1),
-        speed,
-        bobPhase: Math.random() * Math.PI * 2,
-      });
-    }
-  };
-
-  const spawnObstacle = () => {
-    // Mix goats with the occasional hopping chicken.
-    const isChicken = Math.random() < 0.3;
-    if (isChicken) {
-      const scale = randomBetween(0.7, 1.0);
-      const width = 30 * scale;
-      const height = 26 * scale;
-      state.obstacles.push({
-        type: 'chicken',
-        x: WIDTH + 20,
-        width,
-        height,
-        scale,
-        legPhase: Math.random() * Math.PI * 2,
-        hopPhase: Math.random() * Math.PI * 2,
-      });
-    } else {
-      const scale = randomBetween(0.5, 1.5);
-      const width = 44 * scale;
-      const height = 34 * scale;
-      state.obstacles.push({
-        type: 'goat',
-        x: WIDTH + 20,
-        width,
-        height,
-        scale,
-        legPhase: Math.random() * Math.PI * 2,
-      });
-    }
-    // Gap scales with speed so faster runs keep the same rhythm.
-    const minGap = Math.max(0.6, 260 / state.speed);
-    const maxGap = Math.max(1.1, 520 / state.speed);
-    state.nextObstacleIn = randomBetween(minGap, maxGap);
-  };
-
-  const resetRun = () => {
-    state.time = 0;
-    state.speed = START_SPEED;
-    state.score = 0;
-    state.lastRunWasHighScore = false;
-    state.obstacles.length = 0;
-    state.clouds.length = 0;
-    state.trees.length = 0;
-    state.camps.length = 0;
-    state.quails.length = 0;
-    state.wallaby.y = GROUND_Y;
-    state.wallaby.vy = 0;
-    state.wallaby.grounded = true;
-    state.wallaby.legPhase = 0;
-    state.groundOffset = 0;
-    state.nextObstacleIn = 0.8;
-    state.nightBlend = 0;
-    for (let i = 0; i < 3; i++) {
-      spawnCloud(randomBetween(0, WIDTH));
-    }
-    for (let i = 0; i < 4; i++) {
-      spawnTree(randomBetween(0, WIDTH));
-    }
-  };
-
-  const jump = () => {
-    if (!state.wallaby.grounded) return;
-    state.wallaby.vy = JUMP_VELOCITY;
-    state.wallaby.grounded = false;
-  };
-
-  const startGame = () => {
-    resetRun();
-    state.status = 'running';
-    if (jumpBtn) {
-      jumpBtn.textContent = 'Jump';
-      jumpBtn.setAttribute('aria-label', 'Jump');
-    }
-    jump();
-
-    runCounter += 1;
-    activeRun = {
-      token: runCounter,
-      runId: null,
-      finished: false,
-    };
-    void startRunSync(activeRun);
-  };
-
-  const endGame = () => {
-    state.status = 'over';
-    const finalScore = Math.floor(state.score);
-    const hasNewHighScore = finalScore > state.best;
-    const runToFinish = activeRun;
-    activeRun = null;
-    if (hasNewHighScore) {
-      state.best = finalScore;
-      bestEl.textContent = state.best;
-      try {
-        localStorage.setItem(BEST_KEY, String(state.best));
-      } catch {
-        // ignore storage errors
-      }
-    }
-    state.lastRunWasHighScore = hasNewHighScore;
-    if (jumpBtn) {
-      jumpBtn.textContent = 'Restart';
-      jumpBtn.setAttribute('aria-label', 'Restart game');
-    }
-
-    void finishRunSync(runToFinish, finalScore, Math.max(0, Math.round(state.time * 1000)));
-  };
-
-  const handleInput = (event) => {
-    if (event) {
-      event.preventDefault();
-    }
-    if (state.status === 'running') {
-      jump();
-    } else {
-      startGame();
-    }
-  };
-
-  // Track recent touch input so we only blur focus that came from tapping on mobile.
-  const markTouchInteraction = (event) => {
-    if (event?.pointerType && event.pointerType !== 'mouse') {
-      lastTouchInteractionAt = Date.now();
-    }
-  };
-
-  const clearTouchFocus = (event) => {
-    if (!event?.pointerType || event.pointerType === 'mouse') {
-      return;
-    }
-
-    lastTouchInteractionAt = Date.now();
-
-    if (event.currentTarget instanceof HTMLElement) {
-      // Android browsers may assign focus after pointer events, so blur on the next frame.
-      requestAnimationFrame(() => {
-        event.currentTarget.blur();
-      });
-    }
-  };
-
-  const blurOnTouchFocus = (element) => {
-    // Catch the cases where Chrome/Brave focus the control after the pointer handlers have run.
-    element.addEventListener('focus', () => {
-      if (Date.now() - lastTouchInteractionAt > 500) {
-        return;
-      }
-
-      requestAnimationFrame(() => {
-        element.blur();
-      });
-    });
-  };
-
-  const pressInput = (e) => {
-    if (e) e.preventDefault();
-    clearTouchFocus(e);
-    btnHeld = true;
-    if (jumpBtn) jumpBtn.classList.add('is-pressed');
-    if (state.status !== 'running' || state.wallaby.grounded) {
-      handleInput(e);
-    }
-  };
-
-  const releaseInput = (event) => {
-    clearTouchFocus(event);
-    btnHeld = false;
-    if (jumpBtn) jumpBtn.classList.remove('is-pressed');
-  };
-
-  blurOnTouchFocus(canvas);
-  if (jumpBtn) {
-    blurOnTouchFocus(jumpBtn);
-  }
-
-  const isJumpKey = (key) => key === ' ' || key === 'ArrowUp' || key === 'Enter';
-
-  const holdInput = (event) => {
-    if (event) event.preventDefault();
-    btnHeld = true;
-    if (jumpBtn) jumpBtn.classList.add('is-pressed');
-  };
-
-  canvas.addEventListener('pointerdown', markTouchInteraction);
-  canvas.addEventListener('pointerdown', pressInput);
-  canvas.addEventListener('pointerup', releaseInput);
-  canvas.addEventListener('pointercancel', releaseInput);
-  if (jumpBtn) {
-    jumpBtn.addEventListener('pointerdown', markTouchInteraction);
-    jumpBtn.addEventListener('pointerdown', pressInput);
-    jumpBtn.addEventListener('pointerup', releaseInput);
-    jumpBtn.addEventListener('pointercancel', releaseInput);
-    jumpBtn.addEventListener('pointerleave', releaseInput);
-  }
-  canvas.addEventListener('keydown', (event) => {
-    if (!isJumpKey(event.key)) return;
-    if (event.repeat) {
-      holdInput(event);
-      return;
-    }
-    pressInput(event);
+  const {
+    spawnCloud,
+    spawnTree,
+    spawnCamp,
+    spawnQuailGroup,
+    spawnObstacle,
+  } = createSpawnHelpers({
+    state,
+    width: WIDTH,
+    groundY: GROUND_Y,
+    randomBetween,
   });
-  canvas.addEventListener('keyup', (event) => {
-    if (!isJumpKey(event.key)) return;
-    releaseInput();
+  const runFlow = createRunFlow({
+    state,
+    startSpeed: START_SPEED,
+    groundY: GROUND_Y,
+    jumpVelocity: JUMP_VELOCITY,
+    width: WIDTH,
+    randomBetween,
+    spawnCloud,
+    spawnTree,
+    jumpBtn,
+    bestEl,
+    bestKey: BEST_KEY,
+    online,
   });
-  window.addEventListener('keydown', (event) => {
-    if (document.activeElement === canvas) return;
-    if (event.target !== document.body) return;
-    if (!isJumpKey(event.key)) return;
-    if (event.repeat) {
-      holdInput(event);
-      return;
-    }
-    pressInput(event);
+
+  const inputState = setupGameInput({
+    canvas,
+    jumpBtn,
+    shouldTriggerAction: () => state.status !== 'running' || state.wallaby.grounded,
+    onAction: runFlow.handleInput,
   });
-  window.addEventListener('keyup', (event) => {
-    if (!isJumpKey(event.key)) return;
-    releaseInput();
-  });
-  window.addEventListener('blur', releaseInput);
 
   const rectsOverlap = (ax, ay, aw, ah, bx, by, bw, bh) => (
     ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by
   );
 
+  // eslint-disable-next-line complexity -- Core game loop intentionally coordinates physics, spawning, scoring, and collisions.
   const update = (dt) => {
     const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
     const isNight = scorePhase > HALF_DAY_NIGHT_CYCLE;
@@ -685,10 +315,10 @@
       // Drift scenery gently on the title/game-over screen.
       state.clouds.forEach((c) => { c.x -= c.speed * 0.3 * dt; });
       state.clouds = state.clouds.filter((c) => c.x + 60 > 0);
-      while (state.clouds.length < 3) spawnCloud();
+      while (state.clouds.length < 3) {spawnCloud();}
       state.trees.forEach((t) => { t.x -= t.speed * 0.3 * dt; });
       state.trees = state.trees.filter((t) => t.x + 60 > 0);
-      while (state.trees.length < 4) spawnTree();
+      while (state.trees.length < 4) {spawnTree();}
       state.camps.forEach((c) => { c.x -= c.speed * 0.3 * dt; c.flicker += dt * 6; });
       state.camps = state.camps.filter((c) => c.x + 80 > 0);
       state.quails.forEach((q) => { q.x -= q.speed * 0.3 * dt; q.bobPhase += dt * 8; });
@@ -709,9 +339,9 @@
       w.y = GROUND_Y;
       w.vy = 0;
       w.grounded = true;
-      if (btnHeld) {
-        jump();
-        if (jumpBtn) jumpBtn.classList.add('is-pressed');
+      if (inputState.held) {
+        runFlow.jump();
+        if (jumpBtn) {jumpBtn.classList.add('is-pressed');}
       }
     }
     if (w.grounded) {
@@ -774,7 +404,7 @@
       const hop = o.type === 'chicken' ? Math.max(0, Math.sin(o.hopPhase)) * 27 : 0;
       const oy = GROUND_Y - o.height - hop;
       if (rectsOverlap(wx, wy, ww, wh, ox, oy, o.width, o.height)) {
-        endGame();
+        runFlow.endGame();
         break;
       }
     }
@@ -1302,7 +932,7 @@
   };
 
   const drawOverlay = () => {
-    if (state.status === 'running') return;
+    if (state.status === 'running') {return;}
     ctx.fillStyle = activeColours.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = activeColours.text;
@@ -1338,40 +968,11 @@
   };
 
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
-  resetRun();
+  runFlow.resetRun();
 
-  const initOnlineScores = () => {
-    clearOnlineStatus();
-    const auth = window.WallabyAuth;
-    const fetchSignedIn = auth?.fetchSignedIn;
-    if (typeof fetchSignedIn !== 'function') {
-      isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
-      renderSignInWarning();
-      void refreshOnlineScores();
-      return;
-    }
+  online.initOnlineScores();
 
-    fetchSignedIn()
-      .then((signedIn) => {
-        isSignedIn = Boolean(signedIn) || Boolean(auth?.getStoredAuthEmail?.());
-        renderSignInWarning();
-      })
-      .catch(() => {
-        isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
-        renderSignInWarning();
-      })
-      .finally(() => {
-        void refreshOnlineScores();
-      });
-  };
-
-  initOnlineScores();
-
-  window.addEventListener('wallabyauth:statechange', (event) => {
-    isSignedIn = Boolean(event?.detail?.email);
-    renderSignInWarning();
-    void refreshOnlineScores();
-  });
+  window.addEventListener('wallabyauth:statechange', online.handleAuthStateChange);
 
   let lastTime = performance.now();
   const loop = (now) => {

@@ -75,7 +75,7 @@ const isValidUuid = (uuid) => {
 };
 
 const recordLastSeen = async (guestId, env) => {
-  if (!env.GUEST_LAST_SEEN_KV) return;
+  if (!env.GUEST_LAST_SEEN_KV) {return;}
   try {
     await env.GUEST_LAST_SEEN_KV.put(
       guestId,
@@ -240,6 +240,7 @@ const handleGuestsSync = async (request, env) => {
   });
 };
 
+// eslint-disable-next-line complexity -- Sync status aggregates DB and Access drift state in one response contract.
 const handleGuestsSyncStatus = async (request, env) => {
   if (request.method !== 'GET') {
     return methodNotAllowed();
@@ -287,7 +288,7 @@ const handleGuestsCollection = async (request, env, adminEmail) => {
 
   if (request.method === 'POST') {
     const { errorResponse, input } = await parseAndValidate(request, validateGuestPayload);
-    if (errorResponse) return errorResponse;
+    if (errorResponse) {return errorResponse;}
 
     const guestId = crypto.randomUUID();
     let insert;
@@ -353,6 +354,7 @@ const deleteGuestWithRelatedRows = async (env, guestId) => {
   return runDeleteByGuestId(env, 'DELETE FROM guests WHERE guest_id = ?', guestId);
 };
 
+// eslint-disable-next-line complexity -- Guest-by-ID handler covers GET/PUT/DELETE methods with auth and validation checks per method.
 const handleGuestById = async (request, env, adminEmail, guestId) => {
   if (!isValidUuid(guestId)) {
     return badRequest('Invalid guest id');
@@ -373,7 +375,7 @@ const handleGuestById = async (request, env, adminEmail, guestId) => {
 
   if (request.method === 'PUT') {
     const { errorResponse, input } = await parseAndValidate(request, validateGuestPayload);
-    if (errorResponse) return errorResponse;
+    if (errorResponse) {return errorResponse;}
 
     const update = await env.GUESTS_DB
       .prepare(
@@ -456,7 +458,7 @@ const handleGuestSelf = async (request, env, authenticatedEmail) => {
     }
 
     const { errorResponse, input } = await parseAndValidate(request, validateGuestSelfPayload, existingGuest);
-    if (errorResponse) return errorResponse;
+    if (errorResponse) {return errorResponse;}
 
     const update = await env.GUESTS_DB
       .prepare(
@@ -558,6 +560,7 @@ const handleSendInvitation = async (request, env, guestId) => {
   return jsonResponse({ success: true, message: 'Invitation queued' });
 };
 
+// eslint-disable-next-line complexity -- Router-style path dispatch is intentionally centralised for guests API.
 export const handleGuestsApi = async (request, env, pathname) => {
   const authResult = await requireAuthenticatedEmail(request, env);
 
@@ -595,13 +598,13 @@ export const handleGuestsApi = async (request, env, pathname) => {
 
   if (parts.length === 5 && parts[4] === 'last-seen') {
     const adminError = requireAdmin(authResult.email, env);
-    if (adminError) return adminError;
+    if (adminError) {return adminError;}
     return handleGetLastSeen(request, env, parts[3]);
   }
 
   if (parts.length === 5 && parts[4] === 'send-invitation') {
     const adminError = requireAdmin(authResult.email, env);
-    if (adminError) return adminError;
+    if (adminError) {return adminError;}
     return handleSendInvitation(request, env, parts[3]);
   }
 

@@ -161,8 +161,8 @@ describe('validateGuestPayload', () => {
   });
 
   it('treats missing optional fields as empty strings', () => {
-    // eslint-disable-next-line no-unused-vars
-    const { dietaryRequirements, rsvpMessage, ...minimal } = valid;
+     
+    const { dietaryRequirements: _dietaryRequirements, rsvpMessage: _rsvpMessage, ...minimal } = valid;
     const result = validateGuestPayload(minimal);
     expect(result.value.dietaryRequirements).toBe('');
     expect(result.value.rsvpMessage).toBe('');
@@ -296,7 +296,7 @@ describe('validateAccessRequestPayload', () => {
   });
 
   it('returns an error when email is too long', () => {
-    const result = validateAccessRequestPayload({ name: 'Alice', email: 'a'.repeat(315) + '@x.com' });
+    const result = validateAccessRequestPayload({ name: 'Alice', email: `${'a'.repeat(315)  }@x.com` });
     expect(result.error).toMatch(/too long/i);
   });
 

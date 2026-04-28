@@ -1,0 +1,262 @@
+{
+  "defaultColourScheme": "minimalist",
+  "colourSchemes": [
+    {
+      "id": "wallaby-brown",
+      "name": "Original scheme",
+      "tokens": {
+        "tonePrimary": "#7b3c20",
+        "toneAccent": "#dbb957",
+        "toneInk": "#605a57",
+        "toneSecondary": "#683823",
+        "toneLink": "#7abbae",
+        "toneSoft": "#d1d5db",
+        "toneLinkHover": "#95d2c6",
+        "bg": "#e7dfd7",
+        "bgSurface": "#7b3c20",
+        "bgCard": "#683823",
+        "text": "#d1d5db",
+        "textOnAccent": "#605a57",
+        "accent": "#dbb957",
+        "success": "#39b970",
+        "failure": "#d24a3f",
+        "caution": "#e0b24f"
+      }
+    },
+    {
+      "id": "warm-sunset",
+      "name": "Warm Sunset",
+      "tokens": {
+        "tonePrimary": "#d97d3e",
+        "toneAccent": "#ffd700",
+        "toneInk": "#2d1810",
+        "toneSecondary": "#c24a1f",
+        "toneLink": "#f4a460",
+        "toneSoft": "#fff8e7",
+        "toneLinkHover": "#ffb366",
+        "bg": "#fff8e7",
+        "bgSurface": "#d97d3e",
+        "bgCard": "#c24a1f",
+        "text": "#ffe4b5",
+        "textOnAccent": "#fff8e7",
+        "accent": "#ffd700",
+        "success": "#2fbf71",
+        "failure": "#e84855",
+        "caution": "#ffd166"
+      }
+    },
+    {
+      "id": "cool-teal",
+      "name": "Cool Teal",
+      "tokens": {
+        "tonePrimary": "#2c7a7b",
+        "toneAccent": "#fbbf24",
+        "toneInk": "#1f2937",
+        "toneSecondary": "#0d9488",
+        "toneLink": "#5eead4",
+        "toneSoft": "#ecfdf5",
+        "toneLinkHover": "#7ee8d4",
+        "bg": "#ecfdf5",
+        "bgSurface": "#2c7a7b",
+        "bgCard": "#0d9488",
+        "text": "#d1fae5",
+        "textOnAccent": "#ecfdf5",
+        "accent": "#fbbf24",
+        "success": "#14b889",
+        "failure": "#f25f5c",
+        "caution": "#f2b705"
+      }
+    },
+    {
+      "id": "forest-green",
+      "name": "Forest Green",
+      "tokens": {
+        "tonePrimary": "#1f5641",
+        "toneAccent": "#d4a574",
+        "toneInk": "#0f1419",
+        "toneSecondary": "#2d5a42",
+        "toneLink": "#52b788",
+        "toneSoft": "#f0fdf4",
+        "toneLinkHover": "#74c69d",
+        "bg": "#f0fdf4",
+        "bgSurface": "#1f5641",
+        "bgCard": "#2d5a42",
+        "text": "#c7e9c0",
+        "textOnAccent": "#f0fdf4",
+        "accent": "#d4a574",
+        "success": "#2ea44f",
+        "failure": "#d64545",
+        "caution": "#c98a2a"
+      }
+    },
+    {
+      "id": "ocean-blue",
+      "name": "Ocean Blue",
+      "tokens": {
+        "tonePrimary": "#0369a1",
+        "toneAccent": "#fbbf24",
+        "toneInk": "#082f49",
+        "toneSecondary": "#0c4a6e",
+        "toneLink": "#06b6d4",
+        "toneSoft": "#ecf0f1",
+        "toneLinkHover": "#22d3ee",
+        "bg": "#ecf0f1",
+        "bgSurface": "#0369a1",
+        "bgCard": "#0c4a6e",
+        "text": "#bae6fd",
+        "textOnAccent": "#ecf0f1",
+        "accent": "#fbbf24",
+        "success": "#24b47e",
+        "failure": "#ff5a5f",
+        "caution": "#ffb547"
+      }
+    },
+    {
+      "id": "minimalist",
+      "name": "Minimalist",
+      "tokens": {
+        "tonePrimary": "#4b5563",
+        "toneAccent": "#e74c3c",
+        "toneInk": "#2c3e50",
+        "toneSecondary": "#34495e",
+        "toneLink": "#95a5a6",
+        "toneSoft": "#ecf0f1",
+        "toneLinkHover": "#bdc3c7",
+        "bg": "#ecf0f1",
+        "bgSurface": "#4b5563",
+        "bgCard": "#34495e",
+        "text": "#bdc3c7",
+        "textOnAccent": "#ecf0f1",
+        "accent": "#e74c3c",
+        "success": "#22a06b",
+        "failure": "#d14343",
+        "caution": "#c77d2b"
+      }
+    },
+    {
+      "id": "berry",
+      "name": "Berry",
+      "tokens": {
+        "tonePrimary": "#5b21b6",
+        "toneAccent": "#fcd34d",
+        "toneInk": "#1f1838",
+        "toneSecondary": "#7c3aed",
+        "toneLink": "#c084fc",
+        "toneSoft": "#faf5ff",
+        "toneLinkHover": "#d8b4fe",
+        "bg": "#faf5ff",
+        "bgSurface": "#5b21b6",
+        "bgCard": "#7c3aed",
+        "text": "#e9d5ff",
+        "textOnAccent": "#faf5ff",
+        "accent": "#fcd34d",
+        "success": "#28c76f",
+        "failure": "#ff4d7a",
+        "caution": "#ffb454"
+      }
+    },
+    {
+      "id": "coral",
+      "name": "Coral",
+      "tokens": {
+        "tonePrimary": "#ea580c",
+        "toneAccent": "#fda969",
+        "toneInk": "#3d2817",
+        "toneSecondary": "#dc2626",
+        "toneLink": "#79e7c1",
+        "toneSoft": "#fffbeb",
+        "toneLinkHover": "#a7f3d0",
+        "bg": "#fffbeb",
+        "bgSurface": "#ea580c",
+        "bgCard": "#dc2626",
+        "text": "#fed7aa",
+        "textOnAccent": "#fffbeb",
+        "accent": "#fda969",
+        "success": "#34b96f",
+        "failure": "#c7362e",
+        "caution": "#ffc857"
+      }
+    },
+    {
+      "id": "muted-earth",
+      "name": "Muted Earth",
+      "tokens": {
+        "tonePrimary": "#78716c",
+        "toneAccent": "#c8b8a8",
+        "toneInk": "#44403c",
+        "toneSecondary": "#92837d",
+        "toneLink": "#a89968",
+        "toneSoft": "#f5f5f4",
+        "toneLinkHover": "#b8a896",
+        "bg": "#f5f5f4",
+        "bgSurface": "#78716c",
+        "bgCard": "#92837d",
+        "text": "#d7ccc8",
+        "textOnAccent": "#f5f5f4",
+        "accent": "#c8b8a8",
+        "success": "#99ca89",
+        "failure": "#b14a3e",
+        "caution": "#b8863b"
+      }
+    },
+    {
+      "id": "midnight",
+      "name": "Midnight",
+      "tokens": {
+        "tonePrimary": "#1e293b",
+        "toneAccent": "#64748b",
+        "toneInk": "#0f172a",
+        "toneSecondary": "#334155",
+        "toneLink": "#38bdf8",
+        "toneSoft": "#f0f4f8",
+        "toneLinkHover": "#7dd3fc",
+        "bg": "#f0f4f8",
+        "bgSurface": "#1e293b",
+        "bgCard": "#334155",
+        "text": "#cbd5e1",
+        "textOnAccent": "#f0f4f8",
+        "accent": "#64748b",
+        "success": "#20c997",
+        "failure": "#ff5d73",
+        "caution": "#f0ad2c"
+      }
+    },
+    {
+      "id": "vibrant-pop",
+      "name": "Vibrant Pop",
+      "tokens": {
+        "tonePrimary": "#d91e63",
+        "toneAccent": "#ffb300",
+        "toneInk": "#1a0033",
+        "toneSecondary": "#c2185b",
+        "toneLink": "#00bcd4",
+        "toneSoft": "#f3e5f5",
+        "toneLinkHover": "#4dd0e1",
+        "bg": "#f3e5f5",
+        "bgSurface": "#d91e63",
+        "bgCard": "#c2185b",
+        "text": "#f8bbd0",
+        "textOnAccent": "#f3e5f5",
+        "accent": "#ffb300",
+        "success": "#2adf7a",
+        "failure": "#ff3864",
+        "caution": "#ffb100"
+      }
+    }
+  ],
+  "eventSchedule": [
+    "2026-07-11T13:00:00",
+    "2027-07-03T13:00:00"
+  ],
+  "uiPrimitives": {
+    "shadowSoft": "rgb(123 60 32 / 20%)",
+    "shadowStrong": "rgb(123 60 32 / 32%)",
+    "overlaySoft": "rgb(123 60 32 / 60%)",
+    "overlayStrong": "rgb(123 60 32 / 78%)",
+    "radius": "10px",
+    "radiusSm": "8px",
+    "radiusMd": "12px",
+    "radiusLg": "16px",
+    "radiusPill": "999px"
+  }
+}

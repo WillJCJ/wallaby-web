@@ -217,6 +217,7 @@ export const handleGameRunStart = async (request, env) => {
   return jsonResponse({ runId, startedAtMs });
 };
 
+// eslint-disable-next-line complexity -- Run finalisation performs layered validation and anti-cheat checks in one request path.
 export const handleGameRunFinish = async (request, env, pathname) => {
   if (request.method !== 'POST') {
     return methodNotAllowed();

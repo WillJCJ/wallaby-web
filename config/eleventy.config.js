@@ -2,6 +2,11 @@ import CleanCSS from 'clean-css';
 import { minify } from 'html-minifier-next';
 import process from 'node:process';
 
+/**
+ * Configure Eleventy with plugins, filters, and transforms.
+ * @param {object} eleventyConfig - The Eleventy configuration object
+ * @returns {void}
+ */
 export default function (eleventyConfig) {
   const runMinify = process.env.MINIFY !== 'false';
 
@@ -21,12 +26,14 @@ export default function (eleventyConfig) {
     'liquid'
   ]);
   eleventyConfig.addPassthroughCopy('images/**');
-  eleventyConfig.addPassthroughCopy('site/styles/**');
-  eleventyConfig.addPassthroughCopy('site/scripts/**');
-  eleventyConfig.addPassthroughCopy('_headers');
+  eleventyConfig.addPassthroughCopy('site/styles/**/*.css');
+  eleventyConfig.addPassthroughCopy('site/scripts/**/*.js');
+  eleventyConfig.addPassthroughCopy('site/site.webmanifest');
+  eleventyConfig.addPassthroughCopy('site/sw.js');
+  eleventyConfig.addPassthroughCopy({ 'config/_headers': '_headers' });
 
   eleventyConfig.addFilter('age', function (dobString) {
-    if (!dobString || dobString === 'TBC') return 'TBC';
+    if (!dobString || dobString === 'TBC') {return 'TBC';}
     const birthDate = new Date(dobString);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();

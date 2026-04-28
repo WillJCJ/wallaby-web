@@ -1,0 +1,14 @@
+---
+permalink: /styles/colour-schemes.css
+---
+/* Colour Schemes for Wallaby Fest */
+{% for scheme in siteConfig.colourSchemes %}
+  /* {{ forloop.index }}. {{ scheme.name }} */ :root[data-colour-scheme="{{ scheme.id }}"] { --tone-primary:
+  {{ scheme.tokens.tonePrimary }}; --tone-accent: {{ scheme.tokens.toneAccent }}; --tone-ink:
+  {{ scheme.tokens.toneInk }}; --tone-secondary: {{ scheme.tokens.toneSecondary }}; --tone-link:
+  {{ scheme.tokens.toneLink }}; --tone-soft: {{ scheme.tokens.toneSoft }}; --tone-link-hover:
+  {{ scheme.tokens.toneLinkHover }}; --bg: {{ scheme.tokens.bg }}; --bg-surface: {{ scheme.tokens.bgSurface }};
+  --bg-card: {{ scheme.tokens.bgCard }}; --text: {{ scheme.tokens.text }}; --text-muted: var(--text); --text-on-accent:
+  {{ scheme.tokens.textOnAccent }}; --accent: {{ scheme.tokens.accent }}; --success: {{ scheme.tokens.success }};
+  --failure: {{ scheme.tokens.failure }}; --caution: {{ scheme.tokens.caution }}; }
+{% endfor %}

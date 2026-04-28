@@ -1,0 +1,20 @@
+{
+  "ignores": [
+    "eslint-plugin-jsdoc",
+    "eslint-plugin-unused-imports",
+    "eslint-plugin-security",
+    "eslint-plugin-import",
+    "eslint-plugin-complexity",
+    "eslint-plugin-jsx-a11y",
+    "@lhci/cli",
+    "c8",
+    "depcheck",
+    "@shopify/prettier-plugin-liquid",
+    "stylelint-config-standard"
+  ],
+  "ignoreDirs": [
+    "node_modules",
+    "dist",
+    ".wrangler"
+  ]
+}
