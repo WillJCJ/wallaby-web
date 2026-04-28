@@ -1,4 +1,6 @@
 import { createStatusSetter } from './status-utils.js';
+import { getAuth } from './shared/auth-state.js';
+import { byId } from './shared/dom.js';
 
 /**
  * Initialize Turnstile script and set up token callback.
@@ -96,23 +98,23 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
 }
 
 (() => {
-  const auth = window.WallabyAuth;
-  const status = document.getElementById('login-status');
-  const cfLoginLink = document.getElementById('cf-login-link');
-  const devForm = document.getElementById('dev-auth-form');
-  const devEmail = document.getElementById('dev-auth-email');
-  const devSubmit = document.getElementById('dev-auth-submit');
+  const auth = getAuth();
+  const status = byId('login-status');
+  const cfLoginLink = byId('cf-login-link');
+  const devForm = byId('dev-auth-form');
+  const devEmail = byId('dev-auth-email');
+  const devSubmit = byId('dev-auth-submit');
   const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
 
-  const requestToggle = document.getElementById('request-access-toggle');
-  const requestCancel = document.getElementById('request-access-cancel');
-  const requestForm = document.getElementById('request-access-form');
-  const requestNameInput = document.getElementById('request-name');
-  const requestEmailInput = document.getElementById('request-email');
-  const requestStatus = document.getElementById('request-access-status');
-  const requestSubmit = document.getElementById('request-access-submit');
-  const requestTurnstile = document.getElementById('request-turnstile');
-  const requestPanel = document.getElementById('request-access-panel');
+  const requestToggle = byId('request-access-toggle');
+  const requestCancel = byId('request-access-cancel');
+  const requestForm = byId('request-access-form');
+  const requestNameInput = byId('request-name');
+  const requestEmailInput = byId('request-email');
+  const requestStatus = byId('request-access-status');
+  const requestSubmit = byId('request-access-submit');
+  const requestTurnstile = byId('request-turnstile');
+  const requestPanel = byId('request-access-panel');
   const useTurnstile = !isLocalHost;
 
   let turnstileToken = null;

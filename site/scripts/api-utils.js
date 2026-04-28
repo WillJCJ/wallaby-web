@@ -1,3 +1,5 @@
+import { clearStoredAuthEmail } from './shared/auth-state.js';
+
 /**
  * Shared fetch utility for API calls.
  * Applies credentials: 'same-origin' and cache: 'no-store' by default,
@@ -23,7 +25,7 @@ export const apiFetch = async (url, options = {}) => {
     });
   } catch (error) {
     if (isPrivateApiRequest) {
-      window.WallabyAuth?.setStoredAuthEmail(null);
+      clearStoredAuthEmail();
       throw new Error('Authentication required. Try refreshing?', { cause: error });
     }
 
@@ -32,7 +34,7 @@ export const apiFetch = async (url, options = {}) => {
 
   if (!response.ok) {
     if (response.status === 401 && isPrivateApiRequest) {
-      window.WallabyAuth?.setStoredAuthEmail(null);
+      clearStoredAuthEmail();
       throw new Error('Authentication required. Try refreshing?');
     }
 

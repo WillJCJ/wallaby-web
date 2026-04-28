@@ -1,4 +1,5 @@
 import { apiFetch } from './api-utils.js';
+import { setStoredAuthEmail } from './shared/auth-state.js';
 import { createStatusSetter } from './status-utils.js';
 
 (() => {
@@ -297,7 +298,7 @@ import { createStatusSetter } from './status-utils.js';
       renderGuest(guest);
 
       if (guest.email) {
-        window.WallabyAuth?.setStoredAuthEmail(guest.email);
+        setStoredAuthEmail(guest.email);
       }
 
       recordVisit();
