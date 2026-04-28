@@ -4,7 +4,7 @@
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0-beta.1",
     "@eslint/js": "^10.0.0",
-    "@lhci/cli": "^0.12.0",
+    "@lhci/cli": "^0.15.1",
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "c8": "^11.0.0",
     "clean-css": "^5.3.1",
