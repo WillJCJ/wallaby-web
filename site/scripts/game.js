@@ -1,3 +1,7 @@
+import { createOnlineHelpers } from './features/game/online.js';
+import { createSpawnHelpers } from './features/game/spawn.js';
+import { getAuth } from './shared/auth-state.js';
+
 (() => {
   const canvas = document.getElementById('wallaby-game-canvas');
   const scoreEl = document.getElementById('wallaby-game-score');
@@ -245,239 +249,31 @@
   }
   bestEl.textContent = state.best;
 
-  let isSignedIn = false;
   let runCounter = 0;
   let activeRun = null;
-
-  const clearOnlineStatus = () => {
-    if (!onlineStatusEl) return;
-    onlineStatusEl.hidden = true;
-    onlineStatusEl.textContent = '';
-    onlineStatusEl.className = 'wallaby-game__online-status';
-  };
-
-  const showOnlineStatusError = (message) => {
-    if (!onlineStatusEl) return;
-    onlineStatusEl.textContent = message;
-    onlineStatusEl.hidden = false;
-    onlineStatusEl.className = 'wallaby-game__online-status wallaby-game__online-status--error';
-  };
-
-  const renderSignInWarning = () => {
-    if (!signInWarningEl) return;
-    signInWarningEl.hidden = isSignedIn;
-  };
-
-  const normaliseLeaderboard = (payload) => {
-    if (!payload || !Array.isArray(payload.leaderboard)) {
-      return [];
-    }
-
-    return payload.leaderboard
-      .map((row) => ({
-        displayName: typeof row.displayName === 'string' ? row.displayName : 'Guest',
-        score: Number.parseInt(row.score, 10) || 0,
-        isViewer: Boolean(row.isViewer),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, TOP_SCORES_LIMIT);
-  };
-
-  const renderLeaderboard = (rows) => {
-    if (!topScoresEl) return;
-    topScoresEl.textContent = '';
-
-    if (!rows.length) {
-      const empty = document.createElement('li');
-      empty.className = 'wallaby-game__empty';
-      empty.textContent = 'No online scores yet.';
-      topScoresEl.appendChild(empty);
-      return;
-    }
-
-    rows.forEach((row) => {
-      const li = document.createElement('li');
-      const name = document.createElement('span');
-      const score = document.createElement('span');
-      name.className = 'wallaby-game__score-name';
-      if (row.isViewer) {
-        name.classList.add('wallaby-game__score-name--mine');
-      }
-      name.textContent = row.displayName;
-      score.className = 'wallaby-game__score-value';
-      score.textContent = String(row.score);
-      li.append(name, score);
-      topScoresEl.appendChild(li);
-    });
-  };
-
-  const apiJson = async (url, options = {}) => {
-    const response = await fetch(url, {
-      credentials: 'same-origin',
-      cache: 'no-store',
-      ...options,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed (${response.status})`);
-    }
-
-    return response.json().catch(() => ({}));
-  };
-
-  const refreshOnlineScores = async () => {
-    try {
-      const payload = await apiJson(HIGH_SCORES_ENDPOINT, {
-        method: 'GET',
-        headers: { accept: 'application/json' },
-      });
-      renderLeaderboard(normaliseLeaderboard(payload));
-      clearOnlineStatus();
-    } catch {
-      showOnlineStatusError('Online leaderboard is unavailable.');
-    }
-  };
-
-  const startRunSync = async (run) => {
-    if (!isSignedIn || !run) {
-      return;
-    }
-
-    try {
-      const payload = await apiJson(START_RUN_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          accept: 'application/json',
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (activeRun && activeRun.token === run.token && typeof payload.runId === 'string') {
-        activeRun.runId = payload.runId;
-      }
-    } catch {
-      showOnlineStatusError('Could not start online run sync.');
-    }
-  };
-
-  const finishRunSync = async (run, score, durationMs) => {
-    if (!run || run.finished) {
-      return;
-    }
-    run.finished = true;
-
-    if (!isSignedIn) {
-      return;
-    }
-
-    if (!run.runId) {
-      showOnlineStatusError('Could not submit score online.');
-      return;
-    }
-
-    try {
-      const payload = await apiJson(
-        `/api/private/game/runs/${encodeURIComponent(run.runId)}/finish`,
-        {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            accept: 'application/json',
-          },
-          body: JSON.stringify({ score, durationMs }),
-        }
-      );
-
-      renderLeaderboard(normaliseLeaderboard(payload));
-      clearOnlineStatus();
-    } catch {
-      showOnlineStatusError('Could not submit score online.');
-    }
-  };
+  const online = createOnlineHelpers({
+    onlineStatusEl,
+    signInWarningEl,
+    topScoresEl,
+    topScoresLimit: TOP_SCORES_LIMIT,
+    highScoresEndpoint: HIGH_SCORES_ENDPOINT,
+    startRunEndpoint: START_RUN_ENDPOINT,
+    getAuth,
+  });
 
   const randomBetween = (min, max) => min + Math.random() * (max - min);
-
-  const spawnCloud = (x) => {
-    state.clouds.push({
-      x: x ?? WIDTH + randomBetween(20, 120),
-      y: randomBetween(20, 90),
-      scale: randomBetween(0.6, 1.1),
-      speed: randomBetween(30, 55),
-    });
-  };
-
-  const spawnTree = (x) => {
-    state.trees.push({
-      x: x ?? WIDTH + randomBetween(40, 180),
-      // Trees sit on the horizon line (top of grass strip).
-      baseY: GROUND_Y + randomBetween(-2, 4),
-      scale: randomBetween(0.7, 1.15),
-      speed: randomBetween(55, 75),
-      variant: Math.random() < 0.5 ? 0 : 1,
-    });
-  };
-
-  const spawnCamp = (x) => {
-    state.camps.push({
-      x: x ?? WIDTH + randomBetween(80, 240),
-      baseY: GROUND_Y + randomBetween(-1, 3),
-      scale: randomBetween(0.9, 1.15),
-      speed: randomBetween(55, 75),
-      flicker: Math.random() * Math.PI * 2,
-    });
-  };
-
-  const spawnQuailGroup = (x) => {
-    const groupX = x ?? WIDTH + randomBetween(40, 180);
-    const count = 3 + Math.floor(Math.random() * 3);
-    const speed = randomBetween(55, 75);
-    const scale = randomBetween(0.7, 1.0);
-    for (let i = 0; i < count; i++) {
-      state.quails.push({
-        x: groupX + i * randomBetween(10, 16),
-        baseY: GROUND_Y + randomBetween(-2, 4),
-        scale: scale * randomBetween(0.85, 1.1),
-        speed,
-        bobPhase: Math.random() * Math.PI * 2,
-      });
-    }
-  };
-
-  const spawnObstacle = () => {
-    // Mix goats with the occasional hopping chicken.
-    const isChicken = Math.random() < 0.3;
-    if (isChicken) {
-      const scale = randomBetween(0.7, 1.0);
-      const width = 30 * scale;
-      const height = 26 * scale;
-      state.obstacles.push({
-        type: 'chicken',
-        x: WIDTH + 20,
-        width,
-        height,
-        scale,
-        legPhase: Math.random() * Math.PI * 2,
-        hopPhase: Math.random() * Math.PI * 2,
-      });
-    } else {
-      const scale = randomBetween(0.5, 1.5);
-      const width = 44 * scale;
-      const height = 34 * scale;
-      state.obstacles.push({
-        type: 'goat',
-        x: WIDTH + 20,
-        width,
-        height,
-        scale,
-        legPhase: Math.random() * Math.PI * 2,
-      });
-    }
-    // Gap scales with speed so faster runs keep the same rhythm.
-    const minGap = Math.max(0.6, 260 / state.speed);
-    const maxGap = Math.max(1.1, 520 / state.speed);
-    state.nextObstacleIn = randomBetween(minGap, maxGap);
-  };
+  const {
+    spawnCloud,
+    spawnTree,
+    spawnCamp,
+    spawnQuailGroup,
+    spawnObstacle,
+  } = createSpawnHelpers({
+    state,
+    width: WIDTH,
+    groundY: GROUND_Y,
+    randomBetween,
+  });
 
   const resetRun = () => {
     state.time = 0;
@@ -525,7 +321,7 @@
       runId: null,
       finished: false,
     };
-    void startRunSync(activeRun);
+    void online.startRunSync(activeRun);
   };
 
   const endGame = () => {
@@ -549,7 +345,7 @@
       jumpBtn.setAttribute('aria-label', 'Restart game');
     }
 
-    void finishRunSync(runToFinish, finalScore, Math.max(0, Math.round(state.time * 1000)));
+    void online.finishRunSync(runToFinish, finalScore, Math.max(0, Math.round(state.time * 1000)));
   };
 
   const handleInput = (event) => {
@@ -1342,38 +1138,9 @@
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
   resetRun();
 
-  const initOnlineScores = () => {
-    clearOnlineStatus();
-    const auth = window.WallabyAuth;
-    const fetchSignedIn = auth?.fetchSignedIn;
-    if (typeof fetchSignedIn !== 'function') {
-      isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
-      renderSignInWarning();
-      void refreshOnlineScores();
-      return;
-    }
+  online.initOnlineScores();
 
-    fetchSignedIn()
-      .then((signedIn) => {
-        isSignedIn = Boolean(signedIn) || Boolean(auth?.getStoredAuthEmail?.());
-        renderSignInWarning();
-      })
-      .catch(() => {
-        isSignedIn = Boolean(auth?.getStoredAuthEmail?.());
-        renderSignInWarning();
-      })
-      .finally(() => {
-        void refreshOnlineScores();
-      });
-  };
-
-  initOnlineScores();
-
-  window.addEventListener('wallabyauth:statechange', (event) => {
-    isSignedIn = Boolean(event?.detail?.email);
-    renderSignInWarning();
-    void refreshOnlineScores();
-  });
+  window.addEventListener('wallabyauth:statechange', online.handleAuthStateChange);
 
   let lastTime = performance.now();
   const loop = (now) => {
