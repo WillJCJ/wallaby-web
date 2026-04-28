@@ -30,7 +30,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('site/scripts/**/*.js');
   eleventyConfig.addPassthroughCopy('site/site.webmanifest');
   eleventyConfig.addPassthroughCopy('site/sw.js');
-  eleventyConfig.addPassthroughCopy('_headers');
+  eleventyConfig.addPassthroughCopy({ 'config/_headers': '_headers' });
 
   eleventyConfig.addFilter('age', function (dobString) {
     if (!dobString || dobString === 'TBC') {return 'TBC';}
