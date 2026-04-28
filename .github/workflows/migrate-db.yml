@@ -1,11 +1,13 @@
 name: Apply Production Migrations
 
 on:
-  push:
-    branches: [main]
   pull_request:
     types: [closed]
     branches: [main]
+
+concurrency:
+  group: migrate-production-main
+  cancel-in-progress: false
 
 jobs:
   migrate-production:

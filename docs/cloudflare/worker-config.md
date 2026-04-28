@@ -114,6 +114,44 @@ custom_domain = true
 
 Preview runs on `workers.dev` with `workers_dev = true` and `preview_urls = true` under `[env.preview]`.
 
+GitHub Actions deploys preview builds with `wrangler versions upload --env preview --preview-alias <alias>`.
+The alias is derived from the branch name using a strict slug plus hash suffix strategy.
+
+## Preview alias format and constraints
+
+The CI workflow normalises branch names before alias creation:
+
+- lower-case only
+- characters outside `a-z`, `0-9`, and `-` are replaced with `-`
+- repeated dashes are collapsed
+- leading and trailing dashes are removed
+- branch slug is truncated before adding the hash suffix
+
+Final alias format:
+
+```text
+pr-<branch-slug>-<6-char-hash>
+```
+
+The generated preview URL format is:
+
+```text
+https://<preview-alias>-<worker-name>.<workers-subdomain>.workers.dev
+```
+
+The workflow updates one stable PR comment with preview URL and short commit SHA after deploy.
+
+## CI secrets required for deploy jobs
+
+Set these repository secrets for `.github/workflows/cicd.yml`:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `WORKER_NAME`
+- `WORKERS_SUBDOMAIN`
+
+Without these values, preview and production deploy jobs fail before Lighthouse starts.
+
 ## D1 binding requirement
 
 Worker code expects:

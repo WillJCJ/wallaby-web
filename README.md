@@ -1,6 +1,6 @@
 # WALLABY FEST
 
-[![Main Build Status](https://github.com/WillJCJ/wallaby-web/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/WillJCJ/wallaby-web/actions/workflows/ci.yml)
+[![Main Build Status](https://github.com/WillJCJ/wallaby-web/actions/workflows/cicd.yml/badge.svg?branch=main)](https://github.com/WillJCJ/wallaby-web/actions/workflows/cicd.yml)
 
 A completely unnecessary website for my yearly birthday festival.
 
@@ -71,7 +71,7 @@ npm test
 Test files live in `worker/tests/` and mirror the module they cover
 (for example, `worker/tests/auth.test.js` tests `worker/auth.js`).
 
-Tests run automatically on every push to `main` and on pull requests via the CI workflow in `.github/workflows/ci.yml`.
+Tests run automatically on every push to `main` and on pull requests via the CI workflow in `.github/workflows/cicd.yml`.
 
 ## Cloudflare Setup
 
