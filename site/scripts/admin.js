@@ -9,10 +9,10 @@ import { createGuestTableRenderer } from './features/admin/guest-table.js';
 
 (() => {
   const elements = getAdminElements();
-  if (!elements) return;
+  if (!elements) {return;}
 
   const fields = getFormFields();
-  if (!fields) return;
+  if (!fields) {return;}
 
   const {
     status,

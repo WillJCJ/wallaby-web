@@ -13,10 +13,6 @@ export default [
     ignores: ['dist/**', '.wrangler/**', 'node_modules/**', '.wrangler/**', '**/*.config.js']
   },
   { languageOptions: { globals: globals.browser } },
-  {
-    files: ['scripts/**/*.js'],
-    languageOptions: { globals: globals.node }
-  },
   pluginJs.configs.recommended,
   jsdoc.configs['flat/recommended'],
   {
@@ -47,15 +43,32 @@ export default [
         },
         publicOnly: true,
       }],
-      'security/detect-object-injection': 'warn',
+      'security/detect-object-injection': 'error',
       'security/detect-non-literal-regexp': 'warn',
       'security/detect-unsafe-regex': 'error',
       'import/no-unresolved': 'error',
-      'import/no-cycle': 'warn',
-      'complexity': ['warn', 15],
+      'import/no-cycle': 'error',
+      'complexity': ['warn', 10],
       'jsx-a11y/alt-text': 'warn',
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'eqeqeq': ['error', 'always'],
+      'radix': 'error',
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'prefer-template': 'warn',
+      'object-shorthand': 'warn',
+      'curly': ['error', 'all'],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
     }
-  }
+  },
+  // Node CLI scripts: console output is intentional
+  {
+    files: ['scripts/*.js'],
+    languageOptions: { globals: globals.node },
+    rules: { 'no-console': 'off' },
+  },
 ];

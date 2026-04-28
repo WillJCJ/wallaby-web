@@ -1,7 +1,7 @@
 import { isLocalHost, isProductionHost } from './host.js';
 
 export const sendAccessRequestDiscordNotification = async (env, requestEntry, origin) => {
-  if (!env.DISCORD_WEBHOOK_URL) return;
+  if (!env.DISCORD_WEBHOOK_URL) {return;}
 
   const { name } = requestEntry;
 

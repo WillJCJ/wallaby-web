@@ -7,7 +7,7 @@ export const normalizeEmailList = (emails) => {
   const unique = new Set();
   for (const email of emails || []) {
     const normalised = normalizeEmail(email);
-    if (!normalised) continue;
+    if (!normalised) {continue;}
     unique.add(normalised);
   }
 
@@ -16,9 +16,9 @@ export const normalizeEmailList = (emails) => {
 
 export const getAccessPolicySyncConfig = (env = {}) => {
   const missing = [];
-  if (!String(env.CF_ACCOUNT_ID || '').trim()) missing.push('CF_ACCOUNT_ID');
-  if (!String(env.CF_ACCESS_API_TOKEN || '').trim()) missing.push('CF_ACCESS_API_TOKEN');
-  if (!String(env.CF_ACCESS_POLICY_ID || '').trim()) missing.push('CF_ACCESS_POLICY_ID');
+  if (!String(env.CF_ACCOUNT_ID || '').trim()) {missing.push('CF_ACCOUNT_ID');}
+  if (!String(env.CF_ACCESS_API_TOKEN || '').trim()) {missing.push('CF_ACCESS_API_TOKEN');}
+  if (!String(env.CF_ACCESS_POLICY_ID || '').trim()) {missing.push('CF_ACCESS_POLICY_ID');}
   if (missing.length > 0) {
     return {
       error: {

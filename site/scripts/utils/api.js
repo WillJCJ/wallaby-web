@@ -9,6 +9,7 @@ import { clearStoredAuthEmail } from '../shared/auth-state.js';
  * @param {object} options - Optional fetch parameters (headers, method, etc.)
  * @returns {Promise<Response>} The fetch response object
  */
+// eslint-disable-next-line complexity -- apiFetch handles auth detection, range requests, error parsing, and 401 redirect in one utility.
 export const apiFetch = async (url, options = {}) => {
   const requestUrl = typeof url === 'string' ? url : url?.url || '';
   const isPrivateApiRequest = requestUrl.startsWith('/api/private/');

@@ -8,7 +8,7 @@ export const createSpawnPositionResolver = ({ size, getCardBounds, intersectsAny
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const x = Math.random() * Math.max(0, window.innerWidth - size);
     const y = yMin + Math.random() * Math.max(0, boundedYMax - yMin);
-    if (!intersectsAnyCard(x, y, cardBounds)) return { x, y };
+    if (!intersectsAnyCard(x, y, cardBounds)) {return { x, y };}
   }
 
   return { x: Math.random() * Math.max(0, window.innerWidth - size), y: yMin };
@@ -75,7 +75,7 @@ export const createWallabyFactory = ({
   setOpacity(false);
 
   el.addEventListener('pointerenter', (event) => {
-    if (event.pointerType !== 'mouse') return;
+    if (event.pointerType !== 'mouse') {return;}
     setOpacity(true);
     applyHoverPush(state, event);
     const pos = getPagePos(event);
@@ -99,7 +99,7 @@ export const createWallabyFactory = ({
   });
 
   el.addEventListener('pointerleave', (event) => {
-    if (event.pointerType !== 'mouse') return;
+    if (event.pointerType !== 'mouse') {return;}
     setOpacity(false);
     state.hoverPtrX = null;
     state.hoverPtrY = null;
@@ -108,7 +108,7 @@ export const createWallabyFactory = ({
   el.addEventListener('pointerdown', (event) => {
     applyTapImpulse(state, event);
 
-    if (event.pointerType === 'mouse') return;
+    if (event.pointerType === 'mouse') {return;}
 
     state.activeTouchPointerId = event.pointerId;
     setOpacity(true);
@@ -119,8 +119,8 @@ export const createWallabyFactory = ({
   });
 
   const stopTouchInteraction = (event) => {
-    if (event.pointerType === 'mouse') return;
-    if (state.activeTouchPointerId !== event.pointerId) return;
+    if (event.pointerType === 'mouse') {return;}
+    if (state.activeTouchPointerId !== event.pointerId) {return;}
 
     state.activeTouchPointerId = null;
     setOpacity(false);

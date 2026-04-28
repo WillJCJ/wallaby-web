@@ -7,9 +7,9 @@ const STATUS_TONE_CLASSES = {
 const STATUS_TONE_CLASS_LIST = Object.values(STATUS_TONE_CLASSES);
 
 const getStatusToneClass = (tone) => {
-  if (tone === 'success') return STATUS_TONE_CLASSES.success;
-  if (tone === 'warning') return STATUS_TONE_CLASSES.warning;
-  if (tone === 'failure') return STATUS_TONE_CLASSES.failure;
+  if (tone === 'success') {return STATUS_TONE_CLASSES.success;}
+  if (tone === 'warning') {return STATUS_TONE_CLASSES.warning;}
+  if (tone === 'failure') {return STATUS_TONE_CLASSES.failure;}
   return null;
 };
 

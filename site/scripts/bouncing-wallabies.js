@@ -112,7 +112,7 @@ const initializeBouncingWallabies = () => {
       s.omega *= ANGULAR_DAMPING ** (dt / BASE_FRAME_MS);
       const speed = getSpeed(s.vx, s.vy);
       const omegaCap = speed * (MAX_ANGULAR_SPEED / MAX_SPEED);
-      if (Math.abs(s.omega) > omegaCap) s.omega = Math.sign(s.omega) * omegaCap;
+      if (Math.abs(s.omega) > omegaCap) {s.omega = Math.sign(s.omega) * omegaCap;}
       s.rotation = ((s.rotation + s.omega * (dt / 1000)) % 360 + 360) % 360;
 
       const { yMin, yMax } = s.getYBounds();
@@ -123,28 +123,28 @@ const initializeBouncingWallabies = () => {
         s.omega += -s.vy * spinFactor;
         clampAngularVelocity(s);
         s.vx = Math.abs(s.vx);
-        if (s.isAlbino) overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
+        if (s.isAlbino) {overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);}
       }
       if (s.x >= w - SIZE) {
         s.x = w - SIZE;
         s.omega += s.vy * spinFactor;
         clampAngularVelocity(s);
         s.vx = -Math.abs(s.vx);
-        if (s.isAlbino) overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
+        if (s.isAlbino) {overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);}
       }
       if (s.y <= yMin) {
         s.y = yMin;
         s.omega += s.vx * spinFactor;
         clampAngularVelocity(s);
         s.vy = Math.abs(s.vy);
-        if (s.isAlbino) overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
+        if (s.isAlbino) {overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);}
       }
       if (s.y >= boundedYMax) {
         s.y = boundedYMax;
         s.omega += -s.vx * spinFactor;
         clampAngularVelocity(s);
         s.vy = -Math.abs(s.vy);
-        if (s.isAlbino) overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);
+        if (s.isAlbino) {overlay.spawnSparksAtPage(s.x + SIZE / 2, s.y + SIZE / 2);}
       }
 
       resolveCardCollisions(s, prevX, prevY, cardBounds);

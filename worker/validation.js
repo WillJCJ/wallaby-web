@@ -18,6 +18,7 @@ export const normalizeRsvp = (value) => {
   return RSVP_VALUES.has(rsvp) ? rsvp : null;
 };
 
+// eslint-disable-next-line complexity -- Guest payload validates and coerces each independent field with distinct type and length rules.
 export const validateGuestPayload = (payload) => {
   const name = typeof payload?.name === 'string' ? payload.name.trim() : '';
   const email = typeof payload?.email === 'string' ? payload.email.trim().toLowerCase() : '';
@@ -101,7 +102,7 @@ export const validateGuestSelfPayload = (payload, existingGuest) => {
 };
 
 export const validateGuestAccessTogglePayload = (payload) => {
-  if (payload == null) {
+  if (payload === null || payload === undefined) {
     return { value: {} };
   }
 
@@ -121,7 +122,7 @@ export const validateGuestAccessTogglePayload = (payload) => {
 };
 
 export const validateGuestsSyncPayload = (payload) => {
-  if (payload == null) {
+  if (payload === null || payload === undefined) {
     return { value: { mode: 'full' } };
   }
 
@@ -129,7 +130,7 @@ export const validateGuestsSyncPayload = (payload) => {
     return { error: 'payload must be an object' };
   }
 
-  const rawMode = payload.mode == null ? 'full' : String(payload.mode).trim().toLowerCase();
+  const rawMode = (payload.mode === null || payload.mode === undefined) ? 'full' : String(payload.mode).trim().toLowerCase();
   if (rawMode !== 'full' && rawMode !== 'dry-run') {
     return { error: 'mode must be one of: full, dry-run' };
   }
@@ -142,6 +143,7 @@ export const validateGuestsSyncPayload = (payload) => {
 // Does NOT use the admin guest validators — this is a stricter, narrower surface.
 const VALID_NAME_RE = /^[\p{L}\p{M}\p{N} '\-.]+$/u;
 
+// eslint-disable-next-line complexity -- Access request payload validates name and email with format, length, and character rules.
 export const validateAccessRequestPayload = (payload) => {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return { error: 'Invalid request body' };

@@ -36,7 +36,7 @@ const parseEnvArg = (argv) => {
 const normaliseEnvironment = (value) => {
   const env = String(value || '').trim().toLowerCase();
 
-  if (env === 'prod') return 'production';
+  if (env === 'prod') {return 'production';}
   return env;
 };
 

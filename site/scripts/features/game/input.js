@@ -42,10 +42,10 @@ export const setupGameInput = ({
   };
 
   const pressInput = (event) => {
-    if (event) event.preventDefault();
+    if (event) {event.preventDefault();}
     clearTouchFocus(event);
     inputState.held = true;
-    if (jumpBtn) jumpBtn.classList.add('is-pressed');
+    if (jumpBtn) {jumpBtn.classList.add('is-pressed');}
     if (shouldTriggerAction()) {
       onAction(event);
     }
@@ -54,15 +54,15 @@ export const setupGameInput = ({
   const releaseInput = (event) => {
     clearTouchFocus(event);
     inputState.held = false;
-    if (jumpBtn) jumpBtn.classList.remove('is-pressed');
+    if (jumpBtn) {jumpBtn.classList.remove('is-pressed');}
   };
 
   const isJumpKey = (key) => key === ' ' || key === 'ArrowUp' || key === 'Enter';
 
   const holdInput = (event) => {
-    if (event) event.preventDefault();
+    if (event) {event.preventDefault();}
     inputState.held = true;
-    if (jumpBtn) jumpBtn.classList.add('is-pressed');
+    if (jumpBtn) {jumpBtn.classList.add('is-pressed');}
   };
 
   blurOnTouchFocus(canvas);
@@ -83,7 +83,7 @@ export const setupGameInput = ({
   }
 
   canvas.addEventListener('keydown', (event) => {
-    if (!isJumpKey(event.key)) return;
+    if (!isJumpKey(event.key)) {return;}
     if (event.repeat) {
       holdInput(event);
       return;
@@ -92,14 +92,14 @@ export const setupGameInput = ({
   });
 
   canvas.addEventListener('keyup', (event) => {
-    if (!isJumpKey(event.key)) return;
+    if (!isJumpKey(event.key)) {return;}
     releaseInput();
   });
 
   window.addEventListener('keydown', (event) => {
-    if (document.activeElement === canvas) return;
-    if (event.target !== document.body) return;
-    if (!isJumpKey(event.key)) return;
+    if (document.activeElement === canvas) {return;}
+    if (event.target !== document.body) {return;}
+    if (!isJumpKey(event.key)) {return;}
     if (event.repeat) {
       holdInput(event);
       return;
@@ -108,7 +108,7 @@ export const setupGameInput = ({
   });
 
   window.addEventListener('keyup', (event) => {
-    if (!isJumpKey(event.key)) return;
+    if (!isJumpKey(event.key)) {return;}
     releaseInput();
   });
 

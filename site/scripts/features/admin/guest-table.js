@@ -128,7 +128,7 @@ export const createGuestTableRenderer = ({
           + `normalised=${isAccessEnabled}, lastSeenRaw=${JSON.stringify(lastSeen)}, `
           + `hasLastSeen=${hasLastSeen}, showInvite=${shouldShowSendInvitation}`;
 
-        console.log('[last_seen debug]', {
+        console.warn('[last_seen debug]', {
           guestId: guest.id,
           email: guest.email,
           rawAccessEnabled: guest.accessEnabled,
@@ -231,8 +231,8 @@ export const createGuestTableRenderer = ({
     detailRow.appendChild(detailCell);
 
     row.addEventListener('click', (e) => {
-      if (e.target.closest('button')) return;
-      if (row.classList.contains('admin-guest-row--editing')) return;
+      if (e.target.closest('button')) {return;}
+      if (row.classList.contains('admin-guest-row--editing')) {return;}
       const expanded = row.getAttribute('aria-expanded') === 'true';
       row.setAttribute('aria-expanded', String(!expanded));
       detailRow.hidden = expanded;

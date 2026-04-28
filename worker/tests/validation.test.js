@@ -296,7 +296,7 @@ describe('validateAccessRequestPayload', () => {
   });
 
   it('returns an error when email is too long', () => {
-    const result = validateAccessRequestPayload({ name: 'Alice', email: 'a'.repeat(315) + '@x.com' });
+    const result = validateAccessRequestPayload({ name: 'Alice', email: `${'a'.repeat(315)  }@x.com` });
     expect(result.error).toMatch(/too long/i);
   });
 

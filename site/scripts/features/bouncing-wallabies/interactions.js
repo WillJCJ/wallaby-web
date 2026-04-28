@@ -20,7 +20,7 @@ export const applyHoverPush = (state, event) => {
   let dy = centerY - pos.y;
   let dist = Math.hypot(dx, dy);
 
-  if (dist >= HOVER_PUSH_RADIUS) return;
+  if (dist >= HOVER_PUSH_RADIUS) {return;}
 
   if (dist < 1) {
     dx = 0;

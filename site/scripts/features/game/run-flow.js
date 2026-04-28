@@ -41,7 +41,7 @@ export const createRunFlow = ({
   };
 
   const jump = () => {
-    if (!state.wallaby.grounded) return;
+    if (!state.wallaby.grounded) {return;}
     state.wallaby.vy = jumpVelocity;
     state.wallaby.grounded = false;
   };

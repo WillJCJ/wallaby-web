@@ -3,6 +3,7 @@ import { getDevAuthEmailFromCookie, isDevAuthRequestAllowed } from './dev-auth.j
 
 export const getAuthenticatedEmail = (request) => request.headers.get('CF-Access-Authenticated-User-Email');
 
+// eslint-disable-next-line complexity -- Identity fetch parses multiple response formats and handles network, JSON, and auth errors.
 export const fetchAccessIdentityEmail = async (request) => {
   try {
     const identityUrl = new URL('/cdn-cgi/access/get-identity', request.url);

@@ -51,7 +51,7 @@ export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   }
 
   const kvError = requireKv(env);
-  if (kvError) return kvError;
+  if (kvError) {return kvError;}
 
   const body = await parseJsonBody(request);
   if (!body) {
@@ -107,19 +107,20 @@ export const handlePublicAccessRequest = async (request, env, executionCtx) => {
 };
 
 // GET /api/private/access-requests — admin only
+// eslint-disable-next-line complexity -- Handler covers method check, auth, admin guard, query, and response formatting.
 export const handleListAccessRequests = async (request, env) => {
   if (request.method !== 'GET') {
     return methodNotAllowed();
   }
 
   const authResult = await requireAuthenticatedEmail(request, env);
-  if (authResult.error) return authResult.error;
+  if (authResult.error) {return authResult.error;}
 
   const adminError = requireAdmin(authResult.email, env);
-  if (adminError) return adminError;
+  if (adminError) {return adminError;}
 
   const kvError = requireKv(env);
-  if (kvError) return kvError;
+  if (kvError) {return kvError;}
 
   let keys;
   try {
@@ -163,13 +164,13 @@ export const handleDismissAccessRequest = async (request, env, requestId) => {
   }
 
   const authResult = await requireAuthenticatedEmail(request, env);
-  if (authResult.error) return authResult.error;
+  if (authResult.error) {return authResult.error;}
 
   const adminError = requireAdmin(authResult.email, env);
-  if (adminError) return adminError;
+  if (adminError) {return adminError;}
 
   const kvError = requireKv(env);
-  if (kvError) return kvError;
+  if (kvError) {return kvError;}
 
   const key = makeAccessRequestKey(requestId);
   const existing = await env.GUEST_REQUESTS_KV.get(key);

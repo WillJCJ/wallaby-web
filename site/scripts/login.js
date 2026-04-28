@@ -10,7 +10,7 @@ import { byId } from './shared/dom.js';
  * @returns {void}
  */
 function initTurnstile({ useTurnstile, onTokenSuccess }) {
-  if (!useTurnstile) return;
+  if (!useTurnstile) {return;}
 
   window.onTurnstileSuccess = onTokenSuccess;
 
@@ -92,7 +92,7 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
       window.location.replace('/profile/');
     }
   } catch (error) {
-    if (!isLocalHost) throw error;
+    if (!isLocalHost) {throw error;}
     // Ignore auth status failures for localhost
   }
 }
@@ -141,6 +141,7 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
     form: requestForm,
     elements: { submit: requestSubmit, status: requestStatus, panel: requestPanel },
     setRequestStatus,
+    // eslint-disable-next-line complexity -- Form submission validates multiple fields and handles distinct server error paths.
     onSubmit: async (event) => {
       event.preventDefault();
       requestSubmit.disabled = true;
@@ -198,6 +199,7 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
     email: devEmail,
     submit: devSubmit,
     setStatus,
+    // eslint-disable-next-line complexity -- Dev login handles credential validation, redirect logic, and distinct error states inline.
     onSubmit: async (event) => {
       event.preventDefault();
       devSubmit.disabled = true;

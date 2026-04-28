@@ -315,10 +315,10 @@ import { getAuth } from './shared/auth-state.js';
       // Drift scenery gently on the title/game-over screen.
       state.clouds.forEach((c) => { c.x -= c.speed * 0.3 * dt; });
       state.clouds = state.clouds.filter((c) => c.x + 60 > 0);
-      while (state.clouds.length < 3) spawnCloud();
+      while (state.clouds.length < 3) {spawnCloud();}
       state.trees.forEach((t) => { t.x -= t.speed * 0.3 * dt; });
       state.trees = state.trees.filter((t) => t.x + 60 > 0);
-      while (state.trees.length < 4) spawnTree();
+      while (state.trees.length < 4) {spawnTree();}
       state.camps.forEach((c) => { c.x -= c.speed * 0.3 * dt; c.flicker += dt * 6; });
       state.camps = state.camps.filter((c) => c.x + 80 > 0);
       state.quails.forEach((q) => { q.x -= q.speed * 0.3 * dt; q.bobPhase += dt * 8; });
@@ -341,7 +341,7 @@ import { getAuth } from './shared/auth-state.js';
       w.grounded = true;
       if (inputState.held) {
         runFlow.jump();
-        if (jumpBtn) jumpBtn.classList.add('is-pressed');
+        if (jumpBtn) {jumpBtn.classList.add('is-pressed');}
       }
     }
     if (w.grounded) {
@@ -932,7 +932,7 @@ import { getAuth } from './shared/auth-state.js';
   };
 
   const drawOverlay = () => {
-    if (state.status === 'running') return;
+    if (state.status === 'running') {return;}
     ctx.fillStyle = activeColours.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = activeColours.text;

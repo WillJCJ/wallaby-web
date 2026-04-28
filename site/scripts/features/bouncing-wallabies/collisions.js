@@ -22,6 +22,7 @@ export const createCollisionResolvers = ({
   const spinFactor = collisionFriction * (2 / (size / 2)) * (180 / Math.PI);
 
   const resolveCardCollisions = (state, prevX, prevY, cardBounds) => {
+    // eslint-disable-next-line complexity -- Per-bounds overlap check evaluates position, edge contact, and rebound on multiple axes.
     cardBounds.forEach((bounds) => {
       const overlaps =
         state.x < bounds.right &&
@@ -29,13 +30,13 @@ export const createCollisionResolvers = ({
         state.y < bounds.bottom &&
         state.y + size > bounds.top;
 
-      if (!overlaps) return;
+      if (!overlaps) {return;}
 
       const cx = state.x + size / 2;
       const cy = state.y + size / 2;
 
       const spark = (pageX, pageY) => {
-        if (state.isAlbino) spawnSparksAtPage(pageX, pageY);
+        if (state.isAlbino) {spawnSparksAtPage(pageX, pageY);}
       };
 
       if (prevX + size <= bounds.left) {
@@ -129,7 +130,7 @@ export const createCollisionResolvers = ({
         let dy = by - ay;
         let distSq = dx * dx + dy * dy;
 
-        if (distSq > minDistSq) continue;
+        if (distSq > minDistSq) {continue;}
 
         if (distSq < 0.0001) {
           const angle = Math.random() * Math.PI * 2;
@@ -155,7 +156,7 @@ export const createCollisionResolvers = ({
         const relVy = b.vy - a.vy;
         const velAlongNormal = relVx * nx + relVy * ny;
 
-        if (velAlongNormal >= 0) continue;
+        if (velAlongNormal >= 0) {continue;}
 
         const impulse = -velAlongNormal;
         a.vx -= impulse * nx;

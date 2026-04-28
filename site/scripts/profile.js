@@ -2,6 +2,7 @@ import { apiFetch } from './utils/api.js';
 import { setStoredAuthEmail } from './shared/auth-state.js';
 import { createStatusSetter } from './utils/status.js';
 
+// eslint-disable-next-line complexity -- Profile IIFE wires many independent DOM sections; splitting would obscure shared state.
 (() => {
   const status = document.getElementById('guest-profile-status');
   const list = document.getElementById('guest-profile-list');
@@ -53,10 +54,10 @@ import { createStatusSetter } from './utils/status.js';
   };
 
   const getFieldConfig = (field) => {
-    if (field === 'rsvp') return fieldConfig.rsvp;
-    if (field === 'additionalGuests') return fieldConfig.additionalGuests;
-    if (field === 'dietaryRequirements') return fieldConfig.dietaryRequirements;
-    if (field === 'rsvpMessage') return fieldConfig.rsvpMessage;
+    if (field === 'rsvp') {return fieldConfig.rsvp;}
+    if (field === 'additionalGuests') {return fieldConfig.additionalGuests;}
+    if (field === 'dietaryRequirements') {return fieldConfig.dietaryRequirements;}
+    if (field === 'rsvpMessage') {return fieldConfig.rsvpMessage;}
     return null;
   };
 
@@ -101,9 +102,9 @@ import { createStatusSetter } from './utils/status.js';
   };
 
   const toDisplayRsvp = (value) => {
-    if (!value) return 'Pending';
-    if (value === 'yes') return 'Yes';
-    if (value === 'no') return 'No';
+    if (!value) {return 'Pending';}
+    if (value === 'yes') {return 'Yes';}
+    if (value === 'no') {return 'No';}
     return 'Pending';
   };
 
@@ -152,7 +153,7 @@ import { createStatusSetter } from './utils/status.js';
 
   const getFieldValueFromEditor = (field) => {
     const config = getFieldConfig(field);
-    if (!config) return null;
+    if (!config) {return null;}
 
     if (config.editorType === 'number') {
       return Number.parseInt(config.editorEl.value, 10) || 0;
@@ -161,6 +162,7 @@ import { createStatusSetter } from './utils/status.js';
     return config.editorEl.value;
   };
 
+  // eslint-disable-next-line complexity -- Payload builder covers all editable fields with fallback logic per field type.
   const buildUpdatePayload = (field) => ({
     rsvp: field === 'rsvp' ? getFieldValueFromEditor('rsvp') : (currentGuest?.rsvp || 'pending'),
     additionalGuests:

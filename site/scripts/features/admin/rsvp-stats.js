@@ -20,18 +20,18 @@ export const renderRsvpStats = (guests, ui) => {
     const headcount = 1 + extra;
     totalGuests += headcount;
     const rsvp = (g.rsvp || 'pending').toLowerCase();
-    if (rsvp === 'yes') counts.yes += headcount;
-    else if (rsvp === 'no') counts.no += headcount;
-    else counts.pending += headcount;
+    if (rsvp === 'yes') {counts.yes += headcount;}
+    else if (rsvp === 'no') {counts.no += headcount;}
+    else {counts.pending += headcount;}
   });
   const total = counts.yes + counts.no + counts.pending;
 
   rsvpTotal.textContent = `${totalGuests} total guest${totalGuests === 1 ? '' : 's'}`;
 
   const getCountForLabel = (label) => {
-    if (label === 'yes') return counts.yes;
-    if (label === 'pending') return counts.pending;
-    if (label === 'no') return counts.no;
+    if (label === 'yes') {return counts.yes;}
+    if (label === 'pending') {return counts.pending;}
+    if (label === 'no') {return counts.no;}
     return 0;
   };
 

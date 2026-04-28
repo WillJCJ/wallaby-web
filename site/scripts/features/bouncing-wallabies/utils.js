@@ -37,7 +37,7 @@ export const calculateShadowFilter = (speed) => {
  */
 export const clampVelocity = (state) => {
   const speed = getSpeed(state.vx, state.vy);
-  if (speed <= WALLABY_CONFIG.MAX_SPEED) return;
+  if (speed <= WALLABY_CONFIG.MAX_SPEED) {return;}
   const scale = WALLABY_CONFIG.MAX_SPEED / speed;
   state.vx *= scale;
   state.vy *= scale;

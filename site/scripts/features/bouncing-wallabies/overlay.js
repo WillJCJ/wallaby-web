@@ -74,19 +74,19 @@ export const createOverlaySystem = (size) => {
     const midY = H / 2;
 
     states.forEach((s) => {
-      if (!s.isAlbino) return;
+      if (!s.isAlbino) {return;}
 
       const clientX = s.x + size / 2 - window.scrollX;
       const clientY = s.y + size / 2 - window.scrollY;
-      if (clientX >= 0 && clientX <= W && clientY >= 0 && clientY <= H) return;
+      if (clientX >= 0 && clientX <= W && clientY >= 0 && clientY <= H) {return;}
 
       const dx = clientX - midX;
       const dy = clientY - midY;
       let t = Infinity;
-      if (dx > 0) t = Math.min(t, (W - midX) / dx);
-      if (dx < 0) t = Math.min(t, -midX / dx);
-      if (dy > 0) t = Math.min(t, (H - midY) / dy);
-      if (dy < 0) t = Math.min(t, -midY / dy);
+      if (dx > 0) {t = Math.min(t, (W - midX) / dx);}
+      if (dx < 0) {t = Math.min(t, -midX / dx);}
+      if (dy > 0) {t = Math.min(t, (H - midY) / dy);}
+      if (dy < 0) {t = Math.min(t, -midY / dy);}
 
       const edgeX = midX + dx * t;
       const edgeY = midY + dy * t;

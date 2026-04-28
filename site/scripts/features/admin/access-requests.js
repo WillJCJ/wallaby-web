@@ -21,6 +21,7 @@ export const createAccessRequestsRenderer = ({
 
     const fragment = document.createDocumentFragment();
 
+    // eslint-disable-next-line complexity -- Per-request rendering handles multiple DOM queries, handlers, and layout branches in one pass.
     requests.forEach((req) => {
       const node = requestTemplate.content.cloneNode(true);
       const details = node.querySelector('.admin-request-item');
@@ -46,8 +47,8 @@ export const createAccessRequestsRenderer = ({
         event.stopPropagation();
 
         // Pre-populate the add-guest form with the request details and scroll to it
-        if (fields.name) fields.name.value = req.name || '';
-        if (fields.email) fields.email.value = req.email || '';
+        if (fields.name) {fields.name.value = req.name || '';}
+        if (fields.email) {fields.email.value = req.email || '';}
         setAddFormExpanded(true);
         addPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };

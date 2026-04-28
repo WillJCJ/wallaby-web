@@ -7,7 +7,7 @@ import { handleGuestsApi } from '../guests.js';
 
 const makeRequest = (method, body = null, email = 'admin@example.com') => {
   const headers = {};
-  if (email) headers['CF-Access-Authenticated-User-Email'] = email;
+  if (email) {headers['CF-Access-Authenticated-User-Email'] = email;}
 
   return new Request('http://example.com/api/private/guests', {
     method,

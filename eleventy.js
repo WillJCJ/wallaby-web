@@ -31,7 +31,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('_headers');
 
   eleventyConfig.addFilter('age', function (dobString) {
-    if (!dobString || dobString === 'TBC') return 'TBC';
+    if (!dobString || dobString === 'TBC') {return 'TBC';}
     const birthDate = new Date(dobString);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();

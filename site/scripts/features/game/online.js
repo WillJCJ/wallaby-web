@@ -15,7 +15,7 @@ const createLeaderboardHelpers = ({ topScoresEl, topScoresLimit }) => {
   };
 
   const renderLeaderboard = (rows) => {
-    if (!topScoresEl) return;
+    if (!topScoresEl) {return;}
     topScoresEl.textContent = '';
 
     if (!rows.length) {
@@ -64,21 +64,21 @@ export const createOnlineHelpers = ({
   let isSignedIn = false;
 
   const clearOnlineStatus = () => {
-    if (!onlineStatusEl) return;
+    if (!onlineStatusEl) {return;}
     onlineStatusEl.hidden = true;
     onlineStatusEl.textContent = '';
     onlineStatusEl.className = 'wallaby-game__online-status';
   };
 
   const showOnlineStatusError = (message) => {
-    if (!onlineStatusEl) return;
+    if (!onlineStatusEl) {return;}
     onlineStatusEl.textContent = message;
     onlineStatusEl.hidden = false;
     onlineStatusEl.className = 'wallaby-game__online-status wallaby-game__online-status--error';
   };
 
   const renderSignInWarning = () => {
-    if (!signInWarningEl) return;
+    if (!signInWarningEl) {return;}
     signInWarningEl.hidden = isSignedIn;
   };
 

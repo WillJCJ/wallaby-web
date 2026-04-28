@@ -51,7 +51,7 @@ const parseTargetArg = (argv) => {
 const target = parseTargetArg(args);
 
 const isVideo = (item) => {
-  if (item.type === 'video') return true;
+  if (item.type === 'video') {return true;}
   return /\.(mp4|webm|mov|m4v)$/i.test(item.id || '');
 };
 
@@ -119,4 +119,4 @@ for (const item of selectedItems) {
 
 rmSync(tmpDir, { recursive: true, force: true });
 console.log(`\n${ok} synced, ${fail} failed.`);
-if (fail > 0) process.exit(1);
+if (fail > 0) {process.exit(1);}

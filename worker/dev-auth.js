@@ -95,6 +95,7 @@ const clearCookie = () => (
   `${DEV_AUTH_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`
 );
 
+// eslint-disable-next-line complexity -- Dev auth API dispatches across multiple route+method combinations with distinct error paths.
 export const handleDevAuthApi = async (request, env, pathname) => {
   if (!isDevAuthRequestAllowed(request, env)) {
     return forbidden();
