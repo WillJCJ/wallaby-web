@@ -161,8 +161,8 @@ describe('validateGuestPayload', () => {
   });
 
   it('treats missing optional fields as empty strings', () => {
-    // eslint-disable-next-line no-unused-vars
-    const { dietaryRequirements, rsvpMessage, ...minimal } = valid;
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    const { dietaryRequirements: _dietaryRequirements, rsvpMessage: _rsvpMessage, ...minimal } = valid;
     const result = validateGuestPayload(minimal);
     expect(result.value.dietaryRequirements).toBe('');
     expect(result.value.rsvpMessage).toBe('');

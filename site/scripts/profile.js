@@ -1,5 +1,5 @@
-import { apiFetch } from '/scripts/api-utils.js';
-import { createStatusSetter } from '/scripts/status-utils.js';
+import { apiFetch } from './api-utils.js';
+import { createStatusSetter } from './status-utils.js';
 
 (() => {
   const status = document.getElementById('guest-profile-status');

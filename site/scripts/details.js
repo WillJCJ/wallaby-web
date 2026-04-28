@@ -1,4 +1,4 @@
-import { apiFetch } from '/scripts/api-utils.js';
+import { apiFetch } from './api-utils.js';
 
 (() => {
   const section = document.getElementById('private-details');

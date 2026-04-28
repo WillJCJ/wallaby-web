@@ -1,4 +1,4 @@
-import { createStatusSetter } from '/scripts/status-utils.js';
+import { createStatusSetter } from './status-utils.js';
 
 (() => {
   const auth = window.WallabyAuth;
