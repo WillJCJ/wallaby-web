@@ -9,7 +9,8 @@
     "@lhci/cli",
     "c8",
     "depcheck",
-    "@shopify/prettier-plugin-liquid"
+    "@shopify/prettier-plugin-liquid",
+    "stylelint-config-standard"
   ],
   "ignoreDirs": [
     "node_modules",
