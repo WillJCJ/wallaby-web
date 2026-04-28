@@ -1,25 +1,35 @@
 <!doctype html>
 <html lang="en" class="no-js">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
-    <meta name="description" content="{{ description | default: title | escape }}">
-    <meta name="theme-color" content="#ecf0f1">
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes"
+    />
+    <meta
+      name="description"
+      content="{{ description | default: title | escape }}"
+    />
+    <meta name="theme-color" content="#ecf0f1" />
 
     <title>{{ title }}</title>
 
     <!-- Use /api/logo.svg so favicon requests always pass through Worker routing logic. -->
-    <link rel="icon" href="/api/logo.svg" type="image/svg+xml">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" href="/api/logo.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/site.webmanifest" />
     <script src="/scripts/utils/auth.js" defer></script>
     <script type="module" src="/scripts/base.js"></script>
-    <link rel="stylesheet" href="/styles/main.css" type="text/css">
+    <link rel="stylesheet" href="/styles/main.css" type="text/css" />
   </head>
 
   <body>
     <header>
       <div class="site-brand">
-        <button type="button" class="site-brand--interactive" aria-label="Change colour scheme">
+        <button
+          type="button"
+          class="site-brand--interactive"
+          aria-label="Change colour scheme"
+        >
           <svg
             id="site-logo"
             class="site-brand__logo-svg"
@@ -28,33 +38,99 @@
             viewBox="40.66 -21.468 367.895 320.8"
           >
             <defs>
-                <radialGradient id="logoHalo" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#303030" stop-opacity="0.55"/>
-                    <stop offset="58%" stop-color="#303030" stop-opacity="0.26"/>
-                    <stop offset="100%" stop-color="#303030" stop-opacity="0"/>
-                </radialGradient>
+              <radialGradient id="logoHalo" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#303030" stop-opacity="0.55" />
+                <stop offset="58%" stop-color="#303030" stop-opacity="0.26" />
+                <stop offset="100%" stop-color="#303030" stop-opacity="0" />
+              </radialGradient>
             </defs>
-            <circle id="backgroundHalo" cx="221.411" cy="140" r="275" fill="url(#logoHalo)"/>
-            <path style="fill: #c0bbaf" id="chin" d="M 221.414002 297.52049 L 194.678002 279.69949 L 248.151002 279.69949 L 221.414002 297.52049 Z"/>
-            <path style="fill: #855e64" id="mouth" d="M 221.411 261.665 L 242.949 275.29 L 199.873 275.29 L 221.411 261.665 Z"/>
-            <path style="fill: #4c310f" id="noseLower" d="M 221.412 255.780016 L 238.624 235.033016 L 204.199 235.033016 L 221.412 255.780016 Z"/>
-            <path style="fill: #7b5019" id="noseUpper" d="M 221.411 169.995 L 243.551 227.43 L 199.271 227.43 L 221.411 169.995 Z"/>
-            <path style="fill: #bb9864" id="cheekL" d="M 187.510327 189.560651 L 137.22376 183.353093 L 194.547532 275.090902 L 187.510327 189.560651 Z"/>
-            <path style="fill: #a07639" id="cheekR" d="M 254.974916 189.876654 L 305.261483 183.669096 L 247.937712 275.406905 L 254.974916 189.876654 Z"/>
-            <path style="fill: #d8d8d8" id="eyeL" d="M 178.234606 182.019072 L 160.788606 172.447072 L 184.719606 172.447072 L 178.234606 182.019072 Z"/>
-            <path style="fill: #d8d8d8" id="eyeR" d="M 264.245 182.330823 L 281.691 172.758823 L 257.76 172.758823 L 264.245 182.330823 Z"/>
-            <path style="fill: #9d6620" id="Forehead" d="M 221.411 103.038 L 276.453 165.259 L 166.369 165.259 L 221.411 103.038 Z"/>
-            <path style="fill: #ad6a4d" id="headUpperL" d="M 147.134657 172.96341 L 120.250128 111.207286 L 204.680453 100.984126 L 147.134657 172.96341 Z"/>
-            <path style="fill: #7b3c20" id="headUpperR" d="M 295.349937 173.273043 L 322.234466 111.516919 L 237.804141 101.293759 L 295.349937 173.273043 Z"/>
-            <path style="fill: #7abbae" id="earLowerL" d="M 145.294055 1.528053 L 191.797986 92.352853 L 125.092543 101.727685 L 145.294055 1.528053 Z"/>
-            <path style="fill: #8c5833" id="earLowerR" d="M 297.422438 1.694788 L 250.918507 92.519588 L 317.62395 101.89442 L 297.422438 1.694788 Z"/>
-            <path style="fill: #9d8c7b" id="earUpperL" d="M 114.95965 98.408338 L 136.458119 -5.154741 L 71.653289 -16.584016 L 114.95965 98.408338 Z"/>
-            <path style="fill: #7b6753" id="earUpperR" d="M 327.637388 98.570878 L 306.138919 -4.992201 L 370.943749 -16.421476 L 327.637388 98.570878 Z"/>
+            <circle
+              id="backgroundHalo"
+              cx="221.411"
+              cy="140"
+              r="275"
+              fill="url(#logoHalo)"
+            />
+            <path
+              style="fill: #c0bbaf"
+              id="chin"
+              d="M 221.414002 297.52049 L 194.678002 279.69949 L 248.151002 279.69949 L 221.414002 297.52049 Z"
+            />
+            <path
+              style="fill: #855e64"
+              id="mouth"
+              d="M 221.411 261.665 L 242.949 275.29 L 199.873 275.29 L 221.411 261.665 Z"
+            />
+            <path
+              style="fill: #4c310f"
+              id="noseLower"
+              d="M 221.412 255.780016 L 238.624 235.033016 L 204.199 235.033016 L 221.412 255.780016 Z"
+            />
+            <path
+              style="fill: #7b5019"
+              id="noseUpper"
+              d="M 221.411 169.995 L 243.551 227.43 L 199.271 227.43 L 221.411 169.995 Z"
+            />
+            <path
+              style="fill: #bb9864"
+              id="cheekL"
+              d="M 187.510327 189.560651 L 137.22376 183.353093 L 194.547532 275.090902 L 187.510327 189.560651 Z"
+            />
+            <path
+              style="fill: #a07639"
+              id="cheekR"
+              d="M 254.974916 189.876654 L 305.261483 183.669096 L 247.937712 275.406905 L 254.974916 189.876654 Z"
+            />
+            <path
+              style="fill: #d8d8d8"
+              id="eyeL"
+              d="M 178.234606 182.019072 L 160.788606 172.447072 L 184.719606 172.447072 L 178.234606 182.019072 Z"
+            />
+            <path
+              style="fill: #d8d8d8"
+              id="eyeR"
+              d="M 264.245 182.330823 L 281.691 172.758823 L 257.76 172.758823 L 264.245 182.330823 Z"
+            />
+            <path
+              style="fill: #9d6620"
+              id="Forehead"
+              d="M 221.411 103.038 L 276.453 165.259 L 166.369 165.259 L 221.411 103.038 Z"
+            />
+            <path
+              style="fill: #ad6a4d"
+              id="headUpperL"
+              d="M 147.134657 172.96341 L 120.250128 111.207286 L 204.680453 100.984126 L 147.134657 172.96341 Z"
+            />
+            <path
+              style="fill: #7b3c20"
+              id="headUpperR"
+              d="M 295.349937 173.273043 L 322.234466 111.516919 L 237.804141 101.293759 L 295.349937 173.273043 Z"
+            />
+            <path
+              style="fill: #7abbae"
+              id="earLowerL"
+              d="M 145.294055 1.528053 L 191.797986 92.352853 L 125.092543 101.727685 L 145.294055 1.528053 Z"
+            />
+            <path
+              style="fill: #8c5833"
+              id="earLowerR"
+              d="M 297.422438 1.694788 L 250.918507 92.519588 L 317.62395 101.89442 L 297.422438 1.694788 Z"
+            />
+            <path
+              style="fill: #9d8c7b"
+              id="earUpperL"
+              d="M 114.95965 98.408338 L 136.458119 -5.154741 L 71.653289 -16.584016 L 114.95965 98.408338 Z"
+            />
+            <path
+              style="fill: #7b6753"
+              id="earUpperR"
+              d="M 327.637388 98.570878 L 306.138919 -4.992201 L 370.943749 -16.421476 L 327.637388 98.570878 Z"
+            />
           </svg>
         </button>
         <a href="/" class="site-brand__name">Wallaby Fest</a>
       </div>
-      <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle-input" />
       <label for="nav-toggle" class="nav-burger" aria-label="Toggle navigation">
         <span class="nav-burger__bar"></span>
         <span class="nav-burger__bar"></span>
@@ -71,35 +147,60 @@
         <a href="#" id="nav-logout-link" hidden>Logout</a>
       </nav>
     </header>
-    <main>
-      {{ content }}
-    </main>
+    <main>{{ content }}</main>
     <footer>
       <p>Let me know what colour scheme you like best!</p>
       <details class="colour-scheme-picker" id="colour-scheme-picker">
-        <summary class="colour-scheme-picker__label">Colour scheme: <span id="footer-colour-scheme"></span></summary>
+        <summary class="colour-scheme-picker__label">
+          Colour scheme: <span id="footer-colour-scheme"></span>
+        </summary>
         <ul class="colour-scheme-picker__list" id="colour-scheme-list"></ul>
       </details>
       <p>
-        Although most of this website is vibe coded, none of the text is AI generated. I just have a shit sense of
-        humour.
+        Although most of this website is vibe coded, none of the text is AI
+        generated. I just have a shit sense of humour.
       </p>
       <p class="footer-links" aria-label="Footer links">
-        <a class="footer-link" href="https://github.com/WillJCJ/wallaby-web" target="_blank" rel="noreferrer">
-          <svg class="footer-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.11.79-.25.79-.56v-2.16c-3.2.7-3.88-1.36-3.88-1.36c-.52-1.34-1.28-1.69-1.28-1.69c-1.04-.71.08-.7.08-.7c1.16.08 1.76 1.18 1.76 1.18c1.02 1.75 2.69 1.24 3.35.94c.1-.75.4-1.24.72-1.52c-2.55-.29-5.24-1.27-5.24-5.67c0-1.25.45-2.27 1.18-3.07c-.12-.29-.51-1.46.11-3.05c0 0 .96-.31 3.14 1.17a10.9 10.9 0 0 1 5.72 0c2.17-1.48 3.13-1.17 3.13-1.17c.62 1.59.23 2.76.12 3.05c.74.8 1.18 1.82 1.18 3.07c0 4.41-2.69 5.37-5.25 5.66c.41.36.78 1.07.78 2.15v3.19c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
+        <a
+          class="footer-link"
+          href="https://github.com/WillJCJ/wallaby-web"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <svg
+            class="footer-link__icon"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="currentColor"
+              d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.11.79-.25.79-.56v-2.16c-3.2.7-3.88-1.36-3.88-1.36c-.52-1.34-1.28-1.69-1.28-1.69c-1.04-.71.08-.7.08-.7c1.16.08 1.76 1.18 1.76 1.18c1.02 1.75 2.69 1.24 3.35.94c.1-.75.4-1.24.72-1.52c-2.55-.29-5.24-1.27-5.24-5.67c0-1.25.45-2.27 1.18-3.07c-.12-.29-.51-1.46.11-3.05c0 0 .96-.31 3.14 1.17a10.9 10.9 0 0 1 5.72 0c2.17-1.48 3.13-1.17 3.13-1.17c.62 1.59.23 2.76.12 3.05c.74.8 1.18 1.82 1.18 3.07c0 4.41-2.69 5.37-5.25 5.66c.41.36.78 1.07.78 2.15v3.19c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+            />
           </svg>
           <span>GitHub</span>
         </a>
         <a class="footer-link" href="mailto:hello@wallabyfest.co.uk">
-          <svg class="footer-link__icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5Zm2.07-.5L12 11.15L19.93 5H4.07Zm15.93 1.26l-6.99 5.42a1.67 1.67 0 0 1-2.02 0L4 6.26V18.5c0 .28.22.5.5.5h15a.5.5 0 0 0 .5-.5Z"/>
+          <svg
+            class="footer-link__icon"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="currentColor"
+              d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5Zm2.07-.5L12 11.15L19.93 5H4.07Zm15.93 1.26l-6.99 5.42a1.67 1.67 0 0 1-2.02 0L4 6.26V18.5c0 .28.22.5.5.5h15a.5.5 0 0 0 .5-.5Z"
+            />
           </svg>
           <span>hello@wallabyfest.co.uk</span>
         </a>
       </p>
       <p id="footer-version" hidden></p>
     </footer>
-    <script type="module" src="/scripts/colour-scheme-switcher.js" defer></script>
+    <script
+      type="module"
+      src="/scripts/colour-scheme-switcher.js"
+      defer
+    ></script>
   </body>
 </html>

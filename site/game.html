@@ -2,15 +2,23 @@
 layout: layouts/base.html
 title: Wallaby Run - Wallaby Fest
 ---
+
 <div class="page-intro">
   <h2>Wallaby Run</h2>
-  <p>Tap, click, or press space to hop. Leap over the goats and go for a high score!</p>
+  <p>
+    Tap, click, or press space to hop. Leap over the goats and go for a high
+    score!
+  </p>
 </div>
 
 <div class="wallaby-game">
   <div class="wallaby-game__scoreboard" aria-live="polite">
-    <span class="wallaby-game__score">Score: <span id="wallaby-game-score">0</span></span>
-    <span class="wallaby-game__best">Best: <span id="wallaby-game-best">0</span></span>
+    <span class="wallaby-game__score"
+      >Score: <span id="wallaby-game-score">0</span></span
+    >
+    <span class="wallaby-game__best"
+      >Best: <span id="wallaby-game-best">0</span></span
+    >
   </div>
   <canvas
     id="wallaby-game-canvas"
@@ -30,12 +38,26 @@ title: Wallaby Run - Wallaby Fest
     Start Game
   </button>
 
-  <section class="wallaby-game__leaderboard" aria-live="polite" aria-label="High scores">
-    <p id="wallaby-game-signin-warning" class="wallaby-game__signin-warning" hidden>
+  <section
+    class="wallaby-game__leaderboard"
+    aria-live="polite"
+    aria-label="High scores"
+  >
+    <p
+      id="wallaby-game-signin-warning"
+      class="wallaby-game__signin-warning"
+      hidden
+    >
       Sign in to save your score.
       <a class="wallaby-game__login-btn" href="/login/">Sign in</a>
     </p>
-    <p id="wallaby-game-online-status" class="wallaby-game__online-status" hidden>Checking online scores...</p>
+    <p
+      id="wallaby-game-online-status"
+      class="wallaby-game__online-status"
+      hidden
+    >
+      Checking online scores...
+    </p>
     <ol id="wallaby-game-top-scores" class="wallaby-game__top-scores"></ol>
   </section>
 </div>

@@ -2,69 +2,69 @@
 layout: layouts/base.html
 title: Meet the Wallabies - Wallaby Fest
 ---
+
 <div class="page-intro">
   <h2>Meet the Wallabies</h2>
   <p class="page-intro-tagline">Click a card to learn more.</p>
   <p>Our current roster.</p>
   <p>
-    Why does Jackie have five wallabies hopping around her home? Well if you ask her she'd say "Well we used to have
-    wallabies 20 years ago so..."
+    Why does Jackie have five wallabies hopping around her home? Well if you ask
+    her she'd say "Well we used to have wallabies 20 years ago so..."
   </p>
   <p>So that obviously doesn't explain it but we're all glad they're here!</p>
 </div>
 
 <div class="wallaby-grid">
-  {% for wallaby in wallabies %}
-    {% assign thumbBase = wallaby.thumbnail | remove: '.webp' %}
-    {% assign imgBase = wallaby.img | remove: '.webp' %}
-    <details class="wallaby-card" name="wallaby-accordion">
-      <summary class="wallaby-card-toggle">
-        <div class="wallaby-card-photo">
-          <div class="wallaby-card-image-frame">
-            <img
-              class="wallaby-card-image wallaby-card-image-thumb"
-              src="{{ thumbBase }}-960w.webp"
-              srcset="{{ thumbBase }}-480w.webp 480w, {{ thumbBase }}-960w.webp 960w"
-              sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
-              alt="{{ wallaby.name }}"
-            >
-            <img
-              class="wallaby-card-image wallaby-card-image-full"
-              src="{{ imgBase }}-960w.webp"
-              srcset="{{ imgBase }}-480w.webp 480w, {{ imgBase }}-960w.webp 960w"
-              sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
-              alt=""
-              aria-hidden="true"
-            >
+  {% for wallaby in wallabies %} {% assign thumbBase = wallaby.thumbnail |
+  remove: '.webp' %} {% assign imgBase = wallaby.img | remove: '.webp' %}
+  <details class="wallaby-card" name="wallaby-accordion">
+    <summary class="wallaby-card-toggle">
+      <div class="wallaby-card-photo">
+        <div class="wallaby-card-image-frame">
+          <img
+            class="wallaby-card-image wallaby-card-image-thumb"
+            src="{{ thumbBase }}-960w.webp"
+            srcset="{{ thumbBase }}-480w.webp 480w, {{ thumbBase }}-960w.webp 960w"
+            sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
+            alt="{{ wallaby.name }}"
+          />
+          <img
+            class="wallaby-card-image wallaby-card-image-full"
+            src="{{ imgBase }}-960w.webp"
+            srcset="{{ imgBase }}-480w.webp 480w, {{ imgBase }}-960w.webp 960w"
+            sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
+            alt=""
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+      <div class="wallaby-card-summary">
+        <h3>{{ wallaby.name }}</h3>
+        {% if wallaby.alias %}
+        <div class="wallaby-alias-wrapper">
+          <div class="wallaby-alias-label label-caption">Alias</div>
+          <p class="wallaby-alias">{{ wallaby.alias }}</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="wallaby-card-details">
+        <p class="wallaby-desc">{{ wallaby.desc }}</p>
+        <div class="wallaby-stats">
+          {% for stat in wallaby.stats %}
+          <div class="stat">
+            {% if stat[0] == 'DoB' %}
+            <div class="stat-label label-caption">Age</div>
+            <div class="stat-value">{{ stat[1] | age }}</div>
+            {% else %}
+            <div class="stat-label label-caption">{{ stat[0] }}</div>
+            <div class="stat-value">{{ stat[1] }}</div>
+            {% endif %}
           </div>
+          {% endfor %}
         </div>
-        <div class="wallaby-card-summary">
-          <h3>{{ wallaby.name }}</h3>
-          {% if wallaby.alias %}
-            <div class="wallaby-alias-wrapper">
-              <div class="wallaby-alias-label label-caption">Alias</div>
-              <p class="wallaby-alias">{{ wallaby.alias }}</p>
-            </div>
-          {% endif %}
-        </div>
-        <div class="wallaby-card-details">
-          <p class="wallaby-desc">{{ wallaby.desc }}</p>
-          <div class="wallaby-stats">
-            {% for stat in wallaby.stats %}
-              <div class="stat">
-                {% if stat[0] == 'DoB' %}
-                  <div class="stat-label label-caption">Age</div>
-                  <div class="stat-value">{{ stat[1] | age }}</div>
-                {% else %}
-                  <div class="stat-label label-caption">{{ stat[0] }}</div>
-                  <div class="stat-value">{{ stat[1] }}</div>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-      </summary>
-    </details>
+      </div>
+    </summary>
+  </details>
   {% endfor %}
 </div>
 

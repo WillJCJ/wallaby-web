@@ -2,6 +2,7 @@
 layout: layouts/base.html
 title: Your Profile - Wallaby Fest
 ---
+
 <div class="page-intro">
   <h2>Your Profile</h2>
 </div>
@@ -10,11 +11,16 @@ title: Your Profile - Wallaby Fest
   <h3>Who can see this information?</h3>
   <p>Only Will can view all of these details.</p>
   <p>Your email is only used for signing in.</p>
-  <p>Your first name and initial is used publicly if you get a high score on the game.</p>
+  <p>
+    Your first name and initial is used publicly if you get a high score on the
+    game.
+  </p>
 </section>
 
 <section class="private-details" id="guest-profile" aria-live="polite">
-  <p class="private-status" id="guest-profile-status">Loading your profile...</p>
+  <p class="private-status" id="guest-profile-status">
+    Loading your profile...
+  </p>
 
   <dl class="private-list" id="guest-profile-list" hidden>
     <div class="private-item">
@@ -30,12 +36,24 @@ title: Your Profile - Wallaby Fest
       <dd>
         <div class="profile-field" data-field="rsvp">
           <span class="profile-field-value" id="guest-rsvp"></span>
-          <select id="guest-rsvp-editor" class="profile-field-editor" hidden aria-label="Edit RSVP">
+          <select
+            id="guest-rsvp-editor"
+            class="profile-field-editor"
+            hidden
+            aria-label="Edit RSVP"
+          >
             <option value="pending">Pending</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
           </select>
-          <button type="button" class="profile-field-action" data-action="rsvp" aria-label="Edit RSVP">&#9998;</button>
+          <button
+            type="button"
+            class="profile-field-action"
+            data-action="rsvp"
+            aria-label="Edit RSVP"
+          >
+            &#9998;
+          </button>
         </div>
       </dd>
     </div>
@@ -52,7 +70,7 @@ title: Your Profile - Wallaby Fest
             step="1"
             hidden
             aria-label="Edit additional guests"
-          >
+          />
           <button
             type="button"
             class="profile-field-action"
@@ -68,7 +86,10 @@ title: Your Profile - Wallaby Fest
       <dt>Dietary requirements</dt>
       <dd>
         <div class="profile-field" data-field="dietaryRequirements">
-          <span class="profile-field-value" id="guest-dietary-requirements"></span>
+          <span
+            class="profile-field-value"
+            id="guest-dietary-requirements"
+          ></span>
           <textarea
             id="guest-dietary-requirements-editor"
             class="profile-field-editor"
@@ -101,7 +122,12 @@ title: Your Profile - Wallaby Fest
             hidden
             aria-label="Edit RSVP message"
           ></textarea>
-          <button type="button" class="profile-field-action" data-action="rsvpMessage" aria-label="Edit RSVP message">
+          <button
+            type="button"
+            class="profile-field-action"
+            data-action="rsvpMessage"
+            aria-label="Edit RSVP message"
+          >
             &#9998;
           </button>
         </div>
