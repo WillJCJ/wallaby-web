@@ -26,6 +26,8 @@ const imagesDir = resolve(root, 'images/wallabies');
 /**
  * Parse an offset value from wallabies.json into a fraction.
  * "-20%" → -0.2, "25%" → 0.25, "0px" or undefined → 0.
+ * @param {string} value - The offset value string to parse
+ * @returns {number} The parsed fraction value
  */
 function parseOffset(value) {
   if (!value || value === '0px') return 0;
@@ -36,6 +38,11 @@ function parseOffset(value) {
 /**
  * Resize an image to targetWidth then crop to 16:9 using the given y-offset.
  * yOffsetFraction: -0.2 shifts the crop window upward (shows more of the top).
+ * @param {string} inputPath - Input image file path
+ * @param {string} outputPath - Output image file path
+ * @param {number} targetWidth - Target width in pixels
+ * @param {number} yOffsetFraction - Y-offset fraction for crop adjustment
+ * @returns {Promise<void>}
  */
 async function processCardImage(inputPath, outputPath, targetWidth, yOffsetFraction) {
   const { width: origWidth, height: origHeight } = await sharp(inputPath).metadata();
@@ -60,6 +67,10 @@ async function processCardImage(inputPath, outputPath, targetWidth, yOffsetFract
 /**
  * Resize without cropping — preserves the original aspect ratio.
  * Skips upscaling: if the image is narrower than targetWidth, outputs at natural size instead.
+ * @param {string} inputPath - Input image file path
+ * @param {string} outputPath - Output image file path
+ * @param {number} targetWidth - Target width in pixels
+ * @returns {Promise<void>}
  */
 async function processFullImage(inputPath, outputPath, targetWidth) {
   const { width: origWidth } = await sharp(inputPath).metadata();

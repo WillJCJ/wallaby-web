@@ -6,17 +6,17 @@ import { WALLABY_CONFIG } from './config.js';
 
 /**
  * Return the magnitude of a 2D velocity vector.
- * @param {number} vx
- * @param {number} vy
- * @returns {number}
+ * @param {number} vx - Horizontal velocity component
+ * @param {number} vy - Vertical velocity component
+ * @returns {number} The speed magnitude
  */
 const getSpeed = (vx, vy) => Math.hypot(vx, vy);
 
 /**
  * Resolve page-space coordinates from a pointer event.
  * Falls back to clientX/Y + scroll offset when pageX/Y are absent.
- * @param {PointerEvent} event
- * @returns {{ x: number, y: number }}
+ * @param {PointerEvent} event - The pointer event
+ * @returns {{ x: number, y: number }} Page-space coordinates
  */
 const getPagePos = (event) => ({
   x: event.pageX ?? event.clientX + window.scrollX,
@@ -29,8 +29,8 @@ const getPagePos = (event) => ({
 
 /**
  * Calculate a CSS drop-shadow filter string scaled by wallaby speed.
- * @param {number} speed
- * @returns {string}
+ * @param {number} speed - The wallaby's current speed
+ * @returns {string} A CSS drop-shadow filter string
  */
 const calculateShadowFilter = (speed) => {
   const { SHADOW_MIN_SPEED, SHADOW_MAX_RADIUS, MAX_SPEED, SHADOW_COLOR } = WALLABY_CONFIG;
@@ -40,7 +40,8 @@ const calculateShadowFilter = (speed) => {
 
 /**
  * Clamp a wallaby's linear speed to MAX_SPEED.
- * @param {object} state
+ * @param {object} state - The wallaby state object
+ * @returns {void}
  */
 const clampVelocity = (state) => {
   const speed = getSpeed(state.vx, state.vy);
@@ -52,7 +53,8 @@ const clampVelocity = (state) => {
 
 /**
  * Clamp a wallaby's angular speed to ±MAX_ANGULAR_SPEED.
- * @param {object} state
+ * @param {object} state - The wallaby state object
+ * @returns {void}
  */
 const clampAngularVelocity = (state) => {
   const { MAX_ANGULAR_SPEED } = WALLABY_CONFIG;
@@ -67,7 +69,7 @@ const clampAngularVelocity = (state) => {
 
 /**
  * Return bounding boxes for all `.wallaby-card` elements in document space.
- * @returns {Array<{ left: number, right: number, top: number, bottom: number }>}
+ * @returns {Array<{ left: number, right: number, top: number, bottom: number }>} Array of bounding boxes
  */
 const getCardBounds = () =>
   Array.from(document.querySelectorAll('.wallaby-card')).map((card) => {
@@ -82,10 +84,10 @@ const getCardBounds = () =>
 
 /**
  * Return true if the wallaby box at (x, y) overlaps any card.
- * @param {number} x
- * @param {number} y
- * @param {Array} cardBounds
- * @returns {boolean}
+ * @param {number} x - Wallaby x coordinate
+ * @param {number} y - Wallaby y coordinate
+ * @param {Array<{ left: number, right: number, top: number, bottom: number }>} cardBounds - Card bounding boxes
+ * @returns {boolean} True if the wallaby intersects any card
  */
 const intersectsAnyCard = (x, y, cardBounds) => {
   const { SIZE } = WALLABY_CONFIG;
@@ -100,8 +102,9 @@ const intersectsAnyCard = (x, y, cardBounds) => {
 
 /**
  * Push a wallaby away from the pointer using a distance-falloff impulse.
- * @param {object} state
- * @param {PointerEvent} event
+ * @param {object} state - The wallaby state object
+ * @param {PointerEvent} event - The pointer event
+ * @returns {void}
  */
 const applyHoverPush = (state, event) => {
   const { SIZE, HOVER_PUSH_IMPULSE, HOVER_PUSH_RADIUS } = WALLABY_CONFIG;
@@ -131,8 +134,9 @@ const applyHoverPush = (state, event) => {
  * Add a rotational impulse based on pointer orbit around the wallaby.
  * Projects pointer movement onto the tangent of the circle, converting
  * tangential pointer velocity into angular momentum.
- * @param {object} state
- * @param {PointerEvent} event
+ * @param {object} state - The wallaby state object
+ * @param {PointerEvent} event - The pointer event
+ * @returns {void}
  */
 const applyHoverSpin = (state, event) => {
   const { SIZE, HOVER_ANGULAR_SCALE } = WALLABY_CONFIG;
@@ -166,8 +170,9 @@ const applyHoverSpin = (state, event) => {
 
 /**
  * Apply a tap impulse directed away from the click point relative to the wallaby centre.
- * @param {object} state
- * @param {PointerEvent} event
+ * @param {object} state - The wallaby state object
+ * @param {PointerEvent} event - The pointer event
+ * @returns {void}
  */
 const applyTapImpulse = (state, event) => {
   const { SIZE, CLICK_IMPULSE } = WALLABY_CONFIG;
@@ -251,7 +256,12 @@ const initializeBouncingWallabies = () => {
   const SPARK_COUNT = 20;
   let sparks = [];
 
-  /** Spawn gold spark particles at a client-space coordinate. */
+  /**
+   * Spawn gold spark particles at a client-space coordinate.
+   * @param {number} clientX - Client-space X coordinate
+   * @param {number} clientY - Client-space Y coordinate
+   * @returns {void}
+   */
   const spawnSparks = (clientX, clientY) => {
     for (let i = 0; i < SPARK_COUNT; i += 1) {
       const angle = Math.random() * Math.PI * 2;
@@ -272,12 +282,18 @@ const initializeBouncingWallabies = () => {
   /**
    * Spawn sparks at a page-space position, converting to client coords.
    * All collision handlers work in page space; this is the single conversion point.
+   * @param {number} pageX - Page-space X coordinate
+   * @param {number} pageY - Page-space Y coordinate
+   * @returns {void}
    */
   const spawnSparksAtPage = (pageX, pageY) => {
     spawnSparks(pageX - window.scrollX, pageY - window.scrollY);
   };
 
-  /** Update and draw live spark particles onto the canvas. */
+  /**
+   * Update and draw live spark particles onto the canvas.
+   * @returns {void}
+   */
   const drawSparks = () => {
     sparks = sparks.filter((p) => p.life > 0);
     sparks.forEach((p) => {
@@ -298,7 +314,8 @@ const initializeBouncingWallabies = () => {
    * Draw a gold edge-glow indicator for any albino wallaby outside the viewport.
    * Casts a ray from the viewport centre to the wallaby, finds where it
    * intersects the screen edge, and paints a radial gradient glow there.
-   * @param {Array} states
+   * @param {Array<object>} states - Array of wallaby state objects
+   * @returns {void}
    */
   const drawAlbinoIndicators = (states) => {
     const W = sparkCanvas.width;
@@ -346,10 +363,11 @@ const initializeBouncingWallabies = () => {
    * Bounce a wallaby off any card it is overlapping.
    * Uses the previous-frame position to determine which face was hit, applying
    * a velocity reflection and a friction torque from the tangential sliding speed.
-   * @param {object} state
-   * @param {number} prevX
-   * @param {number} prevY
-   * @param {Array} cardBounds
+   * @param {object} state - Wallaby state object
+   * @param {number} prevX - Previous X position
+   * @param {number} prevY - Previous Y position
+   * @param {Array<object>} cardBounds - Array of card bounding boxes
+   * @returns {void}
    */
   const resolveCardCollisions = (state, prevX, prevY, cardBounds) => {
     cardBounds.forEach((bounds) => {
@@ -451,7 +469,8 @@ const initializeBouncingWallabies = () => {
    * Resolve pairwise wallaby–wallaby collisions.
    * Treats wallabies as equal-mass circles for stable elastic bounces,
    * then applies a tangential friction impulse to impart counter-rotation.
-   * @param {Array} states
+   * @param {Array<object>} states - Array of wallaby state objects
+   * @returns {void}
    */
   const resolveWallabyCollisions = (states) => {
     const radius = SIZE / 2;
@@ -539,8 +558,8 @@ const initializeBouncingWallabies = () => {
   /**
    * Find a collision-free spawn position, trying 40 random locations before
    * falling back to the top of the scrollable area.
-   * @param {Function} getYBounds
-   * @returns {{ x: number, y: number }}
+   * @param {Function} getYBounds - Function that returns Y boundary constraints
+   * @returns {{ x: number, y: number }} Spawn position
    */
   const getSpawnPosition = (getYBounds) => {
     const cardBounds = getCardBounds();
@@ -556,7 +575,12 @@ const initializeBouncingWallabies = () => {
     return { x: Math.random() * Math.max(0, window.innerWidth - SIZE), y: yMin };
   };
 
-  /** Set a wallaby element's opacity based on whether it is active (hovered/touched). */
+  /**
+   * Set a wallaby element's opacity based on whether it is active (hovered/touched).
+   * @param {HTMLElement} el - The wallaby element
+   * @param {boolean} active - Whether the wallaby is active
+   * @returns {void}
+   */
   const setOpacity = (el, active) => {
     el.style.opacity = active ? WALLABY_ACTIVE_OPACITY : WALLABY_IDLE_OPACITY;
   };

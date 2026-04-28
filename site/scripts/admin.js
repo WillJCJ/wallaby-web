@@ -1,7 +1,11 @@
 import { apiFetch } from './api-utils.js';
 import { createStatusSetter } from './status-utils.js';
 
-(() => {
+/**
+ * Get all required admin page elements.
+ * @returns {object|null} Object containing all required DOM elements or null if any are missing
+ */
+function getAdminElements() {
   const status = document.getElementById('guest-admin-status');
   const form = document.getElementById('guest-admin-form');
   const submitButton = document.getElementById('guest-admin-submit');
@@ -30,6 +34,7 @@ import { createStatusSetter } from './status-utils.js';
   const guestsSyncHeader = document.getElementById('admin-guests-sync-header');
   const guestRowTemplate = document.getElementById('admin-guest-row-template');
 
+  // Validate all required elements are present
   if (
     !status ||
     !form ||
@@ -59,9 +64,45 @@ import { createStatusSetter } from './status-utils.js';
     !guestsSyncHeader ||
     !guestRowTemplate
   ) {
-    return;
+    return null;
   }
 
+  return {
+    status,
+    form,
+    submitButton,
+    cancelAddButton,
+    toggleAddButton,
+    addFormStatus,
+    addPanel,
+    guestsList,
+    rsvpStats,
+    rsvpTotal,
+    rsvpBar,
+    rsvpYes,
+    rsvpPending,
+    rsvpNo,
+    syncPanel,
+    syncSummary,
+    runSyncButton,
+    dryRunSyncButton,
+    refreshSyncButton,
+    requestsPanel,
+    requestsList,
+    requestTemplate,
+    guestsEmpty,
+    guestsTableWrap,
+    guestsTableBody,
+    guestsSyncHeader,
+    guestRowTemplate,
+  };
+}
+
+/**
+ * Get form input field elements.
+ * @returns {object|null} Object containing form fields or null if any are missing
+ */
+function getFormFields() {
   const fields = {
     name: document.getElementById('admin-guest-name'),
     email: document.getElementById('admin-guest-email'),
@@ -70,8 +111,162 @@ import { createStatusSetter } from './status-utils.js';
   };
 
   if (Object.values(fields).some((el) => !el)) {
-    return;
+    return null;
   }
+
+  return fields;
+}
+
+/**
+ * Extract and validate elements from guest row template fragment.
+ * @param {DocumentFragment} fragment - Cloned template fragment
+ * @returns {object|null} Object containing row elements or null if validation fails
+ */
+function getRowElements(fragment) {
+  const rows = fragment.querySelectorAll('tr');
+  const row = rows[0];
+  const detailRow = rows[1];
+  const detailCell = fragment.querySelector('.admin-guest-detail-cell');
+  const viewSection = fragment.querySelector('.admin-guest-detail-view');
+  const emailValue = fragment.querySelector('.admin-guest-detail-email');
+  const dietaryValue = fragment.querySelector('.admin-guest-detail-dietary');
+  const rsvpMessageValue = fragment.querySelector('.admin-guest-detail-rsvp-message');
+  const lastSeenValue = fragment.querySelector('.admin-guest-last-seen-value');
+  const guestIdInline = fragment.querySelector('.admin-guest-detail-id-inline');
+  const inviteDebugItem = fragment.querySelector('.admin-guest-debug');
+  const editButton = fragment.querySelector('.admin-guest-edit-trigger');
+  const deleteButton = fragment.querySelector('.admin-guest-delete-trigger');
+  const editSection = fragment.querySelector('.admin-guest-edit-form');
+  const editName = fragment.querySelector('.admin-guest-edit-name');
+  const editEmail = fragment.querySelector('.admin-guest-edit-email');
+  const editRsvp = fragment.querySelector('.admin-guest-edit-rsvp');
+  const editAdditional = fragment.querySelector('.admin-guest-edit-additional');
+  const editDietary = fragment.querySelector('.admin-guest-edit-dietary');
+  const editRsvpMessage = fragment.querySelector('.admin-guest-edit-rsvp-message');
+  const saveButton = fragment.querySelector('.admin-guest-save-button');
+  const cancelEditButton = fragment.querySelector('.admin-guest-cancel-edit-button');
+  const nameCell = fragment.querySelector('.admin-guest-name-cell');
+  const rsvpCell = fragment.querySelector('.admin-guest-rsvp-cell');
+  const countCell = fragment.querySelector('.admin-guest-count-cell');
+  const accessStateIcon = fragment.querySelector('.admin-access-state');
+  const toggleAccessButton = fragment.querySelector('.admin-guest-access-button');
+  const syncCell = fragment.querySelector('.admin-guest-sync-cell');
+  const syncOkIcon = fragment.querySelector('.admin-guest-sync-ok');
+  const syncWarning = fragment.querySelector('.admin-guest-sync-warning');
+  const syncTrigger = fragment.querySelector('.admin-sync-tooltip-trigger');
+  const syncTooltip = fragment.querySelector('.admin-sync-tooltip');
+  const viewActions = fragment.querySelector('.admin-guest-detail-actions');
+
+  if (
+    !row ||
+    !detailRow ||
+    !detailCell ||
+    !viewSection ||
+    !emailValue ||
+    !dietaryValue ||
+    !rsvpMessageValue ||
+    !lastSeenValue ||
+    !guestIdInline ||
+    !inviteDebugItem ||
+    !editButton ||
+    !deleteButton ||
+    !editSection ||
+    !editName ||
+    !editEmail ||
+    !editRsvp ||
+    !editAdditional ||
+    !editDietary ||
+    !editRsvpMessage ||
+    !saveButton ||
+    !cancelEditButton ||
+    !nameCell ||
+    !rsvpCell ||
+    !countCell ||
+    !accessStateIcon ||
+    !toggleAccessButton ||
+    !syncCell ||
+    !syncOkIcon ||
+    !syncWarning ||
+    !syncTrigger ||
+    !syncTooltip ||
+    !viewActions
+  ) {
+    return null;
+  }
+
+  return {
+    rows,
+    row,
+    detailRow,
+    detailCell,
+    viewSection,
+    emailValue,
+    dietaryValue,
+    rsvpMessageValue,
+    lastSeenValue,
+    guestIdInline,
+    inviteDebugItem,
+    editButton,
+    deleteButton,
+    editSection,
+    editName,
+    editEmail,
+    editRsvp,
+    editAdditional,
+    editDietary,
+    editRsvpMessage,
+    saveButton,
+    cancelEditButton,
+    nameCell,
+    rsvpCell,
+    countCell,
+    accessStateIcon,
+    toggleAccessButton,
+    syncCell,
+    syncOkIcon,
+    syncWarning,
+    syncTrigger,
+    syncTooltip,
+    viewActions,
+  };
+}
+
+(() => {
+  const elements = getAdminElements();
+  if (!elements) return;
+
+  const fields = getFormFields();
+  if (!fields) return;
+
+  const {
+    status,
+    form,
+    submitButton,
+    cancelAddButton,
+    toggleAddButton,
+    addFormStatus,
+    addPanel,
+    guestsList,
+    rsvpStats,
+    rsvpTotal,
+    rsvpBar,
+    rsvpYes,
+    rsvpPending,
+    rsvpNo,
+    syncPanel,
+    syncSummary,
+    runSyncButton,
+    dryRunSyncButton,
+    refreshSyncButton,
+    requestsPanel,
+    requestsList,
+    requestTemplate,
+    guestsEmpty,
+    guestsTableWrap,
+    guestsTableBody,
+    guestsSyncHeader,
+    guestRowTemplate,
+  } = elements;
 
   let guestsState = [];
   let isSubmitting = false;
@@ -394,79 +589,55 @@ import { createStatusSetter } from './status-utils.js';
     setStatus('');
   };
 
+  /**
+   * Create table rows for a guest with edit and detail sections.
+   * @param {object} guest - Guest data object
+   * @param {boolean} allInSync - Whether all guests are in sync
+   * @returns {DocumentFragment} Fragment containing guest rows or empty fragment if validation fails
+   */
   const createGuestRows = (guest, allInSync = false) => {
     const isAccessEnabled = normalizeAccessEnabled(guest.accessEnabled);
     const fragment = guestRowTemplate.content.cloneNode(true);
-    const rows = fragment.querySelectorAll('tr');
-    const row = rows[0];
-    const detailRow = rows[1];
-    const detailCell = fragment.querySelector('.admin-guest-detail-cell');
-    const viewSection = fragment.querySelector('.admin-guest-detail-view');
-    const emailValue = fragment.querySelector('.admin-guest-detail-email');
-    const dietaryValue = fragment.querySelector('.admin-guest-detail-dietary');
-    const rsvpMessageValue = fragment.querySelector('.admin-guest-detail-rsvp-message');
-    const lastSeenValue = fragment.querySelector('.admin-guest-last-seen-value');
-    const guestIdInline = fragment.querySelector('.admin-guest-detail-id-inline');
-    const inviteDebugItem = fragment.querySelector('.admin-guest-debug');
-    const editButton = fragment.querySelector('.admin-guest-edit-trigger');
-    const deleteButton = fragment.querySelector('.admin-guest-delete-trigger');
-    const editSection = fragment.querySelector('.admin-guest-edit-form');
-    const editName = fragment.querySelector('.admin-guest-edit-name');
-    const editEmail = fragment.querySelector('.admin-guest-edit-email');
-    const editRsvp = fragment.querySelector('.admin-guest-edit-rsvp');
-    const editAdditional = fragment.querySelector('.admin-guest-edit-additional');
-    const editDietary = fragment.querySelector('.admin-guest-edit-dietary');
-    const editRsvpMessage = fragment.querySelector('.admin-guest-edit-rsvp-message');
-    const saveButton = fragment.querySelector('.admin-guest-save-button');
-    const cancelEditButton = fragment.querySelector('.admin-guest-cancel-edit-button');
-    const nameCell = fragment.querySelector('.admin-guest-name-cell');
-    const rsvpCell = fragment.querySelector('.admin-guest-rsvp-cell');
-    const countCell = fragment.querySelector('.admin-guest-count-cell');
-    const accessStateIcon = fragment.querySelector('.admin-access-state');
-    const toggleAccessButton = fragment.querySelector('.admin-guest-access-button');
-    const syncCell = fragment.querySelector('.admin-guest-sync-cell');
-    const syncOkIcon = fragment.querySelector('.admin-guest-sync-ok');
-    const syncWarning = fragment.querySelector('.admin-guest-sync-warning');
-    const syncTrigger = fragment.querySelector('.admin-sync-tooltip-trigger');
-    const syncTooltip = fragment.querySelector('.admin-sync-tooltip');
-    const viewActions = fragment.querySelector('.admin-guest-detail-actions');
+    const rowElements = getRowElements(fragment);
 
-    if (
-      !row ||
-      !detailRow ||
-      !detailCell ||
-      !viewSection ||
-      !emailValue ||
-      !dietaryValue ||
-      !rsvpMessageValue ||
-      !lastSeenValue ||
-      !guestIdInline ||
-      !inviteDebugItem ||
-      !editButton ||
-      !deleteButton ||
-      !editSection ||
-      !editName ||
-      !editEmail ||
-      !editRsvp ||
-      !editAdditional ||
-      !editDietary ||
-      !editRsvpMessage ||
-      !saveButton ||
-      !cancelEditButton ||
-      !nameCell ||
-      !rsvpCell ||
-      !countCell ||
-      !accessStateIcon ||
-      !toggleAccessButton ||
-      !syncCell ||
-      !syncOkIcon ||
-      !syncWarning ||
-      !syncTrigger ||
-      !syncTooltip ||
-      !viewActions
-    ) {
+    if (!rowElements) {
       return document.createDocumentFragment();
     }
+
+    const {
+      row,
+      detailRow,
+      detailCell,
+      viewSection,
+      emailValue,
+      dietaryValue,
+      rsvpMessageValue,
+      lastSeenValue,
+      guestIdInline,
+      inviteDebugItem,
+      editButton,
+      deleteButton,
+      editSection,
+      editName,
+      editEmail,
+      editRsvp,
+      editAdditional,
+      editDietary,
+      editRsvpMessage,
+      saveButton,
+      cancelEditButton,
+      nameCell,
+      rsvpCell,
+      countCell,
+      accessStateIcon,
+      toggleAccessButton,
+      syncCell,
+      syncOkIcon,
+      syncWarning,
+      syncTrigger,
+      syncTooltip,
+      viewActions,
+    } = rowElements;
 
     row.style.cursor = 'pointer';
     detailCell.colSpan = allInSync ? 4 : 5;
