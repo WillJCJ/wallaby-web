@@ -28,6 +28,8 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy('images/**');
   eleventyConfig.addPassthroughCopy('site/styles/**/*.css');
   eleventyConfig.addPassthroughCopy('site/scripts/**/*.js');
+  eleventyConfig.addPassthroughCopy('site/site.webmanifest');
+  eleventyConfig.addPassthroughCopy('site/sw.js');
   eleventyConfig.addPassthroughCopy('_headers');
 
   eleventyConfig.addFilter('age', function (dobString) {

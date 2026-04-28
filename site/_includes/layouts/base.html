@@ -3,32 +3,17 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+    <meta name="description" content="{{ description | default: title | escape }}">
+    <meta name="theme-color" content="#ecf0f1">
 
     <title>{{ title }}</title>
 
     <!-- Use /api/logo.svg so favicon requests always pass through Worker routing logic. -->
     <link rel="icon" href="/api/logo.svg" type="image/svg+xml">
+    <link rel="manifest" href="/site.webmanifest">
     <script src="/scripts/utils/auth.js" defer></script>
     <script type="module" src="/scripts/base.js"></script>
     <link rel="stylesheet" href="/styles/main.css" type="text/css">
-    <script type="speculationrules">
-      {
-        "prefetch": [
-          {
-            "source": "document",
-            "where": { "href_matches": "/*" },
-            "eagerness": "moderate"
-          }
-        ],
-        "prerender": [
-          {
-            "source": "document",
-            "where": { "href_matches": "/*" },
-            "eagerness": "conservative"
-          }
-        ]
-      }
-    </script>
   </head>
 
   <body>
