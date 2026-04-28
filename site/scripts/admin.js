@@ -1,237 +1,18 @@
-import { apiFetch } from './api-utils.js';
 import { createStatusSetter } from './status-utils.js';
-
-/**
- * Get all required admin page elements.
- * @returns {object|null} Object containing all required DOM elements or null if any are missing
- */
-// eslint-disable-next-line complexity -- This function intentionally validates a large required DOM surface in one place.
-function getAdminElements() {
-  const status = document.getElementById('guest-admin-status');
-  const form = document.getElementById('guest-admin-form');
-  const submitButton = document.getElementById('guest-admin-submit');
-  const cancelAddButton = document.getElementById('guest-admin-cancel');
-  const toggleAddButton = document.getElementById('guest-admin-toggle');
-  const addFormStatus = document.getElementById('guest-admin-form-status');
-  const addPanel = document.getElementById('admin-add-panel');
-  const guestsList = document.getElementById('admin-guests-list');
-  const rsvpStats = document.getElementById('admin-rsvp-stats');
-  const rsvpTotal = document.getElementById('admin-rsvp-total');
-  const rsvpBar = document.getElementById('admin-rsvp-bar');
-  const rsvpYes = document.getElementById('admin-rsvp-seg-yes');
-  const rsvpPending = document.getElementById('admin-rsvp-seg-pending');
-  const rsvpNo = document.getElementById('admin-rsvp-seg-no');
-  const syncPanel = document.getElementById('admin-sync-panel');
-  const syncSummary = document.getElementById('admin-sync-summary');
-  const runSyncButton = document.getElementById('admin-sync-run');
-  const dryRunSyncButton = document.getElementById('admin-sync-dry-run');
-  const refreshSyncButton = document.getElementById('admin-sync-refresh');
-  const requestsPanel = document.getElementById('admin-requests-panel');
-  const requestsList = document.getElementById('admin-requests-list');
-  const requestTemplate = document.getElementById('admin-request-template');
-  const guestsEmpty = document.getElementById('admin-guest-empty');
-  const guestsTableWrap = document.getElementById('admin-guests-table-wrap');
-  const guestsTableBody = document.getElementById('admin-guests-table-body');
-  const guestsSyncHeader = document.getElementById('admin-guests-sync-header');
-  const guestRowTemplate = document.getElementById('admin-guest-row-template');
-
-  // Validate all required elements are present
-  if (
-    !status ||
-    !form ||
-    !submitButton ||
-    !cancelAddButton ||
-    !toggleAddButton ||
-    !addFormStatus ||
-    !addPanel ||
-    !guestsList ||
-    !rsvpStats ||
-    !rsvpTotal ||
-    !rsvpBar ||
-    !rsvpYes ||
-    !rsvpPending ||
-    !rsvpNo ||
-    !syncPanel ||
-    !syncSummary ||
-    !runSyncButton ||
-    !dryRunSyncButton ||
-    !refreshSyncButton ||
-    !requestsPanel ||
-    !requestsList ||
-    !requestTemplate ||
-    !guestsEmpty ||
-    !guestsTableWrap ||
-    !guestsTableBody ||
-    !guestsSyncHeader ||
-    !guestRowTemplate
-  ) {
-    return null;
-  }
-
-  return {
-    status,
-    form,
-    submitButton,
-    cancelAddButton,
-    toggleAddButton,
-    addFormStatus,
-    addPanel,
-    guestsList,
-    rsvpStats,
-    rsvpTotal,
-    rsvpBar,
-    rsvpYes,
-    rsvpPending,
-    rsvpNo,
-    syncPanel,
-    syncSummary,
-    runSyncButton,
-    dryRunSyncButton,
-    refreshSyncButton,
-    requestsPanel,
-    requestsList,
-    requestTemplate,
-    guestsEmpty,
-    guestsTableWrap,
-    guestsTableBody,
-    guestsSyncHeader,
-    guestRowTemplate,
-  };
-}
-
-/**
- * Get form input field elements.
- * @returns {object|null} Object containing form fields or null if any are missing
- */
-function getFormFields() {
-  const fields = {
-    name: document.getElementById('admin-guest-name'),
-    email: document.getElementById('admin-guest-email'),
-    rsvp: document.getElementById('admin-guest-rsvp'),
-    additionalGuests: document.getElementById('admin-guest-additional-guests'),
-  };
-
-  if (Object.values(fields).some((el) => !el)) {
-    return null;
-  }
-
-  return fields;
-}
-
-/**
- * Extract and validate elements from guest row template fragment.
- * @param {DocumentFragment} fragment - Cloned template fragment
- * @returns {object|null} Object containing row elements or null if validation fails
- */
-// eslint-disable-next-line complexity -- Template extraction validates many required nodes to fail fast on markup drift.
-function getRowElements(fragment) {
-  const rows = fragment.querySelectorAll('tr');
-  const row = rows[0];
-  const detailRow = rows[1];
-  const detailCell = fragment.querySelector('.admin-guest-detail-cell');
-  const viewSection = fragment.querySelector('.admin-guest-detail-view');
-  const emailValue = fragment.querySelector('.admin-guest-detail-email');
-  const dietaryValue = fragment.querySelector('.admin-guest-detail-dietary');
-  const rsvpMessageValue = fragment.querySelector('.admin-guest-detail-rsvp-message');
-  const lastSeenValue = fragment.querySelector('.admin-guest-last-seen-value');
-  const guestIdInline = fragment.querySelector('.admin-guest-detail-id-inline');
-  const inviteDebugItem = fragment.querySelector('.admin-guest-debug');
-  const editButton = fragment.querySelector('.admin-guest-edit-trigger');
-  const deleteButton = fragment.querySelector('.admin-guest-delete-trigger');
-  const editSection = fragment.querySelector('.admin-guest-edit-form');
-  const editName = fragment.querySelector('.admin-guest-edit-name');
-  const editEmail = fragment.querySelector('.admin-guest-edit-email');
-  const editRsvp = fragment.querySelector('.admin-guest-edit-rsvp');
-  const editAdditional = fragment.querySelector('.admin-guest-edit-additional');
-  const editDietary = fragment.querySelector('.admin-guest-edit-dietary');
-  const editRsvpMessage = fragment.querySelector('.admin-guest-edit-rsvp-message');
-  const saveButton = fragment.querySelector('.admin-guest-save-button');
-  const cancelEditButton = fragment.querySelector('.admin-guest-cancel-edit-button');
-  const nameCell = fragment.querySelector('.admin-guest-name-cell');
-  const rsvpCell = fragment.querySelector('.admin-guest-rsvp-cell');
-  const countCell = fragment.querySelector('.admin-guest-count-cell');
-  const accessStateIcon = fragment.querySelector('.admin-access-state');
-  const toggleAccessButton = fragment.querySelector('.admin-guest-access-button');
-  const syncCell = fragment.querySelector('.admin-guest-sync-cell');
-  const syncOkIcon = fragment.querySelector('.admin-guest-sync-ok');
-  const syncWarning = fragment.querySelector('.admin-guest-sync-warning');
-  const syncTrigger = fragment.querySelector('.admin-sync-tooltip-trigger');
-  const syncTooltip = fragment.querySelector('.admin-sync-tooltip');
-  const viewActions = fragment.querySelector('.admin-guest-detail-actions');
-
-  if (
-    !row ||
-    !detailRow ||
-    !detailCell ||
-    !viewSection ||
-    !emailValue ||
-    !dietaryValue ||
-    !rsvpMessageValue ||
-    !lastSeenValue ||
-    !guestIdInline ||
-    !inviteDebugItem ||
-    !editButton ||
-    !deleteButton ||
-    !editSection ||
-    !editName ||
-    !editEmail ||
-    !editRsvp ||
-    !editAdditional ||
-    !editDietary ||
-    !editRsvpMessage ||
-    !saveButton ||
-    !cancelEditButton ||
-    !nameCell ||
-    !rsvpCell ||
-    !countCell ||
-    !accessStateIcon ||
-    !toggleAccessButton ||
-    !syncCell ||
-    !syncOkIcon ||
-    !syncWarning ||
-    !syncTrigger ||
-    !syncTooltip ||
-    !viewActions
-  ) {
-    return null;
-  }
-
-  return {
-    rows,
-    row,
-    detailRow,
-    detailCell,
-    viewSection,
-    emailValue,
-    dietaryValue,
-    rsvpMessageValue,
-    lastSeenValue,
-    guestIdInline,
-    inviteDebugItem,
-    editButton,
-    deleteButton,
-    editSection,
-    editName,
-    editEmail,
-    editRsvp,
-    editAdditional,
-    editDietary,
-    editRsvpMessage,
-    saveButton,
-    cancelEditButton,
-    nameCell,
-    rsvpCell,
-    countCell,
-    accessStateIcon,
-    toggleAccessButton,
-    syncCell,
-    syncOkIcon,
-    syncWarning,
-    syncTrigger,
-    syncTooltip,
-    viewActions,
-  };
-}
+import {
+  deleteGuest,
+  dismissAccessRequest,
+  fetchAccessRequests,
+  fetchGuestLastSeen,
+  fetchGuests,
+  fetchSyncStatus,
+  runSync,
+  sendGuestInvitation,
+  setGuestAccess,
+} from './features/admin/api.js';
+import { getAdminElements, getFormFields, getRowElements } from './features/admin/elements.js';
+import { renderRsvpStats } from './features/admin/rsvp-stats.js';
+import { apiFetch } from './api-utils.js';
 
 (() => {
   const elements = getAdminElements();
@@ -372,70 +153,6 @@ function getRowElements(fragment) {
     }
   };
 
-  const fetchGuests = async () => {
-    const data = await (await apiFetch('/api/private/guests')).json();
-    return Array.isArray(data?.guests) ? data.guests : [];
-  };
-
-  const fetchAccessRequests = async () => {
-    const data = await (await apiFetch('/api/private/access-requests')).json();
-    return Array.isArray(data?.requests) ? data.requests : [];
-  };
-
-  const dismissAccessRequest = async (requestId) => {
-    await apiFetch(`/api/private/access-requests/${encodeURIComponent(requestId)}`, {
-      method: 'DELETE',
-    });
-  };
-
-  const fetchSyncStatus = async () => {
-    const data = await (await apiFetch('/api/private/guests/sync-status')).json();
-    return data?.summary || null;
-  };
-
-  const runSync = async (mode) => {
-    const data = await (await apiFetch('/api/private/guests/sync', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ mode }),
-    })).json();
-    return data;
-  };
-
-  const setGuestAccess = async (guestId, enabled) => {
-    const action = enabled ? 'enable' : 'disable';
-    const response = await (await apiFetch(`/api/private/guests/${guestId}/access/${action}`, {
-      method: 'POST',
-    })).json();
-    return response;
-  };
-
-  const deleteGuest = async (guestId) => {
-    const response = await (await apiFetch(`/api/private/guests/${guestId}`, {
-      method: 'DELETE',
-    })).json();
-    return response;
-  };
-
-  const fetchGuestLastSeen = async (guestId) => {
-    try {
-      const data = await (await apiFetch(`/api/private/guests/${guestId}/last-seen`)).json();
-      return data?.lastSeen || null;
-    } catch (error) {
-      if (isLastSeenDebugEnabled) {
-        console.error('[last_seen debug] Failed to load last_seen for guest', guestId, error);
-      }
-      return null;
-    }
-  };
-
-  const sendGuestInvitation = async (guestId) => {
-    const response = await (await apiFetch(`/api/private/guests/${guestId}/send-invitation`, {
-      method: 'POST',
-    })).json();
-    return response;
-  };
-
   const refreshSyncSummary = async () => {
     const summary = await fetchSyncStatus();
     setSyncSummary(formatSyncSummary(summary));
@@ -537,63 +254,18 @@ function getRowElements(fragment) {
     renderAccessRequests(requests);
   };
 
-  const renderRsvpStats = (guests) => {
-    if (!Array.isArray(guests) || guests.length === 0) {
-      rsvpStats.hidden = true;
-      return;
-    }
-
-    const counts = { yes: 0, no: 0, pending: 0 };
-    let totalGuests = 0;
-    guests.forEach((g) => {
-      const extra = Number.parseInt(g.additionalGuests, 10) || 0;
-      const headcount = 1 + extra;
-      totalGuests += headcount;
-      const rsvp = (g.rsvp || 'pending').toLowerCase();
-      if (rsvp === 'yes') counts.yes += headcount;
-      else if (rsvp === 'no') counts.no += headcount;
-      else counts.pending += headcount;
-    });
-    const total = counts.yes + counts.no + counts.pending;
-
-    rsvpTotal.textContent = `${totalGuests} total guest${totalGuests === 1 ? '' : 's'}`;
-
-    const getCountForLabel = (label) => {
-      if (label === 'yes') return counts.yes;
-      if (label === 'pending') return counts.pending;
-      if (label === 'no') return counts.no;
-      return 0;
-    };
-
-    const segments = [
-      ['yes', rsvpYes],
-      ['pending', rsvpPending],
-      ['no', rsvpNo],
-    ];
-
-    segments.forEach(([label, element]) => {
-      const count = getCountForLabel(label);
-      element.hidden = count === 0;
-      if (count > 0) {
-        element.style.flexBasis = `${Math.round((count / Math.max(total, 1)) * 100)}%`;
-        element.title = `${label.charAt(0).toUpperCase() + label.slice(1)}: ${count}`;
-        element.textContent = String(count);
-      } else {
-        element.style.flexBasis = '0%';
-        element.title = '';
-        element.textContent = '';
-      }
-    });
-
-    rsvpBar.hidden = total === 0;
-    rsvpStats.hidden = false;
-  };
-
   const refreshGuestsAndSummary = async () => {
     const [guests, summary] = await Promise.all([fetchGuests(), fetchSyncStatus()]);
     guestsState = guests;
     renderGuests(guestsState);
-    renderRsvpStats(guestsState);
+    renderRsvpStats(guestsState, {
+      rsvpStats,
+      rsvpTotal,
+      rsvpBar,
+      rsvpYes,
+      rsvpPending,
+      rsvpNo,
+    });
     setSyncSummary(formatSyncSummary(summary));
     setStatus('');
   };
@@ -732,7 +404,7 @@ function getRowElements(fragment) {
     });
 
     // Fetch once and drive both last-seen text + invitation visibility from the same value.
-    fetchGuestLastSeen(guest.id).then(updateLastSeenUI);
+    fetchGuestLastSeen(guest.id, isLastSeenDebugEnabled).then(updateLastSeenUI);
 
     const enterEditMode = () => {
       viewSection.hidden = true;
