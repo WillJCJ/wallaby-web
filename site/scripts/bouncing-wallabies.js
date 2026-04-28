@@ -7,14 +7,18 @@ import {
   getPagePos,
   getSpeed,
   intersectsAnyCard,
-} from './features/wallabies/utils.js';
+} from './features/bouncing-wallabies/utils.js';
 import {
   applyHoverPush,
   applyHoverSpin,
   applyTapImpulse,
-} from './features/wallabies/interactions.js';
-import { createOverlaySystem } from './features/wallabies/overlay.js';
-import { createCollisionResolvers } from './features/wallabies/collisions.js';
+} from './features/bouncing-wallabies/interactions.js';
+import { createOverlaySystem } from './features/bouncing-wallabies/overlay.js';
+import { createCollisionResolvers } from './features/bouncing-wallabies/collisions.js';
+import {
+  createSpawnPositionResolver,
+  createWallabyFactory,
+} from './features/bouncing-wallabies/lifecycle.js';
 
 /**
  * Initialise the bouncing wallaby animation.
@@ -63,125 +67,28 @@ const initializeBouncingWallabies = () => {
   const header = document.querySelector('header');
   const footer = document.querySelector('footer');
 
-  const getSpawnPosition = (getYBounds) => {
-    const cardBounds = getCardBounds();
-    const { yMin, yMax } = getYBounds();
-    const boundedYMax = Math.max(yMin, yMax);
+  const getSpawnPosition = createSpawnPositionResolver({
+    size: SIZE,
+    getCardBounds,
+    intersectsAnyCard,
+  });
 
-    for (let attempt = 0; attempt < 40; attempt += 1) {
-      const x = Math.random() * Math.max(0, window.innerWidth - SIZE);
-      const y = yMin + Math.random() * Math.max(0, boundedYMax - yMin);
-      if (!intersectsAnyCard(x, y, cardBounds)) return { x, y };
-    }
-
-    return { x: Math.random() * Math.max(0, window.innerWidth - SIZE), y: yMin };
-  };
-
-  const setOpacity = (el, active) => {
-    el.style.opacity = active ? WALLABY_ACTIVE_OPACITY : WALLABY_IDLE_OPACITY;
-  };
-
-  const createWallaby = () => {
-    const el = document.createElement('div');
-    el.className = 'wallaby-bouncer';
-
-    const isAlbino = Math.random() < ALBINO_CHANCE;
-    const img = document.createElement('img');
-    img.src = isAlbino ? WALLABY_ALBINO_IMG : WALLABY_IMG;
-    img.alt = '';
-    img.setAttribute('aria-hidden', 'true');
-    el.appendChild(img);
-
-    const baseSpeed = 1 + Math.random() * 1.5;
-    const angle = Math.random() * 2 * Math.PI;
-
-    const getYBounds = () => {
-      const yMin = header ? header.offsetTop + header.offsetHeight : 0;
-      const pageBottom = document.documentElement.scrollHeight;
-      const yMax = (footer ? footer.offsetTop : pageBottom) - SIZE;
-      return { yMin, yMax };
-    };
-
-    const spawn = getSpawnPosition(getYBounds);
-
-    const state = {
-      x: spawn.x,
-      y: spawn.y,
-      vx: Math.cos(angle) * baseSpeed,
-      vy: Math.sin(angle) * baseSpeed,
-      rotation: Math.random() * 360,
-      omega: 0,
-      isAlbino,
-      activeTouchPointerId: null,
-      hoverPtrX: null,
-      hoverPtrY: null,
-      el,
-      img,
-      getYBounds,
-    };
-
-    setOpacity(el, false);
-
-    el.addEventListener('pointerenter', (event) => {
-      if (event.pointerType !== 'mouse') return;
-      setOpacity(el, true);
-      applyHoverPush(state, event);
-      const pos = getPagePos(event);
-      state.hoverPtrX = pos.x;
-      state.hoverPtrY = pos.y;
-    });
-
-    el.addEventListener('pointermove', (event) => {
-      if (event.pointerType === 'mouse') {
-        if (state.hoverPtrX !== null) {
-          applyHoverPush(state, event);
-          applyHoverSpin(state, event);
-        }
-        return;
-      }
-
-      if (state.activeTouchPointerId === event.pointerId) {
-        applyHoverPush(state, event);
-        applyHoverSpin(state, event);
-      }
-    });
-
-    el.addEventListener('pointerleave', (event) => {
-      if (event.pointerType !== 'mouse') return;
-      setOpacity(el, false);
-      state.hoverPtrX = null;
-      state.hoverPtrY = null;
-    });
-
-    el.addEventListener('pointerdown', (event) => {
-      applyTapImpulse(state, event);
-
-      if (event.pointerType === 'mouse') return;
-
-      state.activeTouchPointerId = event.pointerId;
-      setOpacity(el, true);
-      el.setPointerCapture(event.pointerId);
-      const pos = getPagePos(event);
-      state.hoverPtrX = pos.x;
-      state.hoverPtrY = pos.y;
-    });
-
-    const stopTouchInteraction = (event) => {
-      if (event.pointerType === 'mouse') return;
-      if (state.activeTouchPointerId !== event.pointerId) return;
-
-      state.activeTouchPointerId = null;
-      setOpacity(el, false);
-      state.hoverPtrX = null;
-      state.hoverPtrY = null;
-    };
-
-    el.addEventListener('pointerup', stopTouchInteraction);
-    el.addEventListener('pointercancel', stopTouchInteraction);
-
-    layer.appendChild(el);
-    return state;
-  };
+  const createWallaby = createWallabyFactory({
+    layer,
+    header,
+    footer,
+    size: SIZE,
+    albinoChance: ALBINO_CHANCE,
+    wallabyImg: WALLABY_IMG,
+    albinoImg: WALLABY_ALBINO_IMG,
+    idleOpacity: WALLABY_IDLE_OPACITY,
+    activeOpacity: WALLABY_ACTIVE_OPACITY,
+    getSpawnPosition,
+    getPagePos,
+    applyHoverPush,
+    applyHoverSpin,
+    applyTapImpulse,
+  });
 
   const count = Math.max(1, Math.floor(window.innerWidth / 90));
   const wallabies = Array.from({ length: count }, createWallaby);
