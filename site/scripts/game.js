@@ -1,5 +1,7 @@
 import { createOnlineHelpers } from './features/game/online.js';
 import { createSpawnHelpers } from './features/game/spawn.js';
+import { setupGameInput } from './features/game/input.js';
+import { createRunFlow } from './features/game/run-flow.js';
 import { getAuth } from './shared/auth-state.js';
 
 (() => {
@@ -10,8 +12,6 @@ import { getAuth } from './shared/auth-state.js';
   const onlineStatusEl = document.getElementById('wallaby-game-online-status');
   const topScoresEl = document.getElementById('wallaby-game-top-scores');
   const signInWarningEl = document.getElementById('wallaby-game-signin-warning');
-  let btnHeld = false;
-  let lastTouchInteractionAt = 0;
 
   if (!canvas || !canvas.getContext) {
     return;
@@ -249,8 +249,6 @@ import { getAuth } from './shared/auth-state.js';
   }
   bestEl.textContent = state.best;
 
-  let runCounter = 0;
-  let activeRun = null;
   const online = createOnlineHelpers({
     onlineStatusEl,
     signInWarningEl,
@@ -274,193 +272,27 @@ import { getAuth } from './shared/auth-state.js';
     groundY: GROUND_Y,
     randomBetween,
   });
-
-  const resetRun = () => {
-    state.time = 0;
-    state.speed = START_SPEED;
-    state.score = 0;
-    state.lastRunWasHighScore = false;
-    state.obstacles.length = 0;
-    state.clouds.length = 0;
-    state.trees.length = 0;
-    state.camps.length = 0;
-    state.quails.length = 0;
-    state.wallaby.y = GROUND_Y;
-    state.wallaby.vy = 0;
-    state.wallaby.grounded = true;
-    state.wallaby.legPhase = 0;
-    state.groundOffset = 0;
-    state.nextObstacleIn = 0.8;
-    state.nightBlend = 0;
-    for (let i = 0; i < 3; i++) {
-      spawnCloud(randomBetween(0, WIDTH));
-    }
-    for (let i = 0; i < 4; i++) {
-      spawnTree(randomBetween(0, WIDTH));
-    }
-  };
-
-  const jump = () => {
-    if (!state.wallaby.grounded) return;
-    state.wallaby.vy = JUMP_VELOCITY;
-    state.wallaby.grounded = false;
-  };
-
-  const startGame = () => {
-    resetRun();
-    state.status = 'running';
-    if (jumpBtn) {
-      jumpBtn.textContent = 'Jump';
-      jumpBtn.setAttribute('aria-label', 'Jump');
-    }
-    jump();
-
-    runCounter += 1;
-    activeRun = {
-      token: runCounter,
-      runId: null,
-      finished: false,
-    };
-    void online.startRunSync(activeRun);
-  };
-
-  const endGame = () => {
-    state.status = 'over';
-    const finalScore = Math.floor(state.score);
-    const hasNewHighScore = finalScore > state.best;
-    const runToFinish = activeRun;
-    activeRun = null;
-    if (hasNewHighScore) {
-      state.best = finalScore;
-      bestEl.textContent = state.best;
-      try {
-        localStorage.setItem(BEST_KEY, String(state.best));
-      } catch {
-        // ignore storage errors
-      }
-    }
-    state.lastRunWasHighScore = hasNewHighScore;
-    if (jumpBtn) {
-      jumpBtn.textContent = 'Restart';
-      jumpBtn.setAttribute('aria-label', 'Restart game');
-    }
-
-    void online.finishRunSync(runToFinish, finalScore, Math.max(0, Math.round(state.time * 1000)));
-  };
-
-  const handleInput = (event) => {
-    if (event) {
-      event.preventDefault();
-    }
-    if (state.status === 'running') {
-      jump();
-    } else {
-      startGame();
-    }
-  };
-
-  // Track recent touch input so we only blur focus that came from tapping on mobile.
-  const markTouchInteraction = (event) => {
-    if (event?.pointerType && event.pointerType !== 'mouse') {
-      lastTouchInteractionAt = Date.now();
-    }
-  };
-
-  const clearTouchFocus = (event) => {
-    if (!event?.pointerType || event.pointerType === 'mouse') {
-      return;
-    }
-
-    lastTouchInteractionAt = Date.now();
-
-    if (event.currentTarget instanceof HTMLElement) {
-      // Android browsers may assign focus after pointer events, so blur on the next frame.
-      requestAnimationFrame(() => {
-        event.currentTarget.blur();
-      });
-    }
-  };
-
-  const blurOnTouchFocus = (element) => {
-    // Catch the cases where Chrome/Brave focus the control after the pointer handlers have run.
-    element.addEventListener('focus', () => {
-      if (Date.now() - lastTouchInteractionAt > 500) {
-        return;
-      }
-
-      requestAnimationFrame(() => {
-        element.blur();
-      });
-    });
-  };
-
-  const pressInput = (e) => {
-    if (e) e.preventDefault();
-    clearTouchFocus(e);
-    btnHeld = true;
-    if (jumpBtn) jumpBtn.classList.add('is-pressed');
-    if (state.status !== 'running' || state.wallaby.grounded) {
-      handleInput(e);
-    }
-  };
-
-  const releaseInput = (event) => {
-    clearTouchFocus(event);
-    btnHeld = false;
-    if (jumpBtn) jumpBtn.classList.remove('is-pressed');
-  };
-
-  blurOnTouchFocus(canvas);
-  if (jumpBtn) {
-    blurOnTouchFocus(jumpBtn);
-  }
-
-  const isJumpKey = (key) => key === ' ' || key === 'ArrowUp' || key === 'Enter';
-
-  const holdInput = (event) => {
-    if (event) event.preventDefault();
-    btnHeld = true;
-    if (jumpBtn) jumpBtn.classList.add('is-pressed');
-  };
-
-  canvas.addEventListener('pointerdown', markTouchInteraction);
-  canvas.addEventListener('pointerdown', pressInput);
-  canvas.addEventListener('pointerup', releaseInput);
-  canvas.addEventListener('pointercancel', releaseInput);
-  if (jumpBtn) {
-    jumpBtn.addEventListener('pointerdown', markTouchInteraction);
-    jumpBtn.addEventListener('pointerdown', pressInput);
-    jumpBtn.addEventListener('pointerup', releaseInput);
-    jumpBtn.addEventListener('pointercancel', releaseInput);
-    jumpBtn.addEventListener('pointerleave', releaseInput);
-  }
-  canvas.addEventListener('keydown', (event) => {
-    if (!isJumpKey(event.key)) return;
-    if (event.repeat) {
-      holdInput(event);
-      return;
-    }
-    pressInput(event);
+  const runFlow = createRunFlow({
+    state,
+    startSpeed: START_SPEED,
+    groundY: GROUND_Y,
+    jumpVelocity: JUMP_VELOCITY,
+    width: WIDTH,
+    randomBetween,
+    spawnCloud,
+    spawnTree,
+    jumpBtn,
+    bestEl,
+    bestKey: BEST_KEY,
+    online,
   });
-  canvas.addEventListener('keyup', (event) => {
-    if (!isJumpKey(event.key)) return;
-    releaseInput();
+
+  const inputState = setupGameInput({
+    canvas,
+    jumpBtn,
+    shouldTriggerAction: () => state.status !== 'running' || state.wallaby.grounded,
+    onAction: runFlow.handleInput,
   });
-  window.addEventListener('keydown', (event) => {
-    if (document.activeElement === canvas) return;
-    if (event.target !== document.body) return;
-    if (!isJumpKey(event.key)) return;
-    if (event.repeat) {
-      holdInput(event);
-      return;
-    }
-    pressInput(event);
-  });
-  window.addEventListener('keyup', (event) => {
-    if (!isJumpKey(event.key)) return;
-    releaseInput();
-  });
-  window.addEventListener('blur', releaseInput);
 
   const rectsOverlap = (ax, ay, aw, ah, bx, by, bw, bh) => (
     ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by
@@ -507,8 +339,8 @@ import { getAuth } from './shared/auth-state.js';
       w.y = GROUND_Y;
       w.vy = 0;
       w.grounded = true;
-      if (btnHeld) {
-        jump();
+      if (inputState.held) {
+        runFlow.jump();
         if (jumpBtn) jumpBtn.classList.add('is-pressed');
       }
     }
@@ -572,7 +404,7 @@ import { getAuth } from './shared/auth-state.js';
       const hop = o.type === 'chicken' ? Math.max(0, Math.sin(o.hopPhase)) * 27 : 0;
       const oy = GROUND_Y - o.height - hop;
       if (rectsOverlap(wx, wy, ww, wh, ox, oy, o.width, o.height)) {
-        endGame();
+        runFlow.endGame();
         break;
       }
     }
@@ -1136,7 +968,7 @@ import { getAuth } from './shared/auth-state.js';
   };
 
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
-  resetRun();
+  runFlow.resetRun();
 
   online.initOnlineScores();
 
