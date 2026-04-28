@@ -51,6 +51,14 @@ import { createStatusSetter } from './status-utils.js';
     },
   };
 
+  const getFieldConfig = (field) => {
+    if (field === 'rsvp') return fieldConfig.rsvp;
+    if (field === 'additionalGuests') return fieldConfig.additionalGuests;
+    if (field === 'dietaryRequirements') return fieldConfig.dietaryRequirements;
+    if (field === 'rsvpMessage') return fieldConfig.rsvpMessage;
+    return null;
+  };
+
   if (
     !status ||
     !list ||
@@ -78,12 +86,15 @@ import { createStatusSetter } from './status-utils.js';
       button.disabled = savingField !== null;
       button.textContent = isSavingCurrentField ? '…' : isCurrentField ? '✓' : '✎';
 
+      const config = getFieldConfig(field);
+      const fieldLabel = config?.label || 'field';
+
       if (isSavingCurrentField) {
-        button.setAttribute('aria-label', `Saving ${fieldConfig[field]?.label || 'field'}`);
+        button.setAttribute('aria-label', `Saving ${fieldLabel}`);
       } else if (isCurrentField) {
-        button.setAttribute('aria-label', `Save ${fieldConfig[field]?.label || 'field'}`);
+        button.setAttribute('aria-label', `Save ${fieldLabel}`);
       } else {
-        button.setAttribute('aria-label', `Edit ${fieldConfig[field]?.label || 'field'}`);
+        button.setAttribute('aria-label', `Edit ${fieldLabel}`);
       }
     });
   };
@@ -104,7 +115,8 @@ import { createStatusSetter } from './status-utils.js';
       return String(value ?? 0);
     }
 
-    return value && String(value).trim() ? String(value) : fieldConfig[field].emptyLabel;
+    const config = getFieldConfig(field);
+    return value && String(value).trim() ? String(value) : (config?.emptyLabel || '');
   };
 
   const syncEditorValues = (guest) => {
@@ -126,8 +138,9 @@ import { createStatusSetter } from './status-utils.js';
 
     setFieldActionState();
 
-    if (editingField && fieldConfig[editingField]) {
-      fieldConfig[editingField].editorEl.focus();
+    const currentConfig = getFieldConfig(editingField);
+    if (editingField && currentConfig) {
+      currentConfig.editorEl.focus();
     }
   };
 
@@ -137,7 +150,7 @@ import { createStatusSetter } from './status-utils.js';
   };
 
   const getFieldValueFromEditor = (field) => {
-    const config = fieldConfig[field];
+    const config = getFieldConfig(field);
     if (!config) return null;
 
     if (config.editorType === 'number') {
@@ -218,13 +231,14 @@ import { createStatusSetter } from './status-utils.js';
   };
 
   const saveField = async (field) => {
-    if (!fieldConfig[field] || savingField || !currentGuest) {
+    const config = getFieldConfig(field);
+    if (!config || savingField || !currentGuest) {
       return;
     }
 
     const payload = buildUpdatePayload(field);
 
-    setStatus(`Saving ${fieldConfig[field].label.toLowerCase()}...`, 'warning');
+    setStatus(`Saving ${config.label.toLowerCase()}...`, 'warning');
     setSavingField(field);
 
     try {
@@ -232,7 +246,7 @@ import { createStatusSetter } from './status-utils.js';
       currentGuest = guest;
       renderGuest(guest);
       setEditingField(null);
-      setStatus(`${fieldConfig[field].label} updated.`, 'success');
+      setStatus(`${config.label} updated.`, 'success');
     } catch (error) {
       setStatus(error.message, 'failure');
     } finally {
@@ -243,8 +257,9 @@ import { createStatusSetter } from './status-utils.js';
   actionButtons.forEach((button) => {
     button.addEventListener('click', async () => {
       const field = button.dataset.action;
+      const config = getFieldConfig(field);
 
-      if (!field || !fieldConfig[field]) {
+      if (!field || !config) {
         return;
       }
 

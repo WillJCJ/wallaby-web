@@ -23,18 +23,18 @@ const makeRequest = (method, body = null, email = null) => {
 };
 
 const makeKv = (store = {}) => {
-  const data = { ...store };
+  const data = new Map(Object.entries(store));
   return {
-    get: vi.fn((key) => Promise.resolve(data[key] ?? null)),
+    get: vi.fn((key) => Promise.resolve(data.get(key) ?? null)),
     put: vi.fn((key, value) => {
-      data[key] = value;
+      data.set(key, value);
       return Promise.resolve();
     }),
     delete: vi.fn((key) => {
-      delete data[key];
+      data.delete(key);
       return Promise.resolve();
     }),
-    list: vi.fn(() => Promise.resolve({ keys: Object.keys(data).map((name) => ({ name })) })),
+    list: vi.fn(() => Promise.resolve({ keys: Array.from(data.keys()).map((name) => ({ name })) })),
     _data: data,
   };
 };

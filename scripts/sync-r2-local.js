@@ -27,14 +27,28 @@ const MAX_PX = 1200;
 const JPEG_QUALITY = 55;
 
 const args = process.argv.slice(2);
-const targetArgIndex = args.findIndex((arg) => arg === '--target' || arg.startsWith('--target='));
-const target = (() => {
-  if (targetArgIndex >= 0) {
-    const flag = args[targetArgIndex];
-    return flag.includes('=') ? (flag.split('=').slice(1).join('=') || '') : (args[targetArgIndex + 1] || '');
+const parseTargetArg = (argv) => {
+  let readNextAsTarget = false;
+
+  for (const token of argv) {
+    if (readNextAsTarget) {
+      return token || '';
+    }
+
+    if (token === '--target') {
+      readNextAsTarget = true;
+      continue;
+    }
+
+    if (token.startsWith('--target=')) {
+      return token.slice('--target='.length);
+    }
   }
-  return args.find((arg) => !arg.startsWith('--')) || '';
-})();
+
+  return argv.find((arg) => !arg.startsWith('--')) || '';
+};
+
+const target = parseTargetArg(args);
 
 const isVideo = (item) => {
   if (item.type === 'video') return true;

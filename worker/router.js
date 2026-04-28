@@ -23,9 +23,17 @@ const parseRange = (header) => {
   return end !== undefined ? { offset, length: end - offset + 1 } : { offset };
 };
 
+const getVideoMimeType = (extension) => {
+  if (extension === 'mp4') return 'video/mp4';
+  if (extension === 'webm') return 'video/webm';
+  if (extension === 'mov') return 'video/quicktime';
+  return 'video/mp4';
+};
+
 
 
 export default {
+  // eslint-disable-next-line complexity -- Central worker entrypoint intentionally handles all route branches.
   async fetch(request, env, executionCtx) {
     const url = new URL(request.url);
 
@@ -49,8 +57,7 @@ export default {
       }
 
       const extension = segment.split('.').pop()?.toLowerCase() || '';
-      const mimeTypes = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime' };
-      const contentType = object.httpMetadata?.contentType || mimeTypes[extension] || 'video/mp4';
+      const contentType = object.httpMetadata?.contentType || getVideoMimeType(extension);
 
       const headers = new Headers();
       headers.set('content-type', contentType);

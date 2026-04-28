@@ -4,7 +4,7 @@ import { createStatusSetter } from './status-utils.js';
  * Initialize Turnstile script and set up token callback.
  * @param {object} config - Configuration object
  * @param {boolean} config.useTurnstile - Whether to load Turnstile
- * @param {Function} config.onTokenSuccess - Callback when token is obtained
+ * @param {(token: string) => void} config.onTokenSuccess - Callback when token is obtained
  * @returns {void}
  */
 function initTurnstile({ useTurnstile, onTokenSuccess }) {
@@ -29,8 +29,8 @@ function initTurnstile({ useTurnstile, onTokenSuccess }) {
  * @param {HTMLElement} elements.cancel - Cancel button element
  * @param {HTMLElement} elements.form - Form element
  * @param {object} elements.elements - Additional elements object
- * @param {Function} elements.setRequestStatus - Status message setter
- * @param {Function} elements.onSubmit - Form submission handler
+ * @param {(message: string, tone?: string|null) => void} elements.setRequestStatus - Status message setter
+ * @param {(event: SubmitEvent) => Promise<void>|void} elements.onSubmit - Form submission handler
  * @returns {void}
  */
 function setupRequestForm({ toggle, cancel, form, elements, setRequestStatus, onSubmit }) {
@@ -62,8 +62,8 @@ function setupRequestForm({ toggle, cancel, form, elements, setRequestStatus, on
  * @param {HTMLElement} elements.form - Form element
  * @param {HTMLElement} elements.email - Email input element
  * @param {HTMLElement} elements.submit - Submit button element
- * @param {Function} elements.setStatus - Status message setter
- * @param {Function} elements.onSubmit - Form submission handler
+ * @param {(message: string, tone?: string|null) => void} elements.setStatus - Status message setter
+ * @param {(event: SubmitEvent) => Promise<void>|void} elements.onSubmit - Form submission handler
  * @returns {boolean} True if form was successfully initialized
  */
 function setupDevForm({ form, email, submit, setStatus, onSubmit }) {

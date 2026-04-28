@@ -478,9 +478,11 @@ const initializeBouncingWallabies = () => {
     const minDistSq = minDist * minDist;
 
     for (let i = 0; i < states.length; i += 1) {
+      // eslint-disable-next-line security/detect-object-injection -- Index-based pair iteration over local in-memory array.
       const a = states[i];
 
       for (let j = i + 1; j < states.length; j += 1) {
+        // eslint-disable-next-line security/detect-object-injection -- Index-based pair iteration over local in-memory array.
         const b = states[j];
 
         const ax = a.x + radius;
@@ -558,7 +560,7 @@ const initializeBouncingWallabies = () => {
   /**
    * Find a collision-free spawn position, trying 40 random locations before
    * falling back to the top of the scrollable area.
-   * @param {Function} getYBounds - Function that returns Y boundary constraints
+   * @param {() => { yMin: number, yMax: number }} getYBounds - Function that returns Y boundary constraints
    * @returns {{ x: number, y: number }} Spawn position
    */
   const getSpawnPosition = (getYBounds) => {

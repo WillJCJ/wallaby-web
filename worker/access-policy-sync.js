@@ -1,8 +1,6 @@
 const CLOUDFLARE_API_BASE = 'https://api.cloudflare.com/client/v4';
 const EMPTY_INCLUDE_PLACEHOLDER_EMAIL = 'wallabyfest-access-placeholder@invalid.invalid';
 
-const REQUIRED_ENV_KEYS = ['CF_ACCOUNT_ID', 'CF_ACCESS_API_TOKEN', 'CF_ACCESS_POLICY_ID'];
-
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 export const normalizeEmailList = (emails) => {
@@ -17,7 +15,10 @@ export const normalizeEmailList = (emails) => {
 };
 
 export const getAccessPolicySyncConfig = (env = {}) => {
-  const missing = REQUIRED_ENV_KEYS.filter((key) => !String(env[key] || '').trim());
+  const missing = [];
+  if (!String(env.CF_ACCOUNT_ID || '').trim()) missing.push('CF_ACCOUNT_ID');
+  if (!String(env.CF_ACCESS_API_TOKEN || '').trim()) missing.push('CF_ACCESS_API_TOKEN');
+  if (!String(env.CF_ACCESS_POLICY_ID || '').trim()) missing.push('CF_ACCESS_POLICY_ID');
   if (missing.length > 0) {
     return {
       error: {

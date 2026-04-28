@@ -240,6 +240,7 @@ const handleGuestsSync = async (request, env) => {
   });
 };
 
+// eslint-disable-next-line complexity -- Sync status aggregates DB and Access drift state in one response contract.
 const handleGuestsSyncStatus = async (request, env) => {
   if (request.method !== 'GET') {
     return methodNotAllowed();
@@ -558,6 +559,7 @@ const handleSendInvitation = async (request, env, guestId) => {
   return jsonResponse({ success: true, message: 'Invitation queued' });
 };
 
+// eslint-disable-next-line complexity -- Router-style path dispatch is intentionally centralised for guests API.
 export const handleGuestsApi = async (request, env, pathname) => {
   const authResult = await requireAuthenticatedEmail(request, env);
 

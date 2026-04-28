@@ -3,30 +3,32 @@ import { isLocalHost, normalizeHost } from './host.js';
 
 const DEV_AUTH_COOKIE = 'wallabyfest-dev-auth-email';
 
-const parseCookies = (cookieHeader) => {
+const getCookieValue = (cookieHeader, cookieName) => {
   if (!cookieHeader || typeof cookieHeader !== 'string') {
-    return {};
+    return null;
   }
 
-  return cookieHeader
+  const parts = cookieHeader
     .split(';')
     .map((part) => part.trim())
-    .filter(Boolean)
-    .reduce((acc, pair) => {
-      const separatorIndex = pair.indexOf('=');
-      if (separatorIndex === -1) {
-        return acc;
-      }
+    .filter(Boolean);
 
-      const key = pair.slice(0, separatorIndex).trim();
-      const value = pair.slice(separatorIndex + 1).trim();
-      if (!key) {
-        return acc;
-      }
+  for (const pair of parts) {
+    const separatorIndex = pair.indexOf('=');
+    if (separatorIndex === -1) {
+      continue;
+    }
 
-      acc[key] = decodeURIComponent(value);
-      return acc;
-    }, {});
+    const key = pair.slice(0, separatorIndex).trim();
+    if (key !== cookieName) {
+      continue;
+    }
+
+    const value = pair.slice(separatorIndex + 1).trim();
+    return decodeURIComponent(value);
+  }
+
+  return null;
 };
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
@@ -76,8 +78,8 @@ export const isDevAuthRequestAllowed = (request, env) => {
 };
 
 export const getDevAuthEmailFromCookie = (request) => {
-  const cookies = parseCookies(request.headers.get('cookie') || '');
-  const email = normalizeEmail(cookies[DEV_AUTH_COOKIE]);
+  const rawEmail = getCookieValue(request.headers.get('cookie') || '', DEV_AUTH_COOKIE);
+  const email = normalizeEmail(rawEmail);
   if (!email || !isEmailLike(email)) {
     return null;
   }

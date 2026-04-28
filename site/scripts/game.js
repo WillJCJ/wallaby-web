@@ -199,6 +199,7 @@
   const buildActiveColours = (nightBlend) => {
     const active = {};
     Object.keys(COLOURS_DAY).forEach((key) => {
+      // eslint-disable-next-line security/detect-object-injection -- Keys come from internal static palette constants.
       active[key] = interpolateColour(COLOURS_DAY[key], COLOURS_NIGHT[key], nightBlend);
     });
     return active;
@@ -669,6 +670,7 @@
     ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by
   );
 
+  // eslint-disable-next-line complexity -- Core game loop intentionally coordinates physics, spawning, scoring, and collisions.
   const update = (dt) => {
     const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
     const isNight = scorePhase > HALF_DAY_NIGHT_CYCLE;

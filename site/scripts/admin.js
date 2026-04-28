@@ -5,6 +5,7 @@ import { createStatusSetter } from './status-utils.js';
  * Get all required admin page elements.
  * @returns {object|null} Object containing all required DOM elements or null if any are missing
  */
+// eslint-disable-next-line complexity -- This function intentionally validates a large required DOM surface in one place.
 function getAdminElements() {
   const status = document.getElementById('guest-admin-status');
   const form = document.getElementById('guest-admin-form');
@@ -122,6 +123,7 @@ function getFormFields() {
  * @param {DocumentFragment} fragment - Cloned template fragment
  * @returns {object|null} Object containing row elements or null if validation fails
  */
+// eslint-disable-next-line complexity -- Template extraction validates many required nodes to fail fast on markup drift.
 function getRowElements(fragment) {
   const rows = fragment.querySelectorAll('tr');
   const row = rows[0];
@@ -556,14 +558,21 @@ function getRowElements(fragment) {
 
     rsvpTotal.textContent = `${totalGuests} total guest${totalGuests === 1 ? '' : 's'}`;
 
-    const segments = {
-      yes: rsvpYes,
-      pending: rsvpPending,
-      no: rsvpNo,
+    const getCountForLabel = (label) => {
+      if (label === 'yes') return counts.yes;
+      if (label === 'pending') return counts.pending;
+      if (label === 'no') return counts.no;
+      return 0;
     };
 
-    Object.entries(segments).forEach(([label, element]) => {
-      const count = counts[label];
+    const segments = [
+      ['yes', rsvpYes],
+      ['pending', rsvpPending],
+      ['no', rsvpNo],
+    ];
+
+    segments.forEach(([label, element]) => {
+      const count = getCountForLabel(label);
       element.hidden = count === 0;
       if (count > 0) {
         element.style.flexBasis = `${Math.round((count / Math.max(total, 1)) * 100)}%`;
@@ -595,6 +604,7 @@ function getRowElements(fragment) {
    * @param {boolean} allInSync - Whether all guests are in sync
    * @returns {DocumentFragment} Fragment containing guest rows or empty fragment if validation fails
    */
+  // eslint-disable-next-line complexity -- Rendering/edit wiring for one row intentionally keeps all linked controls co-located.
   const createGuestRows = (guest, allInSync = false) => {
     const isAccessEnabled = normalizeAccessEnabled(guest.accessEnabled);
     const fragment = guestRowTemplate.content.cloneNode(true);
