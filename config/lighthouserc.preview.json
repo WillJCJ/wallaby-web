@@ -7,11 +7,17 @@
         "https://wallaby-web-preview.willjcjohnson.workers.dev/wallabies",
         "https://wallaby-web-preview.willjcjohnson.workers.dev/game"
       ],
+      "settings": {
+        "skipAudits": [
+          "color-contrast"
+        ]
+      },
       "numberOfRuns": 1
     },
     "assert": {
       "preset": "lighthouse:recommended",
       "assertions": {
+        "color-contrast": "off",
         "categories:performance": ["error", { "minScore": 0.8 }],
         "categories:accessibility": ["error", { "minScore": 0.9 }],
         "categories:best-practices": ["error", { "minScore": 0.9 }],

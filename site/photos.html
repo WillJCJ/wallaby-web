@@ -52,6 +52,8 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
           <img
             src="/api/photos/{{ item.id }}?w=400&q=80"
             alt="{{ item.alt }}"
+            width="400"
+            height="400"
             loading="{% if photoIndex <= 12 %}eager{% else %}lazy{% endif %}"
             fetchpriority="{% if photoIndex <= 4 %}high{% else %}auto{% endif %}"
             decoding="async"
@@ -96,6 +98,8 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
                 src="/api/photos/{{ item.id }}?w=400&q=80"
                 data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
                 alt="{{ item.alt }}"
+                width="2000"
+                height="1333"
                 loading="lazy"
                 decoding="async"
               />
