@@ -1,4 +1,4 @@
-import { clearStoredAuthEmail } from './shared/auth-state.js';
+import { clearStoredAuthEmail } from '../shared/auth-state.js';
 
 /**
  * Shared fetch utility for API calls.

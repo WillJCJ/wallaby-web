@@ -1,4 +1,4 @@
-import { createStatusSetter } from './status-utils.js';
+import { createStatusSetter } from './utils/status.js';
 import { getAuth } from './shared/auth-state.js';
 import { byId } from './shared/dom.js';
 

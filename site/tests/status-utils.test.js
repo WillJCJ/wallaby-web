@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createStatusSetter } from '../scripts/status-utils.js';
+import { createStatusSetter } from '../scripts/utils/status.js';
 
 describe('createStatusSetter', () => {
   it('returns a function', () => {

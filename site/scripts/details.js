@@ -1,4 +1,4 @@
-import { apiFetch } from './api-utils.js';
+import { apiFetch } from './utils/api.js';
 import { getAuth } from './shared/auth-state.js';
 import { byId } from './shared/dom.js';
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { apiFetch } from '../scripts/api-utils.js';
+import { apiFetch } from '../scripts/utils/api.js';
 
 vi.stubGlobal('fetch', vi.fn());
 

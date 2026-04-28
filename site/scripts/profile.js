@@ -1,6 +1,6 @@
-import { apiFetch } from './api-utils.js';
+import { apiFetch } from './utils/api.js';
 import { setStoredAuthEmail } from './shared/auth-state.js';
-import { createStatusSetter } from './status-utils.js';
+import { createStatusSetter } from './utils/status.js';
 
 (() => {
   const status = document.getElementById('guest-profile-status');
