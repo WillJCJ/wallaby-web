@@ -1,4 +1,4 @@
-import { apiFetch } from '../../api-utils.js';
+import { apiFetch } from '../../utils/api.js';
 
 export const fetchGuests = async () => {
   const data = await (await apiFetch('/api/private/guests')).json();

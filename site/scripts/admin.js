@@ -1,18 +1,11 @@
-import { createStatusSetter } from './status-utils.js';
-import {
-  deleteGuest,
-  dismissAccessRequest,
-  fetchAccessRequests,
-  fetchGuestLastSeen,
-  fetchGuests,
-  fetchSyncStatus,
-  runSync,
-  sendGuestInvitation,
-  setGuestAccess,
-} from './features/admin/api.js';
-import { getAdminElements, getFormFields, getRowElements } from './features/admin/elements.js';
+import { createStatusSetter } from './utils/status.js';
+import { fetchGuests, fetchSyncStatus, runSync } from './features/admin/api.js';
+import { getAdminElements, getFormFields } from './features/admin/elements.js';
 import { renderRsvpStats } from './features/admin/rsvp-stats.js';
-import { apiFetch } from './api-utils.js';
+import { apiFetch } from './utils/api.js';
+import { formatSyncSummary } from './features/admin/format.js';
+import { createAccessRequestsRenderer } from './features/admin/access-requests.js';
+import { createGuestTableRenderer } from './features/admin/guest-table.js';
 
 (() => {
   const elements = getAdminElements();
@@ -56,37 +49,11 @@ import { apiFetch } from './api-utils.js';
   let isAddFormExpanded = false;
   let syncActionInProgress = false;
   let createLockedUntilFieldChange = false;
-  const guestActionInFlight = new Set();
   const desktopRequestLayout = window.matchMedia('(width > 800px)');
   const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
   const isLastSeenDebugEnabled = isLocalHost && new URLSearchParams(window.location.search).has('debugLastSeen');
 
-  const normalizeAccessEnabled = (value) => value === true
-    || value === 1
-    || value === '1'
-    || (typeof value === 'string' && value.toLowerCase() === 'true');
-
   const setStatus = createStatusSetter(status, { hideWhenEmpty: false });
-
-  const formatAdminDateTime = (value) => {
-    if (!value) {
-      return '—';
-    }
-
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return '—';
-    }
-
-    return parsed.toLocaleString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).replace(', ', ' ');
-  };
 
   const setAddFormExpanded = (expanded) => {
     isAddFormExpanded = expanded;
@@ -104,21 +71,6 @@ import { apiFetch } from './api-utils.js';
     syncSummary.textContent = summary;
     syncSummary.classList.toggle('admin-sync-summary-error', isError);
     syncSummary.classList.toggle('admin-sync-summary-warning', !isError && /drift|pending|failed/i.test(summary));
-  };
-
-  const formatSyncSummary = (summary) => {
-    if (!summary || typeof summary !== 'object') {
-      return 'Sync summary is unavailable.';
-    }
-
-    const inSync = Number(summary.inSync) || 0;
-    const pending = Number(summary.pending) || 0;
-    const failed = Number(summary.failed) || 0;
-    const drift = Boolean(summary.drift);
-    const lastSync = summary.lastSyncAt || 'Never';
-
-    const driftLabel = drift ? 'Drift detected' : 'No drift';
-    return `In sync: ${inSync} | Pending: ${pending} | Failed: ${failed} | ${driftLabel} | Last sync: ${lastSync}`;
   };
 
   const setSubmittingState = (submitting) => {
@@ -139,125 +91,38 @@ import { apiFetch } from './api-utils.js';
     setSubmittingState(false);
   };
 
-  const withGuestAction = async (guestId, action) => {
-    if (guestActionInFlight.has(guestId)) {
-      return null;
-    }
-
-    guestActionInFlight.add(guestId);
-
-    try {
-      return await action();
-    } finally {
-      guestActionInFlight.delete(guestId);
-    }
-  };
-
   const refreshSyncSummary = async () => {
     const summary = await fetchSyncStatus();
     setSyncSummary(formatSyncSummary(summary));
   };
 
-  const renderAccessRequests = (requests) => {
-    requestsList.innerHTML = '';
+  const { refreshAccessRequests } = createAccessRequestsRenderer({
+    requestsPanel,
+    requestsList,
+    requestTemplate,
+    desktopRequestLayout,
+    setStatus,
+    fields,
+    setAddFormExpanded,
+    addPanel,
+  });
 
-    if (!Array.isArray(requests) || requests.length === 0) {
-      requestsPanel.hidden = true;
-      return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    const formatRequestedTime = (requestedAtRaw) => {
-      return formatAdminDateTime(requestedAtRaw);
-    };
-
-    requests.forEach((req) => {
-      const node = requestTemplate.content.cloneNode(true);
-      const details = node.querySelector('.admin-request-item');
-      const summary = node.querySelector('.admin-request-summary');
-      const nameEl = node.querySelector('.admin-request-name');
-      const summaryEmailEl = node.querySelector('.admin-request-summary-email');
-      const timeEl = node.querySelector('.admin-request-time');
-      const emailEl = node.querySelector('.admin-request-email');
-      const createButtons = node.querySelectorAll('.admin-request-create-button');
-      const dismissButtons = node.querySelectorAll('.admin-request-dismiss-button');
-
-      if (!details || !summary || !nameEl || !summaryEmailEl || !timeEl || !emailEl || createButtons.length === 0 || dismissButtons.length === 0) {
-        return;
-      }
-
-      nameEl.textContent = req.name || '—';
-      summaryEmailEl.textContent = req.email || '—';
-      timeEl.textContent = formatRequestedTime(req.requestedAt);
-      emailEl.textContent = req.email || '—';
-
-      const handleCreate = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        // Pre-populate the add-guest form with the request details and scroll to it
-        if (fields.name) fields.name.value = req.name || '';
-        if (fields.email) fields.email.value = req.email || '';
-        setAddFormExpanded(true);
-        addPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-
-      const handleDismiss = async (event, buttonGroup) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        buttonGroup.forEach((button) => {
-          button.disabled = true;
-          button.textContent = 'Dismissing...';
-        });
-
-        try {
-          await dismissAccessRequest(req.requestId);
-          await refreshAccessRequests();
-        } catch (error) {
-          setStatus(error.message, 'failure');
-          buttonGroup.forEach((button) => {
-            button.disabled = false;
-            button.textContent = 'Dismiss';
-          });
-        }
-      };
-
-      createButtons.forEach((button) => {
-        button.addEventListener('click', handleCreate);
-      });
-
-      dismissButtons.forEach((button) => {
-        button.addEventListener('click', (event) => handleDismiss(event, dismissButtons));
-      });
-
-      if (desktopRequestLayout.matches) {
-        details.open = false;
-      }
-
-      summary.addEventListener('click', (event) => {
-        if (desktopRequestLayout.matches) {
-          event.preventDefault();
-        }
-      });
-
-      fragment.appendChild(node);
-    });
-
-    requestsList.appendChild(fragment);
-    requestsPanel.hidden = false;
-  };
-
-  const refreshAccessRequests = async () => {
-    const requests = await fetchAccessRequests();
-    renderAccessRequests(requests);
-  };
+  const { renderGuests } = createGuestTableRenderer({
+    guestRowTemplate,
+    isLastSeenDebugEnabled,
+    setStatus,
+    onRefreshNeeded: () => refreshGuestsAndSummary(),
+    guestsTableBody,
+    guestsEmpty,
+    guestsTableWrap,
+    guestsSyncHeader,
+    guestsList,
+  });
 
   const refreshGuestsAndSummary = async () => {
     const [guests, summary] = await Promise.all([fetchGuests(), fetchSyncStatus()]);
     guestsState = guests;
-    renderGuests(guestsState);
+    renderGuests(guestsState, syncActionInProgress);
     renderRsvpStats(guestsState, {
       rsvpStats,
       rsvpTotal,
@@ -268,278 +133,6 @@ import { apiFetch } from './api-utils.js';
     });
     setSyncSummary(formatSyncSummary(summary));
     setStatus('');
-  };
-
-  /**
-   * Create table rows for a guest with edit and detail sections.
-   * @param {object} guest - Guest data object
-   * @param {boolean} allInSync - Whether all guests are in sync
-   * @returns {DocumentFragment} Fragment containing guest rows or empty fragment if validation fails
-   */
-  // eslint-disable-next-line complexity -- Rendering/edit wiring for one row intentionally keeps all linked controls co-located.
-  const createGuestRows = (guest, allInSync = false) => {
-    const isAccessEnabled = normalizeAccessEnabled(guest.accessEnabled);
-    const fragment = guestRowTemplate.content.cloneNode(true);
-    const rowElements = getRowElements(fragment);
-
-    if (!rowElements) {
-      return document.createDocumentFragment();
-    }
-
-    const {
-      row,
-      detailRow,
-      detailCell,
-      viewSection,
-      emailValue,
-      dietaryValue,
-      rsvpMessageValue,
-      lastSeenValue,
-      guestIdInline,
-      inviteDebugItem,
-      editButton,
-      deleteButton,
-      editSection,
-      editName,
-      editEmail,
-      editRsvp,
-      editAdditional,
-      editDietary,
-      editRsvpMessage,
-      saveButton,
-      cancelEditButton,
-      nameCell,
-      rsvpCell,
-      countCell,
-      accessStateIcon,
-      toggleAccessButton,
-      syncCell,
-      syncOkIcon,
-      syncWarning,
-      syncTrigger,
-      syncTooltip,
-      viewActions,
-    } = rowElements;
-
-    row.style.cursor = 'pointer';
-    detailCell.colSpan = allInSync ? 4 : 5;
-    emailValue.textContent = guest.email || '—';
-    dietaryValue.textContent = guest.dietaryRequirements || '—';
-    rsvpMessageValue.textContent = guest.rsvpMessage || '—';
-    guestIdInline.textContent = `Guest ID: ${guest.id || '—'}`;
-    inviteDebugItem.hidden = !isLastSeenDebugEnabled;
-    editName.value = guest.name || '';
-    editEmail.value = guest.email || '';
-    editRsvp.value = guest.rsvp || 'pending';
-    editAdditional.value = String(Number.parseInt(guest.additionalGuests, 10) || 0);
-    editDietary.value = guest.dietaryRequirements || '';
-    editRsvpMessage.value = guest.rsvpMessage || '';
-    nameCell.textContent = guest.name || 'Unnamed guest';
-    rsvpCell.textContent = guest.rsvp || 'pending';
-    countCell.textContent = String(Number.parseInt(guest.additionalGuests, 10) || 0);
-    accessStateIcon.className = `admin-access-state ${isAccessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
-    accessStateIcon.textContent = isAccessEnabled ? '✓' : '✕';
-    accessStateIcon.title = isAccessEnabled ? 'Access enabled' : 'Access disabled';
-    accessStateIcon.setAttribute('aria-label', isAccessEnabled ? 'Access enabled' : 'Access disabled');
-    toggleAccessButton.textContent = isAccessEnabled ? 'Disable' : 'Enable';
-    toggleAccessButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
-    syncCell.hidden = allInSync;
-
-    const updateLastSeenUI = (lastSeen) => {
-      const hasLastSeen = typeof lastSeen === 'string' && lastSeen.trim() !== '';
-      const displayText = hasLastSeen
-        ? formatAdminDateTime(lastSeen)
-        : 'Never';
-      lastSeenValue.textContent = displayText;
-
-      const shouldShowSendInvitation = isAccessEnabled && !hasLastSeen;
-      setInvitationButtonVisible(shouldShowSendInvitation);
-
-      if (isLastSeenDebugEnabled) {
-        inviteDebugItem.textContent =
-          `Debug: raw accessEnabled=${JSON.stringify(guest.accessEnabled)}, `
-          + `normalised=${isAccessEnabled}, lastSeenRaw=${JSON.stringify(lastSeen)}, `
-          + `hasLastSeen=${hasLastSeen}, showInvite=${shouldShowSendInvitation}`;
-
-        console.log('[last_seen debug]', {
-          guestId: guest.id,
-          email: guest.email,
-          rawAccessEnabled: guest.accessEnabled,
-          isAccessEnabled,
-          lastSeen,
-          hasLastSeen,
-          shouldShowSendInvitation,
-        });
-      }
-    };
-    deleteButton.disabled = guestActionInFlight.has(guest.id) || syncActionInProgress;
-
-    const sendInvitationButton = document.createElement('button');
-    sendInvitationButton.type = 'button';
-    sendInvitationButton.className = 'login-button admin-guest-edit-button';
-    sendInvitationButton.textContent = 'Send invitation';
-    const setInvitationButtonVisible = (visible) => {
-      if (visible) {
-        if (!viewActions.contains(sendInvitationButton)) {
-          viewActions.appendChild(sendInvitationButton);
-        }
-      } else if (viewActions.contains(sendInvitationButton)) {
-        sendInvitationButton.remove();
-      }
-    };
-    sendInvitationButton.addEventListener('click', async (event) => {
-      event.stopPropagation();
-      sendInvitationButton.disabled = true;
-      sendInvitationButton.textContent = 'Sending...';
-      try {
-        const response = await sendGuestInvitation(guest.id);
-        const message = response?.message || 'Invitation queued';
-        setStatus(`${message} for ${guest.email || guest.name}.`, 'success');
-      } catch (error) {
-        setStatus(error.message, 'failure');
-      } finally {
-        sendInvitationButton.disabled = false;
-        sendInvitationButton.textContent = 'Send invitation';
-      }
-    });
-
-    // Fetch once and drive both last-seen text + invitation visibility from the same value.
-    fetchGuestLastSeen(guest.id, isLastSeenDebugEnabled).then(updateLastSeenUI);
-
-    const enterEditMode = () => {
-      viewSection.hidden = true;
-      editSection.hidden = false;
-      row.classList.add('admin-guest-row--editing');
-      detailRow.hidden = false;
-      row.setAttribute('aria-expanded', 'true');
-    };
-
-    const exitEditMode = () => {
-      viewSection.hidden = false;
-      editSection.hidden = true;
-      row.classList.remove('admin-guest-row--editing');
-    };
-
-    editButton.addEventListener('click', () => {
-      enterEditMode();
-    });
-
-    deleteButton.addEventListener('click', async (event) => {
-      event.stopPropagation();
-
-      const guestLabel = guest.name || guest.email || `guest ${guest.id}`;
-      const confirmed = window.confirm(`Delete ${guestLabel}? This cannot be undone.`);
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        await withGuestAction(guest.id, async () => {
-          await deleteGuest(guest.id);
-        });
-        await refreshGuestsAndSummary();
-        setStatus(`Deleted ${guestLabel}.`, 'success');
-      } catch (error) {
-        setStatus(error.message, 'failure');
-      }
-    });
-
-    cancelEditButton.addEventListener('click', () => {
-      exitEditMode();
-    });
-
-    saveButton.addEventListener('click', async () => {
-      saveButton.disabled = true;
-      saveButton.textContent = 'Saving...';
-      setStatus(`Saving ${editName.value.trim() || guest.name}...`, 'warning');
-
-      try {
-        await apiFetch(`/api/private/guests/${guest.id}`, {
-          method: 'PUT',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            name: editName.value.trim(),
-            email: editEmail.value.trim(),
-            rsvp: editRsvp.value,
-            additionalGuests: Number.parseInt(editAdditional.value, 10) || 0,
-            dietaryRequirements: editDietary.value.trim(),
-            rsvpMessage: editRsvpMessage.value.trim(),
-          }),
-        });
-        await refreshGuestsAndSummary();
-        setStatus(`Saved ${editName.value.trim() || guest.name}.`, 'success');
-      } catch (error) {
-        setStatus(error.message, 'failure');
-        saveButton.disabled = false;
-        saveButton.textContent = 'Save';
-      }
-    });
-
-    detailRow.appendChild(detailCell);
-
-    row.addEventListener('click', (e) => {
-      if (e.target.closest('button')) return;
-      if (row.classList.contains('admin-guest-row--editing')) return;
-      const expanded = row.getAttribute('aria-expanded') === 'true';
-      row.setAttribute('aria-expanded', String(!expanded));
-      detailRow.hidden = expanded;
-    });
-
-    toggleAccessButton.addEventListener('click', async () => {
-      const nextEnabled = !isAccessEnabled;
-      setStatus(`${nextEnabled ? 'Enabling' : 'Disabling'} access for ${guest.email || guest.name}...`, 'warning');
-
-      try {
-        await withGuestAction(guest.id, async () => {
-          await setGuestAccess(guest.id, nextEnabled);
-        });
-        await refreshGuestsAndSummary();
-        setStatus(`${nextEnabled ? 'Enabled' : 'Disabled'} access for ${guest.email || guest.name}.`, 'success');
-      } catch (error) {
-        setStatus(error.message, 'failure');
-      }
-    });
-    const isSyncOk = guest.syncStatus === 'in_sync' && !guest.syncError;
-
-    if (isSyncOk) {
-      syncOkIcon.hidden = false;
-      syncWarning.hidden = true;
-      syncOkIcon.title = 'In sync';
-    } else {
-      const message = guest.syncError || `Sync status: ${guest.syncStatus || 'unknown'}`;
-      syncOkIcon.hidden = true;
-      syncWarning.hidden = false;
-      syncTrigger.setAttribute('aria-label', message);
-      syncTrigger.title = message;
-      syncTooltip.textContent = message;
-    }
-
-    return fragment;
-  };
-
-  const renderGuests = (guests) => {
-    guestsTableBody.innerHTML = '';
-
-    if (!Array.isArray(guests) || guests.length === 0) {
-      guestsEmpty.hidden = false;
-      guestsTableWrap.hidden = true;
-      guestsList.hidden = false;
-      return;
-    }
-
-    const allInSync = guests.every((g) => g.syncStatus === 'in_sync' && !g.syncError);
-    const fragment = document.createDocumentFragment();
-
-    guestsEmpty.hidden = true;
-    guestsTableWrap.hidden = false;
-    guestsSyncHeader.hidden = allInSync;
-
-    guests.forEach((guest) => {
-      fragment.appendChild(createGuestRows(guest, allInSync));
-    });
-
-    guestsTableBody.appendChild(fragment);
-    guestsList.hidden = false;
   };
 
   const addGuest = async () => {
