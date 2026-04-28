@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  WORKER_NAME: ${{ secrets.WORKER_NAME }}
-  WORKERS_SUBDOMAIN: ${{ secrets.WORKERS_SUBDOMAIN }}
+  WORKER_NAME: wallaby-web-preview
+  WORKERS_SUBDOMAIN: willjcjohnson
 
 jobs:
   lint:

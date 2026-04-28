@@ -54,5 +54,9 @@
     "lint:check-deps": "depcheck --config=config/depcheck.json",
     "lighthouse": "lhci autorun --config=config/lighthouserc.json",
     "lighthouse:preview": "lhci autorun --config=config/lighthouserc.preview.json"
+  },
+  "overrides": {
+    "tmp": "0.2.5",
+    "uuid": "14.0.0"
   }
 }
