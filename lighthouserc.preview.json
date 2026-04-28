@@ -2,11 +2,10 @@
   "ci": {
     "collect": {
       "url": [
-        "https://wallabyfest.co.uk",
-        "https://wallabyfest.co.uk/festival-map",
-        "https://wallabyfest.co.uk/photos",
-        "https://wallabyfest.co.uk/wallabies",
-        "https://wallabyfest.co.uk/game"
+        "https://wallaby-web-preview.willjcjohnson.workers.dev/",
+        "https://wallaby-web-preview.willjcjohnson.workers.dev/festival-map",
+        "https://wallaby-web-preview.willjcjohnson.workers.dev/wallabies",
+        "https://wallaby-web-preview.willjcjohnson.workers.dev/game"
       ],
       "numberOfRuns": 1
     },

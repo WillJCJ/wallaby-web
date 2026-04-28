@@ -52,6 +52,7 @@
     "test:watch": "vitest",
     "test:coverage": "c8 npm run test",
     "lint:check-deps": "depcheck",
-    "lighthouse": "lhci autorun --config=lighthouserc.json"
+    "lighthouse": "lhci autorun --config=lighthouserc.json",
+    "lighthouse:preview": "lhci autorun --config=lighthouserc.preview.json"
   }
 }
