@@ -33,9 +33,9 @@ title: Meet the Wallabies - Wallaby Fest
           />
           <img
             class="wallaby-card-image wallaby-card-image-full"
-            src="{{ imgBase }}-480w.webp"
-            srcset="{{ imgBase }}-480w.webp 480w, {{ imgBase }}-960w.webp 960w"
-            sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
+            data-src="{{ imgBase }}-480w.webp"
+            data-srcset="{{ imgBase }}-480w.webp 480w, {{ imgBase }}-960w.webp 960w"
+            data-sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
             alt=""
             aria-hidden="true"
             width="960"
@@ -77,3 +77,4 @@ title: Meet the Wallabies - Wallaby Fest
 </div>
 
 <script type="module" src="/scripts/bouncing-wallabies.js" defer></script>
+<script type="module" src="/scripts/wallabies-image-loader.js" defer></script>

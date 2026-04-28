@@ -46,14 +46,16 @@ li::before {
 main a,
 main a:visited {
   color: var(--tone-link);
-  text-decoration: none;
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.14em;
 }
 
 main a:hover,
 main a:focus-visible,
 main a:active {
   color: var(--tone-link-hover);
-  text-decoration: none;
+  text-decoration-line: underline;
 }
 
 footer {
