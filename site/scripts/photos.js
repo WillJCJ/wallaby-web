@@ -82,7 +82,13 @@
 
     const setLoading = (loading) => wrap.classList.toggle('is-loading', loading);
 
+    const thumb = img.dataset.thumb;
     const hires = img.dataset.hires;
+
+    if (!img.src && thumb) {
+      img.src = thumb;
+    }
+
     if (!hires || img.src === new URL(hires, location.href).href) {
       setLoading(false);
       return;

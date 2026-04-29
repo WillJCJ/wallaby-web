@@ -23,18 +23,20 @@ title: Meet the Wallabies - Wallaby Fest
         <div class="wallaby-card-image-frame">
           <img
             class="wallaby-card-image wallaby-card-image-thumb"
-            src="{{ thumbBase }}-480w.webp"
-            srcset="{{ thumbBase }}-480w.webp 480w, {{ thumbBase }}-960w.webp 960w"
+            src="{{ thumbBase }}-320w.webp"
+            srcset="{{ thumbBase }}-320w.webp 320w, {{ thumbBase }}-480w.webp 480w"
             sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
             alt="{{ wallaby.name }}"
             width="960"
             height="540"
+            loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+            fetchpriority="{% if forloop.first %}high{% else %}auto{% endif %}"
             decoding="async"
           />
           <img
             class="wallaby-card-image wallaby-card-image-full"
-            data-src="{{ imgBase }}-480w.webp"
-            data-srcset="{{ imgBase }}-480w.webp 480w, {{ imgBase }}-960w.webp 960w"
+            data-src="{{ imgBase }}-320w.webp"
+            data-srcset="{{ imgBase }}-320w.webp 320w, {{ imgBase }}-480w.webp 480w"
             data-sizes="(max-width: 599px) calc(100vw - 4rem), (max-width: 959px) calc(50vw - 3rem), 310px"
             alt=""
             aria-hidden="true"

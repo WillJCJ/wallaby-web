@@ -50,12 +50,14 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
           ></video>
           {% else %}
           <img
-            src="/api/photos/{{ item.id }}?w=400&q=80"
+            src="/api/photos/{{ item.id }}?w=160&q=70"
+            srcset="/api/photos/{{ item.id }}?w=160&q=70 160w, /api/photos/{{ item.id }}?w=240&q=70 240w, /api/photos/{{ item.id }}?w=320&q=70 320w"
+            sizes="(max-width: 639px) 48vw, (max-width: 1023px) 24vw, 160px"
             alt="{{ item.alt }}"
             width="400"
             height="400"
-            loading="{% if photoIndex <= 12 %}eager{% else %}lazy{% endif %}"
-            fetchpriority="{% if photoIndex <= 4 %}high{% else %}auto{% endif %}"
+            loading="{% if photoIndex <= 4 %}eager{% else %}lazy{% endif %}"
+            fetchpriority="{% if photoIndex <= 2 %}high{% else %}auto{% endif %}"
             decoding="async"
           />
           {% endif %}
@@ -95,7 +97,7 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
               ></video>
               {% else %}
               <img
-                src="/api/photos/{{ item.id }}?w=400&q=80"
+                data-thumb="/api/photos/{{ item.id }}?w=320&q=75"
                 data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
                 alt="{{ item.alt }}"
                 width="2000"

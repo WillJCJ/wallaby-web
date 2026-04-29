@@ -22,8 +22,6 @@
          "image-delivery-insight": "off",
          "lcp-discovery-insight": "off",
          "network-dependency-tree-insight": "off",
-         "redirects": "off",
-         "unminified-javascript": "off",
          "uses-responsive-images": "off",
         "categories:performance": ["error", { "minScore": 0.8 }],
         "categories:accessibility": ["error", { "minScore": 0.9 }],
