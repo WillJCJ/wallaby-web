@@ -5,6 +5,9 @@
 This file defines repository working standards for human contributors and coding agents.
 Follow these rules unless a maintainer explicitly overrides them in a task.
 
+Keep this file at the repository root so standards are always discovered.
+Store domain skills under `.agents/skills/`.
+
 ## Git Branch Standards
 
 Use short, descriptive branch names in this format:
@@ -106,13 +109,13 @@ npm test
 - Do not use destructive git commands unless explicitly requested.
 - Do not rewrite history on shared branches.
 - If uncertain, document assumptions in the PR description.
-- Don't generate text content leave that to the humands. Just use lorem ipsum or whatever.
+- Do not generate long-form event copy unless explicitly requested; use placeholders where appropriate.
 - Before making security-related changes, read `docs/security.md` and follow its identifier and hardening guidance.
 
 ## Coding Choice and Style
 
-When animating or scripting web page stuff, try your best to use CSS and html
-before involving javascript.
+When animating or scripting web page behaviour, prefer CSS and HTML
+before introducing JavaScript.
 Prefer concise and elegant solutions.
 
 ## Writing Style
@@ -123,14 +126,4 @@ Prefer concise and elegant solutions.
 - Use British English spelling and grammar in all written content.
 - Use 24-hour time format (for example, 17:30, not 5:30 PM).
 - Never use month-first date formats.
-- Wallaby Fest should never be called Wallabyfest it's two words always in title case.
-
-## Optional Nice-to-Haves
-
-Teams often also define:
-
-- Review SLA (for example: first review within 1 business day)
-- Label conventions (type, priority, area)
-- Merge strategy (squash vs merge commit)
-- Release/versioning rules
-- Backport policy for production fixes
+- Always write "Wallaby Fest" as two words in title case.
