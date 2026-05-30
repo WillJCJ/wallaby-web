@@ -4,7 +4,6 @@
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0-beta.1",
     "@eslint/js": "^10.0.0",
-    "@lhci/cli": "^0.15.1",
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "c8": "^11.0.0",
     "clean-css": "^5.3.1",
@@ -51,8 +50,6 @@
     "test": "vitest run --config config/vitest.config.js",
     "test:watch": "vitest --config config/vitest.config.js",
     "test:coverage": "c8 --config config/c8.json npm run test",
-    "lint:check-deps": "depcheck --config=config/depcheck.json",
-    "lighthouse": "lhci autorun --config=config/lighthouserc.json",
-    "lighthouse:preview": "lhci autorun --config=config/lighthouserc.preview.json"
+    "lint:check-deps": "depcheck --config=config/depcheck.json"
   }
 }

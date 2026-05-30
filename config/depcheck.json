@@ -6,7 +6,6 @@
     "eslint-plugin-import",
     "eslint-plugin-complexity",
     "eslint-plugin-jsx-a11y",
-    "@lhci/cli",
     "c8",
     "depcheck",
     "@shopify/prettier-plugin-liquid",
