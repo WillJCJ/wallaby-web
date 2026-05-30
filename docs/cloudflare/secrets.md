@@ -29,7 +29,7 @@ wrangler secret put DISCORD_WEBHOOK_URL --env preview
 - `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret for verifying access request submissions
 - `DISCORD_WEBHOOK_URL`: Discord webhook URL to notify when a new access request is submitted
 
-`CF_ACCOUNT_ID` and `CF_ACCESS_POLICY_ID` are configured as environment vars in `wrangler.toml`.
+`CF_ACCOUNT_ID` and `CF_ACCESS_POLICY_ID` are configured as environment vars in `wrangler.jsonc`.
 
 Example `ADMIN_EMAILS` value:
 

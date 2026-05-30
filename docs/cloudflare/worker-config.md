@@ -1,6 +1,6 @@
 # Worker Config
 
-Current Worker config lives in `wrangler.toml`.
+Current Worker config lives in `wrangler.jsonc`.
 
 ## Router Endpoints
 
@@ -93,6 +93,10 @@ Dev-only auth helpers (localhost only, when enabled):
 main = "worker/router.js"
 ```
 
+```jsonc
+"main": "worker/router.js"
+```
+
 ## Build and assets
 
 ```toml
@@ -104,6 +108,16 @@ directory = "dist"
 not_found_handling = "404-page"
 ```
 
+```jsonc
+"build": {
+  "command": "npm run build"
+},
+"assets": {
+  "directory": "dist",
+  "not_found_handling": "404-page"
+}
+```
+
 ## Production route
 
 ```toml
@@ -112,7 +126,18 @@ pattern = "wallabyfest.co.uk"
 custom_domain = true
 ```
 
-Preview runs on `workers.dev` with `workers_dev = true` and `preview_urls = true` under `[env.preview]`.
+```jsonc
+"env": {
+  "production": {
+    "routes": [{
+      "pattern": "wallabyfest.co.uk",
+      "custom_domain": true
+    }]
+  }
+}
+```
+
+Preview runs on `workers.dev` with `workers_dev = true` and `preview_urls = true` under `env.preview`.
 
 ## D1 binding requirement
 
@@ -120,6 +145,10 @@ Worker code expects:
 
 ```toml
 binding = "GUESTS_DB"
+```
+
+```jsonc
+"binding": "GUESTS_DB"
 ```
 
 If this binding name does not match, guest endpoints will fail with database configuration errors.
@@ -132,6 +161,13 @@ Photo and video endpoints expect:
 [[r2_buckets]]
 binding = "PHOTOS_BUCKET"
 bucket_name = "wallaby-web"
+```
+
+```jsonc
+"r2_buckets": [{
+  "binding": "PHOTOS_BUCKET",
+  "bucket_name": "wallaby-web"
+}]
 ```
 
 If this binding name does not match, `GET /api/photos/:key` and `GET /api/videos/:key`
@@ -149,7 +185,7 @@ Create the namespace for each environment:
 wrangler kv namespace create GUEST_REQUESTS_KV
 ```
 
-Copy the returned `id` values into `wrangler.toml` under the appropriate `[[kv_namespaces]]` entries.
+Copy the returned `id` values into `wrangler.jsonc` under the appropriate `kv_namespaces` entries.
 
 Each KV entry uses an opaque request ID key with prefix `request:` and stores:
 
@@ -169,7 +205,7 @@ Create the namespace for each environment:
 wrangler kv namespace create GUEST_LAST_SEEN_KV
 ```
 
-Copy the returned `id` values into `wrangler.toml` under the appropriate `[[kv_namespaces]]` entries.
+Copy the returned `id` values into `wrangler.jsonc` under the appropriate `kv_namespaces` entries.
 
 Each KV entry uses the guest id as the key and stores:
 
