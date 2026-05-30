@@ -24,6 +24,7 @@ jobs:
       alias: ${{ steps.preview-meta.outputs.alias }}
       preview_url: ${{ steps.deploy-preview.outputs.preview_url }}
       short_sha: ${{ steps.preview-meta.outputs.short_sha }}
+      commit_time: ${{ steps.preview-meta.outputs.commit_time }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -41,47 +42,19 @@ jobs:
       - id: preview-meta
         name: Derive preview alias
         shell: bash
-        run: |
-          branch="${{ github.head_ref }}"
-          branch_slug="$(echo "$branch" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g')"
-          if [ -z "$branch_slug" ]; then
-            branch_slug="preview"
-          fi
-
-          branch_slug="${branch_slug:0:32}"
-          branch_hash="$(printf '%s' "$branch" | shasum -a 256 | cut -c1-6)"
-          alias="pr-${branch_slug}-${branch_hash}"
-          alias="${alias:0:48}"
-          short_sha="${GITHUB_SHA::7}"
-
-          echo "alias=$alias" >> "$GITHUB_OUTPUT"
-          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: bash ./.github/scripts/derive-preview-meta.sh
 
       - id: deploy-preview
         name: Deploy preview alias
         shell: bash
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          output_file="$(mktemp)"
-
-          npx wrangler versions upload --env preview \
-            --preview-alias "${{ steps.preview-meta.outputs.alias }}" \
-            --message "PR #${{ github.event.pull_request.number }} @ ${{ steps.preview-meta.outputs.short_sha }}" \
-            2>&1 | tee "$output_file"
-
-          preview_url="$(grep -Eo 'https://[[:alnum:]._-]+\.workers\.dev' "$output_file" | head -n1)"
-          if [ -z "$preview_url" ] && [ -n "$WORKERS_SUBDOMAIN" ]; then
-            preview_url="https://${{ steps.preview-meta.outputs.alias }}-${WORKER_NAME}.${WORKERS_SUBDOMAIN}.workers.dev"
-          fi
-
-          if [ -z "$preview_url" ]; then
-            echo "Unable to determine preview URL from Wrangler output." >&2
-            echo "Set repository variable CLOUDFLARE_WORKERS_SUBDOMAIN for deterministic URL fallback." >&2
-            exit 1
-          fi
-
-          echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
+          PREVIEW_ALIAS: ${{ steps.preview-meta.outputs.alias }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHORT_SHA: ${{ steps.preview-meta.outputs.short_sha }}
+        run: bash ./.github/scripts/deploy-preview-alias.sh
 
   comment-preview:
     if: always() && github.event.pull_request.head.repo.full_name == github.repository && needs.deploy-preview.result == 'success'
@@ -91,56 +64,16 @@ jobs:
       issues: write
       pull-requests: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
       - name: Create or update preview comment
         uses: actions/github-script@v8
+        env:
+          PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
+          SHORT_SHA: ${{ needs.deploy-preview.outputs.short_sha }}
+          COMMIT_TIME: ${{ needs.deploy-preview.outputs.commit_time }}
         with:
           script: |
-            const marker = '<!-- wallaby-preview-url -->';
-            const previewUrl = '${{ needs.deploy-preview.outputs.preview_url }}';
-            const shortSha = '${{ needs.deploy-preview.outputs.short_sha }}';
-            const body = [
-              marker,
-              '## Preview deployment',
-              '',
-              `- Preview URL: ${previewUrl}`,
-              `- Commit: ${shortSha}`
-            ].join('\n');
-
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-
-            try {
-              const { data: comments } = await github.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number,
-                per_page: 100
-              });
-
-              const existing = comments.find(
-                (comment) => comment.user?.type === 'Bot' && comment.body?.includes(marker)
-              );
-
-              if (existing) {
-                await github.rest.issues.updateComment({
-                  owner,
-                  repo,
-                  comment_id: existing.id,
-                  body
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  owner,
-                  repo,
-                  issue_number,
-                  body
-                });
-              }
-            } catch (error) {
-              if (error.status === 403) {
-                core.warning('Skipping PR preview comment because GITHUB_TOKEN cannot write issue comments in this repository configuration.');
-                return;
-              }
-
-              throw error;
-            }
+            const run = require('./.github/scripts/create-or-update-preview-comment.cjs');
+            await run({ github, context, core });
