@@ -33,6 +33,7 @@ const initializeBouncingWallabies = () => {
     SIZE,
     BASE_FRAME_MS,
     MAX_FRAME_MS,
+    MAX_COLLISION_PAIRS_PER_FRAME,
     MAX_SPEED,
     MAX_ANGULAR_SPEED,
     ANGULAR_DAMPING,
@@ -45,11 +46,18 @@ const initializeBouncingWallabies = () => {
   layer.className = 'wallaby-bouncer-layer';
   document.body.appendChild(layer);
 
+  let layerHeightSyncQueued = false;
   const syncLayerHeight = () => {
-    layer.style.height = `${document.documentElement.scrollHeight}px`;
+    layerHeightSyncQueued = false;
+    layer.style.height = `${Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)}px`;
   };
-  syncLayerHeight();
-  window.addEventListener('resize', syncLayerHeight);
+  const queueLayerHeightSync = () => {
+    if (layerHeightSyncQueued) {return;}
+    layerHeightSyncQueued = true;
+    requestAnimationFrame(syncLayerHeight);
+  };
+  queueLayerHeightSync();
+  window.addEventListener('resize', queueLayerHeightSync, { passive: true });
 
   const overlay = createOverlaySystem(SIZE);
   const {
@@ -59,6 +67,7 @@ const initializeBouncingWallabies = () => {
   } = createCollisionResolvers({
     size: SIZE,
     collisionFriction: COLLISION_FRICTION,
+    maxCollisionPairsPerFrame: MAX_COLLISION_PAIRS_PER_FRAME,
     clampAngularVelocity,
     clampVelocity,
     spawnSparksAtPage: overlay.spawnSparksAtPage,

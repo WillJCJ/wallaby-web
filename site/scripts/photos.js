@@ -1,5 +1,7 @@
 // Keyboard, swipe navigation and lightbox enhancements for the :target lightbox.
 (() => {
+  let lightboxTrigger = null;
+
   // ── Mark already-loaded thumbnails ──
   // Handles images already in cache when the script runs (complete before load fires).
   const markLoaded = (img) => img.classList.add('loaded');
@@ -22,6 +24,31 @@
     return index >= 0 ? index + 1 : null;
   };
   const getItemByIndex = (n) => getItems()[n - 1] || null;
+  const getDialogForItem = (item) => item?.querySelector('.photo-lightbox') || null;
+
+  const restoreTriggerFocus = () => {
+    if (!lightboxTrigger || !document.contains(lightboxTrigger)) {
+      lightboxTrigger = null;
+      return;
+    }
+    lightboxTrigger.focus();
+    lightboxTrigger = null;
+  };
+
+  const syncDialogsToHash = (openItem) => {
+    getItems().forEach((item) => {
+      const dialog = getDialogForItem(item);
+      if (!dialog) {return;}
+
+      const shouldBeOpen = Boolean(openItem) && item === openItem;
+
+      if (shouldBeOpen && !dialog.open) {
+        dialog.showModal();
+      } else if (!shouldBeOpen && dialog.open) {
+        dialog.close();
+      }
+    });
+  };
 
   const pauseOtherVideos = (exceptId = null) => {
     document.querySelectorAll('.lightbox-video').forEach((video) => {
@@ -46,6 +73,7 @@
     location.hash = '#photos-top';
     const status = document.getElementById('lightbox-status');
     if (status) {status.textContent = '';}
+    restoreTriggerFocus();
   };
 
   // ── Keyboard ──
@@ -60,9 +88,10 @@
   // ── Loading placeholder + hi-res upgrade ──
   // Shows the thumbnail blurred with a loading logo while hi-res fetches,
   // then swaps in the full image atomically once it's completely loaded.
-  // eslint-disable-next-line complexity -- Hash change handler manages hi-res load, video pause, status, and preload in one cohesive event.
-  window.addEventListener('hashchange', () => {
+  // eslint-disable-next-line complexity -- Hash change handler manages dialog sync, hi-res load, video pause, status, and preload in one cohesive event.
+  const handleHashChange = () => {
     const openItem = getOpenItem();
+    syncDialogsToHash(openItem);
     pauseOtherVideos(openItem?.id ?? null);
 
     const i = getOpenIndex();
@@ -99,6 +128,26 @@
       setLoading(false);
     };
     loader.src = hires;
+  };
+
+  window.addEventListener('hashchange', handleHashChange);
+
+  document.addEventListener('click', (e) => {
+    const thumb = e.target.closest('.photo-thumb-link');
+    if (!thumb) {return;}
+    lightboxTrigger = thumb;
+  });
+
+  getItems().forEach((item) => {
+    const dialog = getDialogForItem(item);
+    if (!dialog) {return;}
+
+    dialog.addEventListener('close', () => {
+      const openItem = getOpenItem();
+      if (openItem?.id === item.id) {
+        closePhoto();
+      }
+    });
   });
 
   // ── Nav arrow clicks → directional slide ──
@@ -151,5 +200,7 @@
     if (dx > 0 && i > 1)       {goTo(i - 1);}
     else if (dx < 0 && i < total()) {goTo(i + 1);}
   }, { passive: true });
+
+  handleHashChange();
 
 })();

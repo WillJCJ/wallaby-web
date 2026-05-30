@@ -52,19 +52,14 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
           <img
             src="/api/photos/{{ item.id }}?w=400&q=80"
             alt="{{ item.alt }}"
-            loading="{% if photoIndex <= 12 %}eager{% else %}lazy{% endif %}"
-            fetchpriority="{% if photoIndex <= 4 %}high{% else %}auto{% endif %}"
+            loading="{% if photoIndex <= 6 %}eager{% else %}lazy{% endif %}"
+            fetchpriority="{% if photoIndex == 1 %}high{% else %}auto{% endif %}"
             decoding="async"
           />
           {% endif %}
         </a>
 
-        <div
-          class="photo-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label="{{ item.alt }}"
-        >
+        <dialog class="photo-lightbox" aria-label="{{ item.alt }}">
           <a
             href="#photos-top"
             class="lightbox-close"
@@ -96,6 +91,7 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
                 src="/api/photos/{{ item.id }}?w=400&q=80"
                 data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
                 alt="{{ item.alt }}"
+                fetchpriority="auto"
                 loading="lazy"
                 decoding="async"
               />
@@ -137,7 +133,7 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
             aria-label="Next photo"
           ></a>
           {% endif %}
-        </div>
+        </dialog>
       </article>
       {% endfor %}
     </div>

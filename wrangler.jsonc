@@ -1,0 +1,134 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wallaby-web",
+  "compatibility_date": "2026-05-30",
+  "main": "worker/router.js",
+  "workers_dev": false,
+  "preview_urls": false,
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA"
+  },
+  "r2_buckets": [
+    {
+      "binding": "PHOTOS_BUCKET",
+      "bucket_name": "wallaby-web"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "GUEST_REQUESTS_KV",
+      "id": "99220d8852904bafbcd6914a428a5ba7"
+    },
+    {
+      "binding": "GUEST_LAST_SEEN_KV",
+      "id": "fbab3fea2a534688b96c1db9f811f90b"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "GUESTS_DB",
+      "database_name": "wallabyfest-guests-preview",
+      "database_id": "e051dc73-8940-4dcc-b670-572c94d0bd07"
+    }
+  ],
+  "vars": {
+    "LOG_LEVEL": "debug",
+    "CF_ACCOUNT_ID": "890cec1351da5724fac94ef095c16a24",
+    "CF_ACCESS_POLICY_ID": "fbaa0a6f-7900-45fe-8dca-04bb1ef98a04",
+    "DEV_AUTH_ENABLED": "false"
+  },
+  "build": {
+    "command": "npm run build",
+    "watch_dir": "site"
+  },
+  "assets": {
+    "directory": "dist",
+    "not_found_handling": "404-page"
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  },
+  "env": {
+    "production": {
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "LOG_LEVEL": "info",
+        "CF_ACCOUNT_ID": "890cec1351da5724fac94ef095c16a24",
+        "CF_ACCESS_POLICY_ID": "8ce75a5b-12b4-4014-82e6-723e9aee43e8",
+        "DEV_AUTH_ENABLED": "false"
+      },
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA"
+      },
+      "r2_buckets": [
+        {
+          "binding": "PHOTOS_BUCKET",
+          "bucket_name": "wallaby-web"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "GUEST_REQUESTS_KV",
+          "id": "e5c9ce7ec2dd49a193050ddcae15f060"
+        },
+        {
+          "binding": "GUEST_LAST_SEEN_KV",
+          "id": "899d7a8a1d894be5a2f92f49ca80c43f"
+        }
+      ],
+      "routes": [
+        {
+          "pattern": "wallabyfest.co.uk",
+          "custom_domain": true
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "GUESTS_DB",
+          "database_name": "wallabyfest-guests",
+          "database_id": "fc8fca57-d92e-40c7-85a6-0459263f4fef"
+        }
+      ]
+    },
+    "preview": {
+      "workers_dev": true,
+      "preview_urls": true,
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "GUEST_REQUESTS_KV",
+          "id": "b928598615b849cf86abbb680afee7f8"
+        },
+        {
+          "binding": "GUEST_LAST_SEEN_KV",
+          "id": "729c195e7ed54737aa3dfc2a9f5a0ea1"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "PHOTOS_BUCKET",
+          "bucket_name": "wallaby-web"
+        }
+      ],
+      "vars": {
+        "LOG_LEVEL": "debug",
+        "CF_ACCOUNT_ID": "890cec1351da5724fac94ef095c16a24",
+        "CF_ACCESS_POLICY_ID": "fbaa0a6f-7900-45fe-8dca-04bb1ef98a04",
+        "DEV_AUTH_ENABLED": "false"
+      },
+      "d1_databases": [
+        {
+          "binding": "GUESTS_DB",
+          "database_name": "wallabyfest-guests-preview",
+          "database_id": "e051dc73-8940-4dcc-b670-572c94d0bd07"
+        }
+      ]
+    }
+  }
+}

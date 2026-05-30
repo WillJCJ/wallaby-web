@@ -9,7 +9,7 @@ export const requireGuestsDb = (env) => {
   return jsonResponse(
     {
       error: 'Guests database is not configured',
-      hint: 'Add a D1 binding named GUESTS_DB in wrangler.toml and run migrations.',
+      hint: 'Add a D1 binding named GUESTS_DB in wrangler.jsonc and run migrations.',
     },
     { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
   );

@@ -34,6 +34,8 @@
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--bg-surface);
+  content-visibility: auto;
+  contain-intrinsic-size: 160px 160px;
 }
 
 .photo-item--video {
@@ -130,6 +132,18 @@ body:has(.photo-item:target)::before {
 
 .photo-lightbox {
   display: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  width: 100dvw;
+  height: 100dvh;
+  background: transparent;
+}
+
+.photo-lightbox::backdrop {
+  background: transparent;
 }
 
 .photo-item:target .photo-lightbox {

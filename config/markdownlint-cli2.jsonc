@@ -1,5 +1,5 @@
 {
-  "ignores": ["node_modules/**"],
+  "ignores": ["node_modules/**", ".agents/**", "dist/**", "coverage/**"],
   "config": {
     // Line length: 120 chars, prose only — code blocks and tables are exempt
     "MD013": { "line_length": 120, "code_blocks": false, "tables": false, "headings": false }

@@ -24,10 +24,32 @@ const registerServiceWorker = async () => {
   }
 };
 
+const queueServiceWorkerRegistration = () => {
+  const registerWhenReady = () => {
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => {
+        void registerServiceWorker();
+      }, { timeout: 4000 });
+      return;
+    }
+
+    window.setTimeout(() => {
+      void registerServiceWorker();
+    }, 1500);
+  };
+
+  if (document.readyState === 'complete') {
+    registerWhenReady();
+    return;
+  }
+
+  window.addEventListener('load', registerWhenReady, { once: true });
+};
+
 const bootstrapBase = () => {
   showDeploymentVersion();
   showStoredFlashMessage();
-  void registerServiceWorker();
+  queueServiceWorkerRegistration();
   initializeAuthNav({
     auth,
     getStoredAuthEmail,

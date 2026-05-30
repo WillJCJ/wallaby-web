@@ -176,8 +176,21 @@ import { createGuestTableRenderer } from './features/admin/guest-table.js';
     setSubmittingState(false);
   };
 
-  form.addEventListener('input', unlockCreateAfterFieldChange);
-  form.addEventListener('change', unlockCreateAfterFieldChange);
+  let unlockQueued = false;
+  const queueUnlockAfterFieldChange = () => {
+    if (unlockQueued) {
+      return;
+    }
+
+    unlockQueued = true;
+    queueMicrotask(() => {
+      unlockQueued = false;
+      unlockCreateAfterFieldChange();
+    });
+  };
+
+  form.addEventListener('input', queueUnlockAfterFieldChange);
+  form.addEventListener('change', queueUnlockAfterFieldChange);
 
   toggleAddButton.addEventListener('click', () => {
     if (isAddFormExpanded) {

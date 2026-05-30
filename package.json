@@ -4,7 +4,6 @@
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0-beta.1",
     "@eslint/js": "^10.0.0",
-    "@lhci/cli": "^0.15.1",
     "@shopify/prettier-plugin-liquid": "^1.10.0",
     "c8": "^11.0.0",
     "clean-css": "^5.3.1",
@@ -26,7 +25,7 @@
     "stylelint": "^17.9.1",
     "stylelint-config-standard": "^40.0.0",
     "vitest": "^4.1.5",
-    "wrangler": "^4.87.0"
+    "wrangler": "^4.95.0"
   },
   "scripts": {
     "lint": "npm run lint:js && npm run lint:css && npm run lint:format && npm run lint:md",
@@ -44,6 +43,8 @@
     "build": "npm run build:clean && npm run build:html",
     "dev": "eleventy --config config/eleventy.config.js --input=site --output=dist --serve",
     "dev:wrangler": "MINIFY=false wrangler dev --live-reload --var DEV_AUTH_ENABLED:true --var DEV_AUTH_ALLOWED_HOSTS:localhost,127.0.0.1,::1 --var ADMIN_EMAILS:admin@example.com",
+    "wrangler:types": "wrangler types",
+    "wrangler:types:check": "wrangler types --check",
     "d1:migrate:local": "wrangler d1 execute wallabyfest-guests-preview --local --file migrations/0001_create_guests.sql && wrangler d1 execute wallabyfest-guests-preview --local --file migrations/0002_add_guest_access_state.sql",
     "d1:seed:local": "npm run d1:migrate:local && wrangler d1 execute wallabyfest-guests-preview --local --file scripts/seed-local-guests.sql",
     "d1:reset-high-scores": "node scripts/reset-high-scores.js",
@@ -51,8 +52,6 @@
     "test": "vitest run --config config/vitest.config.js",
     "test:watch": "vitest --config config/vitest.config.js",
     "test:coverage": "c8 --config config/c8.json npm run test",
-    "lint:check-deps": "depcheck --config=config/depcheck.json",
-    "lighthouse": "lhci autorun --config=config/lighthouserc.json",
-    "lighthouse:preview": "lhci autorun --config=config/lighthouserc.preview.json"
+    "lint:check-deps": "depcheck --config=config/depcheck.json"
   }
 }
