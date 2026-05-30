@@ -28,6 +28,16 @@ Ask the user to add this to their MCP config:
 }
 ```
 
+## Audit Defaults (Use Unless User Overrides)
+
+- Run at least **3 traces** and report median values, not a single run.
+- Use a **cold-load trace** first (`reload: true`) for initial-page metrics.
+- If possible, test both:
+   - Mobile-constrained profile (slow network + CPU throttling)
+   - Desktop/broadband profile (minimal throttling)
+- Keep page state stable between runs (same URL, same auth state, no debug overlays).
+- Separate third-party noise from first-party issues when assigning ownership.
+
 ## Key Guidelines
 
 - **Be assertive**: Verify claims by checking network requests, DOM, or codebase—then state findings definitively.
@@ -36,6 +46,8 @@ Ask the user to add this to their MCP config:
 - **Skip non-issues**: If render-blocking resources have 0ms estimated impact, note but don't recommend action.
 - **Be specific**: Say "compress hero.png (450KB) to WebP" not "optimize images".
 - **Prioritize ruthlessly**: A site with 200ms LCP and 0 CLS is already excellent—say so.
+- **Cite evidence**: For every recommendation, include the metric/request/element that proves it.
+- **Avoid overfitting to one run**: Confirm major findings across repeated traces.
 
 ## Quick Reference
 
@@ -54,12 +66,25 @@ Copy this checklist to track progress:
 
 ```
 Audit Progress:
+- [ ] Phase 0: Scope and baseline
 - [ ] Phase 1: Performance trace (navigate + record)
 - [ ] Phase 2: Core Web Vitals analysis (includes CLS culprits)
 - [ ] Phase 3: Network analysis
 - [ ] Phase 4: Accessibility snapshot
 - [ ] Phase 5: Codebase analysis (skip if third-party site)
+- [ ] Phase 6: Verify fixes and expected impact
 ```
+
+### Phase 0: Scope and Baseline
+
+Before tracing, define:
+
+1. Page scope (single URL, route group, or template type)
+2. Device/profile scope (mobile, desktop, or both)
+3. Success criteria (for example: LCP under 2.5s, CLS under 0.1, INP under 200ms)
+4. Constraints (no code access, third-party-heavy page, auth-gated flows)
+
+Record baseline metrics so later recommendations have a measurable target.
 
 ### Phase 1: Performance Trace
 
@@ -101,6 +126,9 @@ performance_analyze_insight(insightSetId: "<id-from-trace>", insightName: "LCPBr
 ```
 
 **Key thresholds (good/needs-improvement/poor):**
+
+Verify these against current references before citing them in a final report.
+
 - TTFB: < 800ms / < 1.8s / > 1.8s
 - FCP: < 1.8s / < 3s / > 3s
 - LCP: < 2.5s / < 4s / > 4s
@@ -191,6 +219,20 @@ Also check `package.json` for framework dependencies and build scripts.
 - Look for gzip/brotli compression in build output or server config
 - Check for source maps in production builds (should be external or disabled)
 
+## Phase 6: Verify Fixes and Expected Impact
+
+After proposing or applying changes:
+
+1. Re-run traces with the same profile and URL.
+2. Compare baseline vs. new median for CWV and key supporting metrics.
+3. Confirm no regression in accessibility or functional behaviour.
+4. Report outcome as:
+   - Improved
+   - Neutral
+   - Regressed
+
+If code changes are not applied yet, provide an expected-impact table with confidence level (high/medium/low).
+
 ## Output Format
 
 Present findings as:
@@ -199,3 +241,4 @@ Present findings as:
 2. **Top Issues** - Prioritized list of problems with estimated impact (high/medium/low)
 3. **Recommendations** - Specific, actionable fixes with code snippets or config changes
 4. **Codebase Findings** - Framework/bundler detected, optimization opportunities (omit if no codebase access)
+5. **Verification Plan/Results** - Baseline vs post-change (or expected delta), plus confidence level

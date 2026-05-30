@@ -102,6 +102,36 @@ permalink: /scripts/home-countdown.js
     countdownStatusEl.textContent = '';
   };
 
+  let updateTimerId = null;
+
+  const scheduleNextUpdate = () => {
+    const now = new Date();
+    const nextMinuteAt = new Date(now);
+    nextMinuteAt.setSeconds(0, 0);
+    nextMinuteAt.setMinutes(nextMinuteAt.getMinutes() + 1);
+
+    const delayMs = Math.max(1000, nextMinuteAt.getTime() - now.getTime());
+    updateTimerId = window.setTimeout(() => {
+      update();
+      scheduleNextUpdate();
+    }, delayMs);
+  };
+
   update();
-  window.setInterval(update, 1000);
+  scheduleNextUpdate();
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') {
+      if (updateTimerId !== null) {
+        window.clearTimeout(updateTimerId);
+        updateTimerId = null;
+      }
+      return;
+    }
+
+    update();
+    if (updateTimerId === null) {
+      scheduleNextUpdate();
+    }
+  });
 })();
