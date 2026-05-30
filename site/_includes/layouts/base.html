@@ -18,6 +18,17 @@
     <link rel="icon" href="/api/logo.svg" type="image/svg+xml" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preload" href="/styles/main.css" as="style" />
+    {% if page.url == '/photos/' and photos %} {% assign preloadedPhotoCount = 0
+    %} {% for item in photos %} {% if item.type != 'video' and
+    preloadedPhotoCount < 2 %}
+    <link
+      rel="preload"
+      as="image"
+      href="/api/photos/{{ item.id }}?w=400&q=80"
+      fetchpriority="high"
+    />
+    {% assign preloadedPhotoCount = preloadedPhotoCount | plus: 1 %} {% endif %}
+    {% endfor %} {% endif %}
     <script src="/scripts/utils/auth.js" defer></script>
     <script type="module" src="/scripts/base.js"></script>
     <link rel="stylesheet" href="/styles/main.css" type="text/css" />
