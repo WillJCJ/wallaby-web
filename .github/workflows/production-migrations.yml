@@ -1,11 +1,16 @@
-name: Apply Production Migrations
+name: Production Migrations
 
 on:
-  push:
-    branches: [main]
   pull_request:
     types: [closed]
     branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-production
+  cancel-in-progress: false
 
 jobs:
   migrate-production:
@@ -17,9 +22,9 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24.x'
-          cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
 
       - run: npm ci
 

@@ -17,4 +17,4 @@ Recommended order:
 3. Configure private values in [Secrets](secrets.md).
 4. Configure guest data storage in [D1](d1.md).
 5. Configure photo storage in [R2](r2.md).
-6. Configure production/preview deploy workflow in [Environments](environments.md).
+6. Configure the preview deploy workflow and production migrations workflow in [Environments](environments.md).
