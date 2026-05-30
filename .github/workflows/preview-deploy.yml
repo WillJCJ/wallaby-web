@@ -75,5 +75,7 @@ jobs:
           COMMIT_TIME: ${{ needs.deploy-preview.outputs.commit_time }}
         with:
           script: |
-            const run = require('./.github/scripts/create-or-update-preview-comment.cjs');
+            const path = require('node:path');
+            const scriptPath = path.join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'create-or-update-preview-comment.cjs');
+            const run = require(scriptPath);
             await run({ github, context, core });

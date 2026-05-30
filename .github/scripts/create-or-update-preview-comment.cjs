@@ -1,3 +1,5 @@
+const process = globalThis.process;
+
 module.exports = async ({ github, context, core }) => {
   const marker = '<!-- wallaby-preview-url -->';
   const previewUrl = process.env.PREVIEW_URL;
@@ -9,7 +11,7 @@ module.exports = async ({ github, context, core }) => {
     '## Preview deployment',
     '',
     `- Preview URL: ${previewUrl}`,
-    `- Commit: ${shortSha} - ${commitTime} (UTC)`,
+    `- Commit: ${shortSha} - ${commitTime}`,
   ].join('\n');
 
   const { owner, repo } = context.repo;
