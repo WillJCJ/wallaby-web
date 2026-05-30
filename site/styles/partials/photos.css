@@ -34,6 +34,8 @@
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--bg-surface);
+  content-visibility: auto;
+  contain-intrinsic-size: 160px 160px;
 }
 
 .photo-item--video {

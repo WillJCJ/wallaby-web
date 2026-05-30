@@ -22,72 +22,74 @@
   }
 }
 
-/* hires-load: morph blurry thumbnail to full-res image in lightbox.
-   Group handles position/size expansion; old/new crossfade blurry → sharp. */
+@supports (view-transition-name: none) {
+  /* hires-load: morph blurry thumbnail to full-res image in lightbox.
+     Group handles position/size expansion; old/new crossfade blurry → sharp. */
 
-::view-transition-group(hires-load) {
-  animation-duration: 0.45s;
-}
-
-/* Root transition is instant — only named elements animate */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-}
-
-/* photo-zoom: shared-element morph between thumbnail and lightbox image.
-   Suppress the default crossfade so only the size/position morph shows. */
-
-::view-transition-old(photo-zoom),
-::view-transition-new(photo-zoom) {
-  animation: none;
-}
-
-/* lightbox-photo: directional slide between photos.
-   Allow overflow so the outgoing image slides fully off-screen. */
-
-::view-transition-image-pair(lightbox-photo) {
-  overflow: visible;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  :root[data-nav-direction="forward"]::view-transition-old(lightbox-photo) {
-    animation: photo-slide-out-left 0.25s ease forwards;
+  ::view-transition-group(hires-load) {
+    animation-duration: 0.45s;
   }
 
-  :root[data-nav-direction="forward"]::view-transition-new(lightbox-photo) {
-    animation: photo-slide-in-right 0.25s ease forwards;
+  /* Root transition is instant — only named elements animate */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 
-  :root[data-nav-direction="back"]::view-transition-old(lightbox-photo) {
-    animation: photo-slide-out-right 0.25s ease forwards;
+  /* photo-zoom: shared-element morph between thumbnail and lightbox image.
+     Suppress the default crossfade so only the size/position morph shows. */
+
+  ::view-transition-old(photo-zoom),
+  ::view-transition-new(photo-zoom) {
+    animation: none;
   }
 
-  :root[data-nav-direction="back"]::view-transition-new(lightbox-photo) {
-    animation: photo-slide-in-left 0.25s ease forwards;
+  /* lightbox-photo: directional slide between photos.
+     Allow overflow so the outgoing image slides fully off-screen. */
+
+  ::view-transition-image-pair(lightbox-photo) {
+    overflow: visible;
   }
 
-  @keyframes photo-slide-out-left {
-    to {
-      transform: translateX(-100dvw);
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-nav-direction="forward"]::view-transition-old(lightbox-photo) {
+      animation: photo-slide-out-left 0.25s ease forwards;
     }
-  }
 
-  @keyframes photo-slide-in-right {
-    from {
-      transform: translateX(100dvw);
+    :root[data-nav-direction="forward"]::view-transition-new(lightbox-photo) {
+      animation: photo-slide-in-right 0.25s ease forwards;
     }
-  }
 
-  @keyframes photo-slide-out-right {
-    to {
-      transform: translateX(100dvw);
+    :root[data-nav-direction="back"]::view-transition-old(lightbox-photo) {
+      animation: photo-slide-out-right 0.25s ease forwards;
     }
-  }
 
-  @keyframes photo-slide-in-left {
-    from {
-      transform: translateX(-100dvw);
+    :root[data-nav-direction="back"]::view-transition-new(lightbox-photo) {
+      animation: photo-slide-in-left 0.25s ease forwards;
+    }
+
+    @keyframes photo-slide-out-left {
+      to {
+        transform: translateX(-100dvw);
+      }
+    }
+
+    @keyframes photo-slide-in-right {
+      from {
+        transform: translateX(100dvw);
+      }
+    }
+
+    @keyframes photo-slide-out-right {
+      to {
+        transform: translateX(100dvw);
+      }
+    }
+
+    @keyframes photo-slide-in-left {
+      from {
+        transform: translateX(-100dvw);
+      }
     }
   }
 }

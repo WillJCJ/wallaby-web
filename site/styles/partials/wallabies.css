@@ -1,6 +1,7 @@
 .wallaby-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  container-type: inline-size;
   align-items: start;
   gap: 1.5rem;
   max-width: 960px;
@@ -181,4 +182,14 @@
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-strong);
+}
+
+@container (max-width: 42rem) {
+  .wallaby-card-summary {
+    min-height: auto;
+  }
+
+  .wallaby-stats {
+    grid-template-columns: 1fr;
+  }
 }

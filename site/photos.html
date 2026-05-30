@@ -59,10 +59,8 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
           {% endif %}
         </a>
 
-        <div
+        <dialog
           class="photo-lightbox"
-          role="dialog"
-          aria-modal="true"
           aria-label="{{ item.alt }}"
         >
           <a
@@ -96,6 +94,7 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
                 src="/api/photos/{{ item.id }}?w=400&q=80"
                 data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
                 alt="{{ item.alt }}"
+                fetchpriority="{% if photoIndex <= 2 %}high{% else %}auto{% endif %}"
                 loading="lazy"
                 decoding="async"
               />
@@ -137,7 +136,7 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
             aria-label="Next photo"
           ></a>
           {% endif %}
-        </div>
+        </dialog>
       </article>
       {% endfor %}
     </div>
