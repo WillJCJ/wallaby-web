@@ -1,17 +1,14 @@
-name: Validate & PR Preview Deploy
+name: Preview Deploy
 
 on:
-  push:
-    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -19,33 +16,10 @@ env:
   WORKERS_SUBDOMAIN: willjcjohnson
 
 jobs:
-  validate:
-    if: github.event.action != 'closed'
+  deploy-preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24.x'
-          cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run lint checks
-        run: npm run lint
-      
-      - name: Run unit tests
-        run: npm test
-
-  deploy-pr-preview:
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
-    needs: validate
-    runs-on: ubuntu-latest
+    environment: Preview
     outputs:
       alias: ${{ steps.preview-meta.outputs.alias }}
       preview_url: ${{ steps.deploy-preview.outputs.preview_url }}
@@ -57,9 +31,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '24.x'
-          cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
 
       - name: Install dependencies
         run: npm ci
@@ -109,18 +83,20 @@ jobs:
 
           echo "preview_url=$preview_url" >> "$GITHUB_OUTPUT"
 
-  comment-pr-preview:
-    if: github.event_name == 'pull_request' && github.event.action != 'closed' && always() && needs.deploy-pr-preview.result == 'success'
-    needs: deploy-pr-preview
+  comment-preview:
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository && needs.deploy-preview.result == 'success'
+    needs: deploy-preview
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: Create or update preview comment
         uses: actions/github-script@v8
         with:
           script: |
             const marker = '<!-- wallaby-preview-url -->';
-            const previewUrl = '${{ needs.deploy-pr-preview.outputs.preview_url }}';
-            const shortSha = '${{ needs.deploy-pr-preview.outputs.short_sha }}';
+            const previewUrl = '${{ needs.deploy-preview.outputs.preview_url }}';
+            const shortSha = '${{ needs.deploy-preview.outputs.short_sha }}';
             const body = [
               marker,
               '## Preview deployment',
