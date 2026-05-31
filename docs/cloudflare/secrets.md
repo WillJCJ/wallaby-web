@@ -12,6 +12,22 @@ GitHub Actions deploy workflows read `CLOUDFLARE_API_TOKEN` from the GitHub Envi
 Scope each token to the minimum required account resources and permissions.
 Rotate these tokens if team access changes or if exposure is suspected.
 
+### Minimum permissions for production deploy
+
+For the current production deploy flow, the Cloudflare API token needs:
+
+- Account permission: `Workers Scripts Edit`
+- Account permission: `D1 Edit`
+- Zone permission: `Workers Routes Edit`
+- Zone permission: `Zone Read`
+
+Optional, but useful for cleaner Wrangler output:
+
+- User permission: `User Details Read`
+
+If the deploy flow later starts managing additional resources directly, add the
+matching permissions for those resources rather than broadening the token.
+
 Set Worker secrets per environment:
 
 ```bash
