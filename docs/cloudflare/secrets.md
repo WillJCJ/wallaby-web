@@ -2,6 +2,16 @@
 
 Do not commit private values to the repository.
 
+## GitHub Actions deployment secret
+
+GitHub Actions deploy workflows read `CLOUDFLARE_API_TOKEN` from the GitHub Environment secrets:
+
+- `Preview` environment: token used by `.github/workflows/deploy-preview.yml`
+- `Production` environment: token used by `.github/workflows/deploy-production.yml`
+
+Scope each token to the minimum required account resources and permissions.
+Rotate these tokens if team access changes or if exposure is suspected.
+
 Set Worker secrets per environment:
 
 ```bash
