@@ -2,6 +2,16 @@
 
 Current Worker config lives in `wrangler.jsonc`.
 
+## Deployment model
+
+This repository deploys a single Worker project (`wallaby-web`) using Wrangler environments.
+
+- Preview deploy target: `wallaby-web-preview`
+- Production deploy target: `wallaby-web-production`
+
+Preview deployments run from pull requests via `.github/workflows/deploy-preview.yml`.
+Production deployments run from pushes to `main` via `.github/workflows/deploy-production.yml`.
+
 ## Router Endpoints
 
 The Worker routes below are implemented in `worker/router.js`.

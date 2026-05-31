@@ -7,6 +7,14 @@ Wrangler environments are selected by deploy command, not automatically by git b
 - `production`: production Worker + production D1
 - `preview`: preview Worker + preview D1
 
+With `name: "wallaby-web"` in `wrangler.jsonc`, Cloudflare creates environment Workers with suffixes:
+
+- `wallaby-web-preview`
+- `wallaby-web-production`
+
+This repository does not use a third, separately managed deployment target for `wallaby-web`.
+The top-level config remains a shared baseline for local development.
+
 Configured in `wrangler.jsonc` under:
 
 - `env.production`
@@ -32,6 +40,17 @@ Preview:
 ```bash
 wrangler deploy --env preview
 ```
+
+## Deployment control plane
+
+Use GitHub Actions + Wrangler as the single deployment control plane.
+
+- Preview deploys run from pull requests in `.github/workflows/deploy-preview.yml`.
+- Production deploys run from pushes to `main` in `.github/workflows/deploy-production.yml`.
+- Production deploys apply D1 migrations first, then deploy Worker code.
+
+Do not enable Cloudflare Builds Git integration for this Worker while these Actions workflows are active.
+Running both systems in parallel introduces avoidable deployment drift.
 
 ## Current binding split
 
