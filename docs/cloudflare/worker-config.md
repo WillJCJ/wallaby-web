@@ -10,7 +10,8 @@ This repository deploys a single Worker project (`wallaby-web`) using Wrangler e
 - Production deploy target: `wallaby-web-production`
 
 Preview deployments run from pull requests via `.github/workflows/deploy-preview.yml`.
-Production deployments run from pushes to `main` via `.github/workflows/deploy-production.yml`.
+Production deployments run via `.github/workflows/deploy-production.yml`
+only after `.github/workflows/ci.yml` (`Lint and Test`) succeeds on `main`.
 
 ## Router Endpoints
 
