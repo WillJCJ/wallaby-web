@@ -46,7 +46,8 @@ wrangler deploy --env preview
 Use GitHub Actions + Wrangler as the single deployment control plane.
 
 - Preview deploys run from pull requests in `.github/workflows/deploy-preview.yml`.
-- Production deploys run from pushes to `main` in `.github/workflows/deploy-production.yml`.
+- Production deploys run from `.github/workflows/deploy-production.yml`
+  only after `.github/workflows/ci.yml` (`Lint and Test`) passes on a `main` push.
 - Production deploys apply D1 migrations first, then deploy Worker code.
 
 Do not enable Cloudflare Builds Git integration for this Worker while these Actions workflows are active.
