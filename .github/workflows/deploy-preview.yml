@@ -68,7 +68,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Create or update preview comment
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PREVIEW_URL: ${{ needs.deploy-preview.outputs.preview_url }}
           SHORT_SHA: ${{ needs.deploy-preview.outputs.short_sha }}
