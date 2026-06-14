@@ -12,5 +12,8 @@
 /login*
   Content-Security-Policy: default-src 'none'; script-src 'self' https://challenges.cloudflare.com; img-src 'self' https://challenges.cloudflare.com; media-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.cloudflareaccess.com https://challenges.cloudflare.com; font-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'; manifest-src 'self'; worker-src 'self'; frame-src https://challenges.cloudflare.com;
 
+/admin*
+  Cache-Control: private, no-store, max-age=0
+
 /*.webp
   Cache-Control: private, max-age=86400
