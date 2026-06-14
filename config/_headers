@@ -15,5 +15,8 @@
 /admin*
   Cache-Control: private, no-store, max-age=0
 
+/profile*
+  Cache-Control: private, no-store, max-age=0
+
 /*.webp
   Cache-Control: private, max-age=86400
