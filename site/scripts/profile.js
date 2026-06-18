@@ -21,6 +21,9 @@ import { createStatusSetter } from './utils/status.js';
   let currentGuest = null;
   let savingField = null;
   let editingField = null;
+  let queuedSaveField = null;
+  const AUTO_SAVE_DELAY_MS = 600;
+  const saveTimers = new Map();
 
   const fieldConfig = {
     rsvp: {
@@ -86,7 +89,7 @@ import { createStatusSetter } from './utils/status.js';
       const isSavingCurrentField = field === savingField;
 
       button.disabled = savingField !== null;
-      button.textContent = isSavingCurrentField ? '…' : isCurrentField ? '✓' : '✎';
+      button.textContent = isSavingCurrentField ? '…' : '✎';
 
       const config = getFieldConfig(field);
       const fieldLabel = config?.label || 'field';
@@ -94,9 +97,9 @@ import { createStatusSetter } from './utils/status.js';
       if (isSavingCurrentField) {
         button.setAttribute('aria-label', `Saving ${fieldLabel}`);
       } else if (isCurrentField) {
-        button.setAttribute('aria-label', `Save ${fieldLabel}`);
+        button.setAttribute('aria-label', `Editing ${fieldLabel}. Changes save automatically.`);
       } else {
-        button.setAttribute('aria-label', `Edit ${fieldLabel}`);
+        button.setAttribute('aria-label', `Edit ${fieldLabel} (saves automatically)`);
       }
     });
   };
@@ -146,6 +149,19 @@ import { createStatusSetter } from './utils/status.js';
     }
   };
 
+  const clearSaveTimer = (field) => {
+    const timeoutId = saveTimers.get(field);
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+      saveTimers.delete(field);
+    }
+  };
+
+  const clearAllSaveTimers = () => {
+    saveTimers.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    saveTimers.clear();
+  };
+
   const setSavingField = (field) => {
     savingField = field;
     setFieldActionState();
@@ -160,6 +176,48 @@ import { createStatusSetter } from './utils/status.js';
     }
 
     return config.editorEl.value;
+  };
+
+  const normalizeFieldValue = (field, value) => {
+    if (field === 'additionalGuests') {
+      return Number.parseInt(String(value ?? 0), 10) || 0;
+    }
+
+    if (field === 'rsvp') {
+      return value || 'pending';
+    }
+
+    return value ?? '';
+  };
+
+  const hasFieldChanged = (field) => {
+    if (!currentGuest) {
+      return false;
+    }
+
+    const getCurrentGuestFieldValue = () => {
+      if (field === 'rsvp') {
+        return currentGuest.rsvp;
+      }
+
+      if (field === 'additionalGuests') {
+        return currentGuest.additionalGuests;
+      }
+
+      if (field === 'dietaryRequirements') {
+        return currentGuest.dietaryRequirements;
+      }
+
+      if (field === 'rsvpMessage') {
+        return currentGuest.rsvpMessage;
+      }
+
+      return null;
+    };
+
+    const currentValue = normalizeFieldValue(field, getCurrentGuestFieldValue());
+    const editedValue = normalizeFieldValue(field, getFieldValueFromEditor(field));
+    return currentValue !== editedValue;
   };
 
   // eslint-disable-next-line complexity -- Payload builder covers all editable fields with fallback logic per field type.
@@ -239,6 +297,12 @@ import { createStatusSetter } from './utils/status.js';
       return;
     }
 
+    clearSaveTimer(field);
+
+    if (!hasFieldChanged(field)) {
+      return;
+    }
+
     const payload = buildUpdatePayload(field);
 
     setStatus(`Saving ${config.label.toLowerCase()}...`, 'warning');
@@ -248,17 +312,52 @@ import { createStatusSetter } from './utils/status.js';
       const guest = await saveGuest(payload);
       currentGuest = guest;
       renderGuest(guest);
-      setEditingField(null);
       setStatus(`${config.label} updated.`, 'success');
     } catch (error) {
       setStatus(error.message, 'failure');
     } finally {
       setSavingField(null);
+
+      if (queuedSaveField === field) {
+        queuedSaveField = null;
+        if (hasFieldChanged(field)) {
+          void saveField(field);
+        }
+      }
     }
   };
 
+  const scheduleFieldSave = (field) => {
+    if (field !== editingField) {
+      return;
+    }
+
+    clearSaveTimer(field);
+    const timeoutId = window.setTimeout(() => {
+      if (savingField === field) {
+        queuedSaveField = field;
+        return;
+      }
+
+      void saveField(field);
+    }, AUTO_SAVE_DELAY_MS);
+
+    saveTimers.set(field, timeoutId);
+  };
+
+  const revertCurrentEdit = (field) => {
+    if (!currentGuest) {
+      return;
+    }
+
+    clearSaveTimer(field);
+    syncEditorValues(currentGuest);
+    setEditingField(null);
+    setStatus(`${getFieldConfig(field)?.label || 'Field'} unchanged.`, 'warning');
+  };
+
   actionButtons.forEach((button) => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', () => {
       const field = button.dataset.action;
       const config = getFieldConfig(field);
 
@@ -271,25 +370,52 @@ import { createStatusSetter } from './utils/status.js';
       }
 
       if (editingField !== field) {
+        clearAllSaveTimers();
         setEditingField(field);
+        setStatus(`${config.label} will save automatically.`, 'warning');
         return;
       }
 
-      await saveField(field);
+      revertCurrentEdit(field);
     });
   });
 
   Object.entries(fieldConfig).forEach(([field, config]) => {
+    const saveOnInteraction = () => {
+      if (editingField !== field) {
+        return;
+      }
+
+      if (savingField === field) {
+        queuedSaveField = field;
+        return;
+      }
+
+      void saveField(field);
+    };
+
+    config.editorEl.addEventListener('input', () => {
+      if (config.editorType === 'select') {
+        saveOnInteraction();
+        return;
+      }
+
+      scheduleFieldSave(field);
+    });
+
+    config.editorEl.addEventListener('change', saveOnInteraction);
+
+    config.editorEl.addEventListener('blur', saveOnInteraction);
+
     config.editorEl.addEventListener('keydown', async (event) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        syncEditorValues(currentGuest || {});
-        setEditingField(null);
+        revertCurrentEdit(field);
       }
 
       if (event.key === 'Enter' && config.editorEl.tagName !== 'TEXTAREA') {
         event.preventDefault();
-        await saveField(field);
+        saveOnInteraction();
       }
     });
   });
@@ -306,6 +432,7 @@ import { createStatusSetter } from './utils/status.js';
       recordVisit();
 
       list.hidden = false;
+      clearAllSaveTimers();
       setEditingField(null);
       setStatus('');
     })

@@ -112,6 +112,20 @@ import { createGuestTableRenderer } from './features/admin/guest-table.js';
     isLastSeenDebugEnabled,
     setStatus,
     onRefreshNeeded: () => refreshGuestsAndSummary(),
+    onGuestUpdated: (updatedGuest) => {
+      guestsState = guestsState.map((guest) => (
+        guest.id === updatedGuest.id ? { ...guest, ...updatedGuest } : guest
+      ));
+
+      renderRsvpStats(guestsState, {
+        rsvpStats,
+        rsvpTotal,
+        rsvpBar,
+        rsvpYes,
+        rsvpPending,
+        rsvpNo,
+      });
+    },
     guestsTableBody,
     guestsEmpty,
     guestsTableWrap,

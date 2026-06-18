@@ -8,6 +8,7 @@ export const createGuestTableRenderer = ({
   isLastSeenDebugEnabled,
   setStatus,
   onRefreshNeeded,
+  onGuestUpdated,
   guestsTableBody,
   guestsEmpty,
   guestsTableWrap,
@@ -60,7 +61,6 @@ export const createGuestTableRenderer = ({
       editAdditional,
       editDietary,
       editRsvpMessage,
-      saveButton,
       cancelEditButton,
       nameCell,
       rsvpCell,
@@ -75,22 +75,83 @@ export const createGuestTableRenderer = ({
       viewActions,
     } = rowElements;
 
+    const AUTO_SAVE_DELAY_MS = 700;
+    const editFields = [editName, editEmail, editRsvp, editAdditional, editDietary, editRsvpMessage];
+    let autoSaveTimeoutId = null;
+    let saveInFlight = false;
+    let pendingSave = false;
+    let guestRecord = { ...guest };
+
+    const normalizeDraftValue = (field, value) => {
+      if (field === 'additionalGuests') {
+        return Number.parseInt(String(value ?? 0), 10) || 0;
+      }
+
+      return (value ?? '').toString().trim();
+    };
+
+    const getDraftPayload = () => ({
+      name: editName.value.trim(),
+      email: editEmail.value.trim(),
+      rsvp: editRsvp.value,
+      additionalGuests: Number.parseInt(editAdditional.value, 10) || 0,
+      dietaryRequirements: editDietary.value.trim(),
+      rsvpMessage: editRsvpMessage.value.trim(),
+    });
+
+    const hasDraftChanges = () => {
+      const draft = getDraftPayload();
+      return (
+        normalizeDraftValue('name', draft.name) !== normalizeDraftValue('name', guestRecord.name)
+        || normalizeDraftValue('email', draft.email) !== normalizeDraftValue('email', guestRecord.email)
+        || normalizeDraftValue('rsvp', draft.rsvp) !== normalizeDraftValue('rsvp', guestRecord.rsvp)
+        || normalizeDraftValue('additionalGuests', draft.additionalGuests) !== normalizeDraftValue('additionalGuests', guestRecord.additionalGuests)
+        || normalizeDraftValue('dietaryRequirements', draft.dietaryRequirements) !== normalizeDraftValue('dietaryRequirements', guestRecord.dietaryRequirements)
+        || normalizeDraftValue('rsvpMessage', draft.rsvpMessage) !== normalizeDraftValue('rsvpMessage', guestRecord.rsvpMessage)
+      );
+    };
+
+    const clearAutoSaveTimer = () => {
+      if (!autoSaveTimeoutId) {
+        return;
+      }
+
+      window.clearTimeout(autoSaveTimeoutId);
+      autoSaveTimeoutId = null;
+    };
+
+    const syncEditFieldsFromGuest = () => {
+      editName.value = guestRecord.name || '';
+      editEmail.value = guestRecord.email || '';
+      editRsvp.value = guestRecord.rsvp || 'pending';
+      editAdditional.value = String(Number.parseInt(guestRecord.additionalGuests, 10) || 0);
+      editDietary.value = guestRecord.dietaryRequirements || '';
+      editRsvpMessage.value = guestRecord.rsvpMessage || '';
+    };
+
+    const applyGuestToView = () => {
+      emailValue.textContent = guestRecord.email || '—';
+      dietaryValue.textContent = guestRecord.dietaryRequirements || '—';
+      rsvpMessageValue.textContent = guestRecord.rsvpMessage || '—';
+      guestIdInline.textContent = `Guest ID: ${guestRecord.id || '—'}`;
+      nameCell.textContent = guestRecord.name || 'Unnamed guest';
+      rsvpCell.textContent = guestRecord.rsvp || 'pending';
+      countCell.textContent = String(Number.parseInt(guestRecord.additionalGuests, 10) || 0);
+      syncEditFieldsFromGuest();
+    };
+
+    const setEditFieldsDisabled = (disabled) => {
+      editFields.forEach((field) => {
+        field.disabled = disabled;
+      });
+      cancelEditButton.disabled = disabled;
+    };
+
     row.style.cursor = 'pointer';
     detailCell.colSpan = allInSync ? 4 : 5;
-    emailValue.textContent = guest.email || '—';
-    dietaryValue.textContent = guest.dietaryRequirements || '—';
-    rsvpMessageValue.textContent = guest.rsvpMessage || '—';
-    guestIdInline.textContent = `Guest ID: ${guest.id || '—'}`;
+    applyGuestToView();
     inviteDebugItem.hidden = !isLastSeenDebugEnabled;
-    editName.value = guest.name || '';
-    editEmail.value = guest.email || '';
-    editRsvp.value = guest.rsvp || 'pending';
-    editAdditional.value = String(Number.parseInt(guest.additionalGuests, 10) || 0);
-    editDietary.value = guest.dietaryRequirements || '';
-    editRsvpMessage.value = guest.rsvpMessage || '';
-    nameCell.textContent = guest.name || 'Unnamed guest';
-    rsvpCell.textContent = guest.rsvp || 'pending';
-    countCell.textContent = String(Number.parseInt(guest.additionalGuests, 10) || 0);
+
     accessStateIcon.className = `admin-access-state ${isAccessEnabled ? 'admin-access-state--enabled' : 'admin-access-state--disabled'}`;
     accessStateIcon.textContent = isAccessEnabled ? '✓' : '✕';
     accessStateIcon.title = isAccessEnabled ? 'Access enabled' : 'Access disabled';
@@ -165,12 +226,15 @@ export const createGuestTableRenderer = ({
       row.classList.add('admin-guest-row--editing');
       detailRow.hidden = false;
       row.setAttribute('aria-expanded', 'true');
+      setStatus('Editing guest. Changes save automatically.', 'warning');
     };
 
     const exitEditMode = () => {
+      clearAutoSaveTimer();
       viewSection.hidden = false;
       editSection.hidden = true;
       row.classList.remove('admin-guest-row--editing');
+      setEditFieldsDisabled(false);
     };
 
     editButton.addEventListener('click', () => {
@@ -198,34 +262,105 @@ export const createGuestTableRenderer = ({
     });
 
     cancelEditButton.addEventListener('click', () => {
+      syncEditFieldsFromGuest();
       exitEditMode();
+      setStatus('Edit cancelled.', 'warning');
     });
 
-    saveButton.addEventListener('click', async () => {
-      saveButton.disabled = true;
-      saveButton.textContent = 'Saving...';
-      setStatus(`Saving ${editName.value.trim() || guest.name}...`, 'warning');
+    const saveDraft = async () => {
+      clearAutoSaveTimer();
+
+      if (!hasDraftChanges()) {
+        return;
+      }
+
+      if (saveInFlight) {
+        pendingSave = true;
+        return;
+      }
+
+      const payload = getDraftPayload();
+      saveInFlight = true;
+      setEditFieldsDisabled(true);
+      setStatus(`Saving ${payload.name || guestRecord.name}...`, 'warning');
 
       try {
-        await apiFetch(`/api/private/guests/${guest.id}`, {
+        const updated = await (await apiFetch(`/api/private/guests/${guestRecord.id}`, {
           method: 'PUT',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            name: editName.value.trim(),
-            email: editEmail.value.trim(),
-            rsvp: editRsvp.value,
-            additionalGuests: Number.parseInt(editAdditional.value, 10) || 0,
-            dietaryRequirements: editDietary.value.trim(),
-            rsvpMessage: editRsvpMessage.value.trim(),
-          }),
-        });
-        await onRefreshNeeded();
-        setStatus(`Saved ${editName.value.trim() || guest.name}.`, 'success');
+          body: JSON.stringify(payload),
+        })).json();
+
+        guestRecord = updated?.guest ? { ...updated.guest } : { ...guestRecord, ...payload };
+        applyGuestToView();
+
+        if (typeof onGuestUpdated === 'function') {
+          onGuestUpdated(guestRecord);
+        }
+
+        setStatus(`Saved ${guestRecord.name || payload.name}.`, 'success');
       } catch (error) {
         setStatus(error.message, 'failure');
-        saveButton.disabled = false;
-        saveButton.textContent = 'Save';
+      } finally {
+        saveInFlight = false;
+        setEditFieldsDisabled(false);
+
+        if (pendingSave) {
+          pendingSave = false;
+          void saveDraft();
+        }
       }
+    };
+
+    const scheduleSave = () => {
+      if (saveInFlight) {
+        pendingSave = true;
+        return;
+      }
+
+      clearAutoSaveTimer();
+      autoSaveTimeoutId = window.setTimeout(() => {
+        void saveDraft();
+      }, AUTO_SAVE_DELAY_MS);
+    };
+
+    editFields.forEach((fieldEl) => {
+      fieldEl.addEventListener('input', () => {
+        if (fieldEl === editRsvp) {
+          void saveDraft();
+          return;
+        }
+
+        scheduleSave();
+      });
+
+      fieldEl.addEventListener('change', () => {
+        if (fieldEl === editRsvp) {
+          void saveDraft();
+          return;
+        }
+
+        scheduleSave();
+      });
+
+      fieldEl.addEventListener('blur', () => {
+        void saveDraft();
+      });
+
+      fieldEl.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          syncEditFieldsFromGuest();
+          exitEditMode();
+          setStatus('Edit cancelled.', 'warning');
+          return;
+        }
+
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          void saveDraft();
+        }
+      });
     });
 
     detailRow.appendChild(detailCell);
