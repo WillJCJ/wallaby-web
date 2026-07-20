@@ -97,6 +97,47 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
   }
 }
 
+function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus }) {
+  let token = null;
+
+  const setSubmitDisabled = (disabled) => {
+    if (submitButton) {
+      submitButton.disabled = disabled;
+    }
+  };
+
+  if (enabled) {
+    setSubmitDisabled(true);
+  }
+
+  return {
+    onSuccess(nextToken) {
+      token = nextToken;
+      setSubmitDisabled(false);
+      setRequestStatus('');
+    },
+    onError(message) {
+      token = null;
+      if (enabled) {
+        setSubmitDisabled(true);
+      }
+      setRequestStatus(message, 'warning');
+    },
+    hasToken() {
+      return !enabled || Boolean(token);
+    },
+    withToken(body) {
+      return token ? { ...body, turnstileToken: token } : body;
+    },
+    resetAfterSubmit() {
+      token = null;
+      if (enabled) {
+        setSubmitDisabled(true);
+      }
+    },
+  };
+}
+
 (() => {
   const auth = getAuth();
   const status = byId('login-status');
@@ -117,18 +158,30 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
   const requestPanel = byId('request-access-panel');
   const useTurnstile = !isLocalHost;
 
-  let turnstileToken = null;
-
   const setRequestStatus = createStatusSetter(requestStatus, { hideWhenEmpty: true });
   const setStatus = createStatusSetter(status, { hideWhenEmpty: true });
+
+  const requestAccessTurnstile = createRequestAccessTurnstile({
+    enabled: useTurnstile,
+    submitButton: requestSubmit,
+    setRequestStatus,
+  });
 
   // Initialize Turnstile if needed
   initTurnstile({
     useTurnstile,
-    onTokenSuccess: (token) => {
-      turnstileToken = token;
-    },
+    onTokenSuccess: requestAccessTurnstile.onSuccess,
   });
+
+  if (useTurnstile) {
+    window.onTurnstileError = () => {
+      requestAccessTurnstile.onError('Complete the security check before sending your request.');
+    };
+
+    window.onTurnstileExpired = () => {
+      requestAccessTurnstile.onError('Your security check expired. Please try again.');
+    };
+  }
 
   if (!useTurnstile && requestTurnstile) {
     requestTurnstile.hidden = true;
@@ -144,6 +197,11 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
     // eslint-disable-next-line complexity -- Form submission validates multiple fields and handles distinct server error paths.
     onSubmit: async (event) => {
       event.preventDefault();
+      if (!requestAccessTurnstile.hasToken()) {
+        setRequestStatus('Complete the security check before sending your request.', 'warning');
+        return;
+      }
+
       requestSubmit.disabled = true;
       setRequestStatus('');
 
@@ -152,13 +210,11 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
 
       try {
         const body = { name, email };
-        if (turnstileToken) {
-          body.turnstileToken = turnstileToken;
-        }
+        const requestBody = requestAccessTurnstile.withToken(body);
         const response = await fetch('/api/access-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+          body: JSON.stringify(requestBody),
         });
         if (!response.ok) {
           throw new Error('Request access failed');
@@ -173,8 +229,7 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
       } catch {
         setRequestStatus('Unable to send your request. Please try again later.', 'failure');
       } finally {
-        requestSubmit.disabled = false;
-        turnstileToken = null;
+        requestAccessTurnstile.resetAfterSubmit();
       }
     },
   });

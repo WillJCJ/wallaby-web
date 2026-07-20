@@ -63,6 +63,10 @@ export const handlePublicAccessRequest = async (request, env, executionCtx) => {
     return badRequest(validated.error);
   }
 
+  if (env.TURNSTILE_SECRET_KEY && !body.turnstileToken) {
+    return badRequest('Security check is required. Please complete the challenge and try again.');
+  }
+
   const turnstileOk = await verifyTurnstile(body.turnstileToken, env);
   if (!turnstileOk) {
     return badRequest('Security check failed. Please try again.');
