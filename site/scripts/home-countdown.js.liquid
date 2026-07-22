@@ -3,6 +3,7 @@ permalink: /scripts/home-countdown.js
 ---
 
 (() => {
+  const eventDateEl = document.getElementById('home-event-date');
   const countdownRootEl = document.getElementById('home-countdown');
   const countdownDaysEl = document.getElementById('home-countdown-days');
   const countdownHoursEl = document.getElementById('home-countdown-hours');
@@ -40,6 +41,19 @@ permalink: /scripts/home-countdown.js
     return new Date(year, month, day + 1, 0, 0, 0, 0);
   };
 
+  // Used for replacing the date in the home page if it is different from the date when the build ran
+  const formatEventDate = (eventDate) => {
+    if (!(eventDate instanceof Date) || Number.isNaN(eventDate.getTime())) {
+      return 'TBC';
+    }
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(eventDate);
+  };
+
   const schedule = getSchedule();
 
   const getCurrentWindow = (now) => {
@@ -52,11 +66,11 @@ permalink: /scripts/home-countdown.js
       }
 
       if (now.getTime() < holdUntil) {
-        return { type: 'hold' };
+        return { type: 'hold', eventDate };
       }
     }
 
-    return { type: 'ended' };
+    return { type: 'ended', eventDate: schedule[schedule.length - 1] };
   };
 
   const renderValues = (days, hours, minutes) => {
@@ -65,8 +79,17 @@ permalink: /scripts/home-countdown.js
     countdownMinutesEl.textContent = String(minutes).padStart(2, '0');
   };
 
+  const renderEventDate = (eventDate) => {
+    if (!eventDateEl) {
+      return;
+    }
+
+    eventDateEl.textContent = formatEventDate(eventDate);
+  };
+
   const update = () => {
     if (schedule.length === 0) {
+      renderEventDate(null);
       renderValues(0, 0, 0);
       countdownStatusEl.hidden = false;
       countdownStatusEl.textContent = 'Countdown unavailable';
@@ -75,6 +98,7 @@ permalink: /scripts/home-countdown.js
 
     const now = new Date();
     const currentWindow = getCurrentWindow(now);
+    renderEventDate(currentWindow.eventDate);
 
     if (currentWindow.type === 'hold') {
       renderValues(0, 0, 0);
