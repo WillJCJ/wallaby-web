@@ -70,7 +70,7 @@ export default function (eleventyConfig) {
       return 'TBC';
     }
 
-    return upcoming.toFormat('d MMMM');
+    return upcoming.toFormat('d MMMM yyyy');
   });
 
   eleventyConfig.addTransform('htmlMinify', function (content, outputPath) {
