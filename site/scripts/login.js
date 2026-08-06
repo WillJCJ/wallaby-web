@@ -1,6 +1,6 @@
-import { createStatusSetter } from './utils/status.js';
-import { getAuth } from './shared/auth-state.js';
-import { byId } from './shared/dom.js';
+import { createStatusSetter } from "./utils/status.js";
+import { getAuth } from "./shared/auth-state.js";
+import { byId } from "./shared/dom.js";
 
 /**
  * Initialize Turnstile script and set up token callback.
@@ -10,16 +10,18 @@ import { byId } from './shared/dom.js';
  * @returns {void}
  */
 function initTurnstile({ useTurnstile, onTokenSuccess }) {
-  if (!useTurnstile) {return;}
+  if (!useTurnstile) {
+    return;
+  }
 
   window.onTurnstileSuccess = onTokenSuccess;
 
   if (!document.querySelector('script[data-turnstile="true"]')) {
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
     script.async = true;
     script.defer = true;
-    script.dataset.turnstile = 'true';
+    script.dataset.turnstile = "true";
     document.body.appendChild(script);
   }
 }
@@ -35,26 +37,39 @@ function initTurnstile({ useTurnstile, onTokenSuccess }) {
  * @param {(event: SubmitEvent) => Promise<void>|void} elements.onSubmit - Form submission handler
  * @returns {void}
  */
-function setupRequestForm({ toggle, cancel, form, elements, setRequestStatus, onSubmit }) {
+function setupRequestForm({
+  toggle,
+  cancel,
+  form,
+  elements,
+  setRequestStatus,
+  onSubmit,
+}) {
   if (toggle && form) {
-    toggle.addEventListener('click', () => {
+    toggle.addEventListener("click", () => {
       form.hidden = false;
       toggle.hidden = true;
+      if (elements.signInPanel) {
+        elements.signInPanel.hidden = true;
+      }
     });
   }
 
   if (cancel && form && toggle) {
-    cancel.addEventListener('click', () => {
+    cancel.addEventListener("click", () => {
       form.hidden = true;
       toggle.hidden = false;
-      elements.panel?.classList.remove('request-access-panel--submitted');
-      setRequestStatus('');
+      if (elements.signInPanel) {
+        elements.signInPanel.hidden = false;
+      }
+      elements.panel?.classList.remove("request-access-panel--submitted");
+      setRequestStatus("");
       form.reset();
     });
   }
 
   if (form && elements.submit && elements.status) {
-    form.addEventListener('submit', onSubmit);
+    form.addEventListener("submit", onSubmit);
   }
 }
 
@@ -70,12 +85,12 @@ function setupRequestForm({ toggle, cancel, form, elements, setRequestStatus, on
  */
 function setupDevForm({ form, email, submit, setStatus, onSubmit }) {
   if (!form || !email || !submit) {
-    setStatus('Local login form unavailable.', 'failure');
+    setStatus("Local login form unavailable.", "failure");
     return false;
   }
 
   form.hidden = false;
-  form.addEventListener('submit', onSubmit);
+  form.addEventListener("submit", onSubmit);
   return true;
 }
 
@@ -89,15 +104,21 @@ async function checkAuthAndRedirect(auth, isLocalHost) {
   try {
     const isSignedIn = await auth?.fetchSignedIn?.();
     if (isSignedIn) {
-      window.location.replace('/profile/');
+      window.location.replace("/profile/");
     }
   } catch (error) {
-    if (!isLocalHost) {throw error;}
+    if (!isLocalHost) {
+      throw error;
+    }
     // Ignore auth status failures for localhost
   }
 }
 
-function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus }) {
+function createRequestAccessTurnstile({
+  enabled,
+  submitButton,
+  setRequestStatus,
+}) {
   let token = null;
 
   const setSubmitDisabled = (disabled) => {
@@ -114,14 +135,14 @@ function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus 
     onSuccess(nextToken) {
       token = nextToken;
       setSubmitDisabled(false);
-      setRequestStatus('');
+      setRequestStatus("");
     },
     onError(message) {
       token = null;
       if (enabled) {
         setSubmitDisabled(true);
       }
-      setRequestStatus(message, 'warning');
+      setRequestStatus(message, "warning");
     },
     hasToken() {
       return !enabled || Boolean(token);
@@ -140,25 +161,30 @@ function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus 
 
 (() => {
   const auth = getAuth();
-  const status = byId('login-status');
-  const cfLoginLink = byId('cf-login-link');
-  const devForm = byId('dev-auth-form');
-  const devEmail = byId('dev-auth-email');
-  const devSubmit = byId('dev-auth-submit');
-  const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  const status = byId("login-status");
+  const cfLoginLink = byId("cf-login-link");
+  const devForm = byId("dev-auth-form");
+  const devEmail = byId("dev-auth-email");
+  const devSubmit = byId("dev-auth-submit");
+  const isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(
+    window.location.hostname,
+  );
 
-  const requestToggle = byId('request-access-toggle');
-  const requestCancel = byId('request-access-cancel');
-  const requestForm = byId('request-access-form');
-  const requestNameInput = byId('request-name');
-  const requestEmailInput = byId('request-email');
-  const requestStatus = byId('request-access-status');
-  const requestSubmit = byId('request-access-submit');
-  const requestTurnstile = byId('request-turnstile');
-  const requestPanel = byId('request-access-panel');
+  const requestToggle = byId("request-access-toggle");
+  const requestCancel = byId("request-access-cancel");
+  const requestForm = byId("request-access-form");
+  const requestNameInput = byId("request-name");
+  const requestEmailInput = byId("request-email");
+  const requestStatus = byId("request-access-status");
+  const requestSubmit = byId("request-access-submit");
+  const requestTurnstile = byId("request-turnstile");
+  const requestPanel = byId("request-access-panel");
+  const signInPanel = byId("sign-in-panel");
   const useTurnstile = !isLocalHost;
 
-  const setRequestStatus = createStatusSetter(requestStatus, { hideWhenEmpty: true });
+  const setRequestStatus = createStatusSetter(requestStatus, {
+    hideWhenEmpty: true,
+  });
   const setStatus = createStatusSetter(status, { hideWhenEmpty: true });
 
   const requestAccessTurnstile = createRequestAccessTurnstile({
@@ -175,11 +201,15 @@ function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus 
 
   if (useTurnstile) {
     window.onTurnstileError = () => {
-      requestAccessTurnstile.onError('Complete the security check before sending your request.');
+      requestAccessTurnstile.onError(
+        "Complete the security check before sending your request.",
+      );
     };
 
     window.onTurnstileExpired = () => {
-      requestAccessTurnstile.onError('Your security check expired. Please try again.');
+      requestAccessTurnstile.onError(
+        "Your security check expired. Please try again.",
+      );
     };
   }
 
@@ -192,42 +222,59 @@ function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus 
     toggle: requestToggle,
     cancel: requestCancel,
     form: requestForm,
-    elements: { submit: requestSubmit, status: requestStatus, panel: requestPanel },
+    elements: {
+      submit: requestSubmit,
+      status: requestStatus,
+      panel: requestPanel,
+      signInPanel,
+    },
     setRequestStatus,
     // eslint-disable-next-line complexity -- Form submission validates multiple fields and handles distinct server error paths.
     onSubmit: async (event) => {
       event.preventDefault();
       if (!requestAccessTurnstile.hasToken()) {
-        setRequestStatus('Complete the security check before sending your request.', 'warning');
+        setRequestStatus(
+          "Complete the security check before sending your request.",
+          "warning",
+        );
         return;
       }
 
       requestSubmit.disabled = true;
-      setRequestStatus('');
+      setRequestStatus("");
 
-      const name = requestNameInput?.value?.trim() || '';
-      const email = requestEmailInput?.value?.trim() || '';
+      const name = requestNameInput?.value?.trim() || "";
+      const email = requestEmailInput?.value?.trim() || "";
 
       try {
         const body = { name, email };
         const requestBody = requestAccessTurnstile.withToken(body);
-        const response = await fetch('/api/access-requests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/access-requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
         });
         if (!response.ok) {
-          throw new Error('Request access failed');
+          throw new Error("Request access failed");
         }
         requestForm.hidden = true;
-        requestPanel?.classList.add('request-access-panel--submitted');
+        requestPanel?.classList.add("request-access-panel--submitted");
+        if (signInPanel) {
+          signInPanel.hidden = true;
+        }
         if (requestToggle) {
           requestToggle.hidden = true;
           requestToggle.disabled = true;
         }
-        setRequestStatus('Your request has been received! Will just got a ping on his phone to add you.', 'success');
+        setRequestStatus(
+          "Your request has been received! Will just got a ping on his phone to add you.",
+          "success",
+        );
       } catch {
-        setRequestStatus('Unable to send your request. Please try again later.', 'failure');
+        setRequestStatus(
+          "Unable to send your request. Please try again later.",
+          "failure",
+        );
       } finally {
         requestAccessTurnstile.resetAfterSubmit();
       }
@@ -235,7 +282,7 @@ function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus 
   });
 
   const redirectAfterLogin = () => {
-    window.location.replace('/profile/');
+    window.location.replace("/profile/");
   };
 
   // Check auth and redirect if already signed in (production only)
@@ -258,19 +305,19 @@ function createRequestAccessTurnstile({ enabled, submitButton, setRequestStatus 
     onSubmit: async (event) => {
       event.preventDefault();
       devSubmit.disabled = true;
-      setStatus('Signing in...', 'warning');
+      setStatus("Signing in...", "warning");
 
       try {
-        const result = await auth?.devLogin?.(devEmail.value || '');
-        const email = result?.email || devEmail.value || '';
+        const result = await auth?.devLogin?.(devEmail.value || "");
+        const email = result?.email || devEmail.value || "";
         auth?.setStoredAuthEmail(email);
         redirectAfterLogin();
       } catch (error) {
-        const message = error.message || 'Unable to sign in locally.';
-        if (message.includes('403')) {
-          setStatus('Local dev login is disabled for this host.', 'failure');
+        const message = error.message || "Unable to sign in locally.";
+        if (message.includes("403")) {
+          setStatus("Local dev login is disabled for this host.", "failure");
         } else {
-          setStatus(message, 'failure');
+          setStatus(message, "failure");
         }
       } finally {
         devSubmit.disabled = false;
