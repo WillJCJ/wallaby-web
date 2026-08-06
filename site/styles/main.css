@@ -424,7 +424,7 @@ nav a:hover {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-@media (width <= 860px) {
+@media (width <=860px) {
   .nav-burger {
     display: flex;
   }
@@ -596,7 +596,7 @@ nav a:hover {
   color: var(--text-faint);
 }
 
-@media (width <= 420px) {
+@media (width <=420px) {
   .home-countdown {
     gap: 0.45rem;
   }
@@ -845,25 +845,6 @@ body:has(.photo-item:target)::before {
   pointer-events: auto;
 }
 
-/* Smooth unblur when is-loading is removed — transition must live on the base selector */
-.lightbox-media-wrap img {
-  transition:
-    filter 0.45s ease,
-    transform 0.45s ease;
-}
-
-/* While hi-res loads: blur the thumbnail underneath and show the loading logo */
-.lightbox-media-wrap.is-loading img {
-  filter: blur(20px);
-}
-
-.lightbox-media-wrap.is-loading::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url("/images/logos/logo-loading.svg") center / 5rem no-repeat;
-}
-
 .lightbox-video {
   max-width: 100%;
   max-height: calc(100dvh - 5rem);
@@ -882,6 +863,27 @@ body:has(.photo-item:target)::before {
   object-fit: contain;
   display: block;
   position: relative;
+}
+
+.lightbox-media-wrap .lightbox-image--hires {
+  position: absolute;
+  inset: 0;
+  max-width: 100%;
+  max-height: calc(100dvh - 5rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin: auto;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lightbox-media-wrap.is-hires-ready .lightbox-image--hires {
+  opacity: 1;
+}
+
+.lightbox-media-wrap.is-hires-ready .lightbox-image--preview {
+  opacity: 0;
 }
 
 .lightbox-caption {
@@ -1025,7 +1027,7 @@ body:has(.photo-item:target)::before {
 
 /* ── Mobile ── */
 
-@media (width <= 480px) {
+@media (width <=480px) {
   .photos-gallery {
     grid-template-columns: repeat(3, 1fr);
     gap: 2px;
@@ -1531,7 +1533,7 @@ textarea.profile-field-editor {
   transform-origin: top right;
 }
 
-@media (width <= 500px) {
+@media (width <=500px) {
   .request-access-actions {
     flex-direction: column;
     align-items: flex-start;
@@ -2016,11 +2018,13 @@ textarea.profile-field-editor {
 
 .admin-request-summary {
   display: grid;
-  grid-template-columns:
-    minmax(0, var(--admin-request-col-name))
-    minmax(0, var(--admin-request-col-email))
-    minmax(0, var(--admin-request-col-requested))
-    minmax(0, var(--admin-request-col-actions));
+  grid-template-columns: minmax(0, var(--admin-request-col-name)) minmax(
+      0,
+      var(--admin-request-col-email)
+    ) minmax(0, var(--admin-request-col-requested)) minmax(
+      0,
+      var(--admin-request-col-actions)
+    );
   gap: 0;
   align-items: center;
   cursor: default;
@@ -2140,9 +2144,10 @@ textarea.profile-field-editor {
 
   .admin-request-summary {
     cursor: pointer;
-    grid-template-columns:
-      minmax(0, var(--admin-request-col-name))
-      minmax(0, var(--admin-request-col-requested));
+    grid-template-columns: minmax(0, var(--admin-request-col-name)) minmax(
+        0,
+        var(--admin-request-col-requested)
+      );
   }
 }
 
@@ -2402,7 +2407,7 @@ textarea.profile-field-editor {
   outline-offset: 3px;
 }
 
-@media (width <= 640px) {
+@media (width <=640px) {
   .wallaby-game {
     margin-left: -1rem;
     margin-right: -1rem;
@@ -2414,7 +2419,7 @@ textarea.profile-field-editor {
 }
 
 /* Source: site/styles/partials/motion-responsive.css */
-@media (width <= 640px) {
+@media (width <=640px) {
   .wallaby-grid {
     grid-template-columns: 1fr;
   }

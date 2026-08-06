@@ -9,7 +9,9 @@ title: Photos - Wallaby Fest
 </div>
 
 {% assign years = photos | map: 'year' | uniq | sort | reverse %} {% assign
-totalItems = photos | size %} {% assign cumulativeCount = 0 %}
+publicPhotos = photos | where_exp: 'item', 'item.private != true' %} {% assign
+years = publicPhotos | map: 'year' | uniq | sort | reverse %} {% assign
+totalItems = publicPhotos | size %} {% assign cumulativeCount = 0 %}
 
 <p
   class="sr-only"
@@ -18,8 +20,8 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
   aria-atomic="true"
 ></p>
 <section class="photos-by-year" id="photos-top">
-  {% for year in years %} {% assign yearItems = photos | where: 'year', year %}
-  {% assign yearSize = yearItems | size %} {% assign cumulativeStart =
+  {% for year in years %} {% assign yearItems = publicPhotos | where: 'year',
+  year %} {% assign yearSize = yearItems | size %} {% assign cumulativeStart =
   cumulativeCount %} {% if yearSize > 0 %}
   <section class="photos-year-section" aria-label="Photos from {{ year }}">
     <h3 class="photos-year-heading">{{ year }}</h3>
@@ -88,10 +90,17 @@ totalItems = photos | size %} {% assign cumulativeCount = 0 %}
               ></video>
               {% else %}
               <img
+                class="lightbox-image lightbox-image--preview"
                 src="/api/photos/{{ item.id }}?w=400&q=80"
-                data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
                 alt="{{ item.alt }}"
-                fetchpriority="auto"
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                class="lightbox-image lightbox-image--hires"
+                data-hires="/api/photos/{{ item.id }}?w=2000&q=85"
+                alt=""
+                aria-hidden="true"
                 loading="lazy"
                 decoding="async"
               />

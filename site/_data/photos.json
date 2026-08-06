@@ -280,7 +280,8 @@
     "id": "2026/ash_tractor.jpg",
     "alt": "Ash tractor",
     "year": "2026",
-    "caption": "Ash the delivery driver "
+    "caption": "Delivery driver",
+    "private": true
   },
   {
     "id": "2026/campsite_logistics.jpg",
@@ -298,13 +299,15 @@
     "id": "2026/emily.jpg",
     "alt": "Emily",
     "year": "2026",
-    "caption": "Emily"
+    "caption": "Emily",
+    "private": true
   },
   {
     "id": "2026/kids_int_trailer.jpg",
     "alt": "Kids int trailer",
     "year": "2026",
-    "caption": "Kids in't trailer"
+    "caption": "Kids in't trailer",
+    "private": true
   },
   {
     "id": "2026/max.jpg",
@@ -322,7 +325,8 @@
     "id": "2026/scott_n_jordan.jpg",
     "alt": "Scott n Jordan",
     "year": "2026",
-    "caption": "Scott n Jordan"
+    "caption": "Scott n Jordan",
+    "private": true
   },
   {
     "id": "2026/trav_n_gaz.jpg",
@@ -346,7 +350,8 @@
     "id": "2026/dan.jpg",
     "alt": "Dan",
     "year": "2026",
-    "caption": "Is this thing on?"
+    "caption": "Is this thing on?",
+    "private": true
   },
   {
     "id": "2026/chris_n_max.jpg",
@@ -364,7 +369,8 @@
     "id": "2026/paddlers.jpeg",
     "alt": "Paddlers",
     "year": "2026",
-    "caption": "Heading for an expedition on the pond"
+    "caption": "Heading for an expedition on the pond",
+    "private": true
   },
   {
     "id": "2026/wide_dan.jpg",
@@ -388,7 +394,8 @@
     "id": "2026/girls_n_armstrong.jpg",
     "alt": "Girls n Armstrong",
     "year": "2026",
-    "caption": "Armstrong and girls"
+    "caption": "Armstrong and girls",
+    "private": true
   },
   {
     "id": "2026/school-lads.jpeg",
@@ -400,13 +407,15 @@
     "id": "2026/ash_catching.jpg",
     "alt": "Ash catching",
     "year": "2026",
-    "caption": "Quaterback"
+    "caption": "Quaterback",
+    "private": true
   },
   {
     "id": "2026/sleepy_kids.jpg",
     "alt": "Sleepy kids",
     "year": "2026",
-    "caption": "Sleepy kids"
+    "caption": "Sleepy kids",
+    "private": true
   },
   {
     "id": "2026/john_deere.jpg",
@@ -472,7 +481,7 @@
     "id": "2026/vytas.jpeg",
     "alt": "Vytas",
     "year": "2026",
-    "caption": "What's up there?"
+    "caption": "Light pollution"
   },
   {
     "id": "2026/tony.jpg",
