@@ -57,5 +57,10 @@
     "test:watch": "vitest --config config/vitest.config.js",
     "test:coverage": "c8 --config config/c8.json npm run test",
     "lint:check-deps": "depcheck --config=config/depcheck.json"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "workerd@1.20260811.1": true
   }
 }
