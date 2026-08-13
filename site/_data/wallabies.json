@@ -6,10 +6,10 @@
     "tagline": "The OG",
     "thumbnail": "/images/wallabies/andrew-thumbnail.webp",
     "img": "/images/wallabies/andrew-feature.webp",
-    "desc": "Unwitting star of The Yorkshire Vet, Andrew first came to The Firs as 'Kathleen' along with Kevin<sup>†</sup> in 2020. His brief stint as Kathleen ended on a hot summers day when it was discovered he had a big pair of balls to match his fieldmate.<br>These balls became a problem though after he fathered 3 joeys in two years. So, in October 2025, the vet came round with a dart gun and poor Andrew woke up missing the aforementioned balls.<br>He got the last laugh though because Jackie let him back in with his girls too soon so there are two more babies for 2026.",
+    "desc": "Unwitting star of The Yorkshire Vet, Andrew first came to The Firs as 'Kathleen' along with Kevin<sup>†</sup> in 2020. His brief stint as Kathleen ended on a hot summers day when it was discovered he had a big pair of balls to match his fieldmate.<br>These balls became a problem though after he fathered 3 joeys in two years. So, in October 2025, the vet came round with a dart gun and poor Andrew woke up missing the aforementioned balls.<br>He got the last laugh though because Jackie let him back in with his girls too soon so there were two more babies for 2026.",
     "stats": {
       "DoB": "2018-03-01",
-      "Weight": "0.2 Shetland ponies",
+      "Weight": "0.1 Shetland ponies",
       "Favourite food": "Rich Tea biscuits (preferably McVities)",
       "Personality": "Friendly"
     }
@@ -49,24 +49,23 @@
     "tagline": "Super rare albino baby",
     "thumbnail": "/images/wallabies/pinky-thumbnail.webp",
     "img": "/images/wallabies/pinky-feature.webp",
-    "desc": "A genetic freak of nature, Pinky hopes for a warm summer or it might get a bit chilly in that white coat!<br>Pinky may look like they've just smoked a fat doob but they insist that's just how their eyes look.<br>Pinky is slightly unnerved by all the talk of wallaby balls in the other bios.",
+    "desc": "A genetic freak of nature, Pinky hopes for a warm summer or it might get a bit chilly in that white coat!<br>Pinky may look like he's just smoked a fat doob but he insists that's just how his eyes look.<br>Pinky is slightly unnerved by all the talk of wallaby balls in the other bios.",
     "stats": {
       "DoB": "2026-01-01",
-      "Weight": "3 tins of beans",
+      "Weight": "20 tins of beans",
       "Personality": "Lazy"
     }
   },
   {
     "id": "joey",
-    "name": "TBC",
-    "alias": "Perky",
-    "tagline": "Name TBC. Maybe a naming competition at Wallaby Fest??",
+    "name": "Perky",
+    "tagline": "Hopefully the last baby for a while!",
     "thumbnail": "/images/wallabies/joey-thumbnail.webp",
     "img": "/images/wallabies/joey-thumbnail.webp",
-    "desc": "The as-yet-unnamed baby of Kathleen, we'll call them Joey for now.<br>Joey asks that you don't look too closely at their family tree or you will see Andrew appear twice.<br>Joey hopes that they turn out to be a girl wallaby so their balls don't suffer the same fate as Andrew's",
+    "desc": "The as-yet-unnamed baby of Kathleen, I think we've settled on Perky for now.<br>Perky asks that you don't look too closely at their family tree or you will see Andrew appear twice.<br>Perky hopes that they turn out to be a girl wallaby so their balls don't suffer the same fate as Andrew's",
     "stats": {
       "DoB": "2026-02-01",
-      "Weight": "2 Victoria sponge cakes",
+      "Weight": "4 Victoria sponge cakes",
       "Personality": "TBC"
     }
   }

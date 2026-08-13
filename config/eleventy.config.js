@@ -1,6 +1,7 @@
 import CleanCSS from 'clean-css';
 import { minify } from 'html-minifier-next';
 import process from 'node:process';
+import { DateTime } from 'luxon';
 
 /**
  * Configure Eleventy with plugins, filters, and transforms.
@@ -33,7 +34,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'config/_headers': '_headers' });
 
   eleventyConfig.addFilter('age', function (dobString) {
-    if (!dobString || dobString === 'TBC') {return 'TBC';}
+    if (!dobString || dobString === 'TBC') { return 'TBC'; }
     const birthDate = new Date(dobString);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -48,6 +49,28 @@ export default function (eleventyConfig) {
     }
 
     return `${age} year${age !== 1 ? 's' : ''}`;
+  });
+
+  eleventyConfig.addFilter('nextEventDate', function (eventSchedule) {
+    if (!Array.isArray(eventSchedule) || eventSchedule.length === 0) {
+      return 'TBC';
+    }
+    const now = DateTime.now();
+    const sorted = eventSchedule
+      .map((d) => DateTime.fromISO(d))
+      .filter((d) => d.isValid)
+      .sort((a, b) => a.toMillis() - b.toMillis());
+
+    const upcoming = sorted.find((d) => {
+      const endOfEvent = d.plus({ days: 1 }).startOf('day');
+      return now < endOfEvent;
+    }) || sorted[sorted.length - 1];
+
+    if (!upcoming) {
+      return 'TBC';
+    }
+
+    return upcoming.toFormat('d MMMM yyyy');
   });
 
   eleventyConfig.addTransform('htmlMinify', function (content, outputPath) {

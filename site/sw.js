@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wallabyfest-shell-v1';
+const CACHE_NAME = 'wallabyfest-shell-v2';
 const SHELL_ASSETS = [
   '/',
   '/site.webmanifest',
@@ -33,6 +33,14 @@ self.addEventListener('fetch', (event) => {
 
   const requestUrl = new URL(request.url);
   if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
+  // Never intercept media API requests so direct opens always hit the Worker.
+  if (
+    requestUrl.pathname.startsWith('/api/photos/') ||
+    requestUrl.pathname.startsWith('/api/videos/')
+  ) {
     return;
   }
 

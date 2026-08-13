@@ -141,7 +141,6 @@ export function getRowElements(fragment) {
   const editAdditional = fragment.querySelector('.admin-guest-edit-additional');
   const editDietary = fragment.querySelector('.admin-guest-edit-dietary');
   const editRsvpMessage = fragment.querySelector('.admin-guest-edit-rsvp-message');
-  const saveButton = fragment.querySelector('.admin-guest-save-button');
   const cancelEditButton = fragment.querySelector('.admin-guest-cancel-edit-button');
   const nameCell = fragment.querySelector('.admin-guest-name-cell');
   const rsvpCell = fragment.querySelector('.admin-guest-rsvp-cell');
@@ -175,7 +174,6 @@ export function getRowElements(fragment) {
     !editAdditional ||
     !editDietary ||
     !editRsvpMessage ||
-    !saveButton ||
     !cancelEditButton ||
     !nameCell ||
     !rsvpCell ||
@@ -213,7 +211,6 @@ export function getRowElements(fragment) {
     editAdditional,
     editDietary,
     editRsvpMessage,
-    saveButton,
     cancelEditButton,
     nameCell,
     rsvpCell,

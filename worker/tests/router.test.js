@@ -255,6 +255,20 @@ describe('router /api/photos/*', () => {
     expect(res.status).toBe(404);
   });
 
+  it('returns 404 for private photos without hitting R2', async () => {
+    const mockGet = vi.fn();
+    const req = makeRequest('https://example.com/api/photos/2026/sleepy_kids.jpg');
+    const env = makeEnv({
+      PHOTOS_BUCKET: {
+        get: mockGet,
+      },
+    });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(404);
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
   it('returns photo content and metadata from R2', async () => {
     const req = makeRequest('https://example.com/api/photos/sample.jpg');
     const mockGet = vi.fn().mockResolvedValue({
@@ -292,6 +306,16 @@ describe('router /api/videos/*', () => {
     const env = makeEnv({ PHOTOS_BUCKET: { get: vi.fn().mockResolvedValue(null) } });
     const res = await router.fetch(req, env);
     expect(res.status).toBe(404);
+  });
+
+  it('returns 404 for private media ids on the videos endpoint without hitting R2', async () => {
+    const mockGet = vi.fn();
+    const req = makeRequest('https://example.com/api/videos/2026/sleepy_kids.jpg');
+    const env = makeEnv({ PHOTOS_BUCKET: { get: mockGet } });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(404);
+    expect(mockGet).not.toHaveBeenCalled();
   });
 
   it('returns video content with correct headers', async () => {

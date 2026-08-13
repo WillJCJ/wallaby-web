@@ -33,7 +33,12 @@ jobs:
       - name: Verify Wrangler types are up to date
         run: npm run wrangler:types:check
 
+      - name: Apply production D1 migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run d1:migrate:production
+
       - name: Deploy production
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bash ./.github/scripts/deploy-production.sh
+        run: npm run deploy:production

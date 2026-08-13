@@ -119,6 +119,16 @@ describe('handlePublicAccessRequest', () => {
     expect(body.error).toMatch(/security check/i);
   });
 
+  it('returns 400 when Turnstile secret is configured but no token is submitted', async () => {
+    const env = { ...makeEnv(), TURNSTILE_SECRET_KEY: 'secret' };
+    const req = makeRequest('POST', { name: 'Alice', email: 'alice@example.com' });
+    const res = await handlePublicAccessRequest(req, env);
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toMatch(/security check is required/i);
+  });
+
   it('writes to KV and returns 200 on a valid submission (no Turnstile secret = dev mode)', async () => {
     const uuidSpy = vi.spyOn(crypto, 'randomUUID').mockReturnValue('req-123');
     const kv = makeKv();

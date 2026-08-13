@@ -5,7 +5,7 @@ title: Guest Login - Wallaby Fest
 
 <div class="page-intro">
   <h2>Guest Login</h2>
-  <p>Sign in with Google through Cloudflare Access to view your profile.</p>
+  <p>Sign in with Google through Cloudflare Access.</p>
 </div>
 
 <section class="login-panel">
@@ -48,7 +48,11 @@ title: Guest Login - Wallaby Fest
         autocomplete="email"
       />
       <div class="request-access-actions">
-        <button type="submit" class="login-button" id="request-access-submit">
+        <button
+          type="submit"
+          class="login-button login-button--accent"
+          id="request-access-submit"
+        >
           Send request
         </button>
         <div
@@ -56,6 +60,8 @@ title: Guest Login - Wallaby Fest
           id="request-turnstile"
           data-sitekey="0x4AAAAAADCtP9eKZZoFvBDA"
           data-callback="onTurnstileSuccess"
+          data-error-callback="onTurnstileError"
+          data-expired-callback="onTurnstileExpired"
           data-theme="auto"
         ></div>
       </div>
@@ -69,7 +75,7 @@ title: Guest Login - Wallaby Fest
     </form>
   </div>
 
-  <div class="sign-in-panel">
+  <div class="sign-in-panel" id="sign-in-panel">
     <p id="login-status" class="private-status" aria-live="polite" hidden></p>
 
     <p>Already have an account?</p>

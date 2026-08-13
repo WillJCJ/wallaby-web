@@ -19,7 +19,8 @@
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preload" href="/styles/main.css" as="style" />
     {% if page.url == '/photos/' and photos %} {% assign preloadedPhotoCount = 0
-    %} {% for item in photos %} {% if item.type != 'video' and
+    %} {% assign publicPhotos = photos | where_exp: 'item', 'item.private !=
+    true' %} {% for item in publicPhotos %} {% if item.type != 'video' and
     preloadedPhotoCount < 1 %}
     <link
       rel="preload"

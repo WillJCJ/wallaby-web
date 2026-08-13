@@ -13,22 +13,29 @@ import {
   handleGameRunFinish,
 } from './game-scores.js';
 import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
+import photos from '../site/_data/photos.json' with { type: 'json' };
 
 // Parse a Range header value (e.g. "bytes=0-1023") into R2 get() options.
 const parseRange = (header) => {
   const match = /^bytes=(\d+)-(\d*)$/.exec(header);
-  if (!match) {return {};}
+  if (!match) { return {}; }
   const offset = parseInt(match[1], 10);
   const end = match[2] ? parseInt(match[2], 10) : undefined;
   return end !== undefined ? { offset, length: end - offset + 1 } : { offset };
 };
 
 const getVideoMimeType = (extension) => {
-  if (extension === 'mp4') {return 'video/mp4';}
-  if (extension === 'webm') {return 'video/webm';}
-  if (extension === 'mov') {return 'video/quicktime';}
+  if (extension === 'mp4') { return 'video/mp4'; }
+  if (extension === 'webm') { return 'video/webm'; }
+  if (extension === 'mov') { return 'video/quicktime'; }
   return 'video/mp4';
 };
+
+const privateMediaIds = new Set(
+  photos
+    .filter((item) => item?.private === true && typeof item?.id === 'string')
+    .map((item) => item.id)
+);
 
 
 
@@ -45,6 +52,10 @@ export default {
       const segment = decodeURIComponent(url.pathname.slice('/api/videos/'.length));
       if (!segment) {
         return new Response('Video key is required', { status: 400 });
+      }
+
+      if (privateMediaIds.has(segment)) {
+        return new Response('Video not found', { status: 404 });
       }
 
       const key = `videos/${segment}`;
@@ -92,6 +103,10 @@ export default {
         return new Response('Photo key is required', { status: 400 });
       }
 
+      if (privateMediaIds.has(segment)) {
+        return new Response('Photo not found', { status: 404 });
+      }
+
       const w = url.searchParams.get('w');
       const width = w ? parseInt(w, 10) : null;
 
@@ -114,10 +129,10 @@ export default {
       if (isProduction && width !== null && !url.searchParams.has('raw')) {
         const q = url.searchParams.get('q');
         const image = { width };
-        if (q) {image.quality = parseInt(q, 10);}
+        if (q) { image.quality = parseInt(q, 10); }
         const accept = request.headers.get('accept') || '';
-        if (/image\/avif/.test(accept)) {image.format = 'avif';}
-        else if (/image\/webp/.test(accept)) {image.format = 'webp';}
+        if (/image\/avif/.test(accept)) { image.format = 'avif'; }
+        else if (/image\/webp/.test(accept)) { image.format = 'webp'; }
         const rawUrl = new URL(request.url);
         rawUrl.searchParams.set('raw', '1');
         return fetch(rawUrl.toString(), { cf: { image } });
