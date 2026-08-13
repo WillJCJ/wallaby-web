@@ -44,6 +44,31 @@ const verifyTurnstile = async (token, env) => {
 
 const makeAccessRequestKey = (requestId) => `${ACCESS_REQUEST_KEY_PREFIX}${requestId}`;
 
+const parseAndValidateAccessRequest = async (request, env) => {
+  const body = await parseJsonBody(request);
+  if (!body) {
+    return { error: badRequest('Invalid JSON body') };
+  }
+
+  const validated = validateAccessRequestPayload(body);
+  if (validated.error) {
+    return { error: badRequest(validated.error) };
+  }
+
+  if (env.TURNSTILE_SECRET_KEY && !body.turnstileToken) {
+    return {
+      error: badRequest('Security check is required. Please complete the challenge and try again.'),
+    };
+  }
+
+  const turnstileOk = await verifyTurnstile(body.turnstileToken, env);
+  if (!turnstileOk) {
+    return { error: badRequest('Security check failed. Please try again.') };
+  }
+
+  return { value: validated.value };
+};
+
 // POST /api/access-requests — public, unauthenticated
 export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   if (request.method !== 'POST') {
@@ -51,28 +76,12 @@ export const handlePublicAccessRequest = async (request, env, executionCtx) => {
   }
 
   const kvError = requireKv(env);
-  if (kvError) {return kvError;}
+  if (kvError) { return kvError; }
 
-  const body = await parseJsonBody(request);
-  if (!body) {
-    return badRequest('Invalid JSON body');
-  }
+  const accessRequest = await parseAndValidateAccessRequest(request, env);
+  if (accessRequest.error) { return accessRequest.error; }
 
-  const validated = validateAccessRequestPayload(body);
-  if (validated.error) {
-    return badRequest(validated.error);
-  }
-
-  if (env.TURNSTILE_SECRET_KEY && !body.turnstileToken) {
-    return badRequest('Security check is required. Please complete the challenge and try again.');
-  }
-
-  const turnstileOk = await verifyTurnstile(body.turnstileToken, env);
-  if (!turnstileOk) {
-    return badRequest('Security check failed. Please try again.');
-  }
-
-  const { name, email } = validated.value;
+  const { name, email } = accessRequest.value;
   const requestId = crypto.randomUUID();
   const key = makeAccessRequestKey(requestId);
   const requestEntry = {
@@ -118,13 +127,13 @@ export const handleListAccessRequests = async (request, env) => {
   }
 
   const authResult = await requireAuthenticatedEmail(request, env);
-  if (authResult.error) {return authResult.error;}
+  if (authResult.error) { return authResult.error; }
 
   const adminError = requireAdmin(authResult.email, env);
-  if (adminError) {return adminError;}
+  if (adminError) { return adminError; }
 
   const kvError = requireKv(env);
-  if (kvError) {return kvError;}
+  if (kvError) { return kvError; }
 
   let keys;
   try {
@@ -168,13 +177,13 @@ export const handleDismissAccessRequest = async (request, env, requestId) => {
   }
 
   const authResult = await requireAuthenticatedEmail(request, env);
-  if (authResult.error) {return authResult.error;}
+  if (authResult.error) { return authResult.error; }
 
   const adminError = requireAdmin(authResult.email, env);
-  if (adminError) {return adminError;}
+  if (adminError) { return adminError; }
 
   const kvError = requireKv(env);
-  if (kvError) {return kvError;}
+  if (kvError) { return kvError; }
 
   const key = makeAccessRequestKey(requestId);
   const existing = await env.GUEST_REQUESTS_KV.get(key);

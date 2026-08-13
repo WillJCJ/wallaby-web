@@ -2018,10 +2018,12 @@ textarea.profile-field-editor {
 
 .admin-request-summary {
   display: grid;
-  grid-template-columns: minmax(0, var(--admin-request-col-name)) minmax(
+  grid-template-columns:
+    minmax(0, var(--admin-request-col-name)) minmax(
       0,
       var(--admin-request-col-email)
-    ) minmax(0, var(--admin-request-col-requested)) minmax(
+    )
+    minmax(0, var(--admin-request-col-requested)) minmax(
       0,
       var(--admin-request-col-actions)
     );
