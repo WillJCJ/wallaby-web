@@ -26,7 +26,7 @@
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "vitest": "^4.1.10",
-    "wrangler": "^4.120.0"
+    "wrangler": "^4.122.0"
   },
   "scripts": {
     "lint": "npm run lint:js && npm run lint:css && npm run lint:format && npm run lint:md",
