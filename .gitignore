@@ -238,3 +238,4 @@ terraform.rc
 
 .vscode/*
 
+test-results/*
