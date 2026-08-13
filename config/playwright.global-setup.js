@@ -26,7 +26,7 @@ const waitForUrl = async (url, timeoutMilliseconds = 120_000) => {
 };
 
 /**
- * @returns {Promise<() => Promise<void>>}
+ * @returns {Promise<(() => Promise<void>)|undefined>} Resolves to a teardown function that stops the Wrangler dev process, or undefined when PLAYWRIGHT_BASE_URL is provided.
  */
 export default async function globalSetup() {
   if (process.env.PLAYWRIGHT_BASE_URL) {
