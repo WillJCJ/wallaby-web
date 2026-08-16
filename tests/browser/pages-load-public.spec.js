@@ -3,11 +3,16 @@ import path from 'node:path';
 
 import { expect, test } from '@playwright/test';
 
+// Parallelise the loops below
+test.describe.configure({ mode: 'parallel' });
+
 const siteDir = path.resolve('site');
+
+const excludedPageNames = new Set(['admin.html', 'profile.html']);
 
 const pagePaths = fs
   .readdirSync(siteDir, { withFileTypes: true })
-  .filter((entry) => entry.isFile() && entry.name.endsWith('.html'))
+  .filter((entry) => entry.isFile() && entry.name.endsWith('.html') && !excludedPageNames.has(entry.name))
   .map((entry) => {
     if (entry.name === 'index.html') {
       return '/';

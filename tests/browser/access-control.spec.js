@@ -1,13 +1,14 @@
 import { expect, test } from '@playwright/test';
 
+import { getAccessTestConfig, setAuthenticatedUser } from './access-test-helpers.js';
+
 const privatePhotoAltText = 'Sleepy kids';
 const privatePhotoPath = '/api/photos/2026/sleepy_kids.jpg';
-
-const setAuthenticatedUser = async (page, email = 'playwright-user@example.com') => {
-  await page.context().setExtraHTTPHeaders({
-    'CF-Access-Authenticated-User-Email': email,
-  });
-};
+const {
+  usesExternalBaseUrl,
+  accessClientId,
+  accessClientSecret,
+} = getAccessTestConfig();
 
 test.describe('authentication and private content', () => {
   test('profile API access requires authentication', async ({ page }) => {
@@ -20,6 +21,11 @@ test.describe('authentication and private content', () => {
     const signedOutResponse = await signedOutResponsePromise;
     expect(signedOutResponse.status()).toBe(401);
     await expect(page.locator('#guest-profile-status')).toContainText('Authentication required');
+
+    test.skip(
+      usesExternalBaseUrl && (!accessClientId || !accessClientSecret),
+      'Authenticated external smoke checks require CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.'
+    );
 
     await setAuthenticatedUser(page);
 
@@ -44,6 +50,11 @@ test.describe('authentication and private content', () => {
     expect(signedOutResponse.status()).toBe(401);
     await expect(page.locator('#guest-admin-status')).toContainText('Authentication required');
 
+    test.skip(
+      usesExternalBaseUrl && (!accessClientId || !accessClientSecret),
+      'Authenticated external smoke checks require CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.'
+    );
+
     await setAuthenticatedUser(page);
 
     const signedInResponsePromise = page.waitForResponse((response) => (
@@ -61,6 +72,8 @@ test.describe('authentication and private content', () => {
 
     await expect(page.getByRole('heading', { name: 'Photos' })).toBeVisible();
     await expect(page.getByLabel(privatePhotoAltText).first()).toHaveCount(0);
+
+    await new Promise(() => { }); // Never resolves
   });
 
   test('map private details stay hidden when signed out', async ({ page }) => {
@@ -78,6 +91,11 @@ test.describe('authentication and private content', () => {
   });
 
   test('map private details are shown when signed in', async ({ page }) => {
+    test.skip(
+      usesExternalBaseUrl && (!accessClientId || !accessClientSecret),
+      'Authenticated external smoke checks require CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.'
+    );
+
     await setAuthenticatedUser(page);
 
     const privateDetailsResponsePromise = page.waitForResponse((response) => (

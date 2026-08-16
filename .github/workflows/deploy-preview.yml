@@ -81,6 +81,8 @@ jobs:
         run: npm run test:playwright
         env:
           PLAYWRIGHT_BASE_URL: ${{ needs.deploy-preview.outputs.preview_url }}
+          CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
 
   comment-preview:
     if: always() && github.event.pull_request.head.repo.full_name == github.repository && needs.deploy-preview.result == 'success'
