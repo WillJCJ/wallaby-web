@@ -71,9 +71,7 @@ test.describe('authentication and private content', () => {
     await page.goto('/photos/', { waitUntil: 'networkidle' });
 
     await expect(page.getByRole('heading', { name: 'Photos' })).toBeVisible();
-    await expect(page.getByLabel(privatePhotoAltText).first()).toHaveCount(0);
-
-    await new Promise(() => { }); // Never resolves
+    await expect(page.getByLabel(privatePhotoAltText).first()).toBeHidden();
   });
 
   test('map private details stay hidden when signed out', async ({ page }) => {
