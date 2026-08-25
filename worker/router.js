@@ -13,6 +13,8 @@ import {
   handleGameRunFinish,
 } from './game-scores.js';
 import { isLocalHost, isProductionHost, isWorkersPreviewHost } from './host.js';
+import { resolveAuthenticatedEmail } from './auth.js';
+import { jsonResponse, methodNotAllowed, unauthorized } from './response.js';
 import photos from '../site/_data/photos.json' with { type: 'json' };
 
 // Parse a Range header value (e.g. "bytes=0-1023") into R2 get() options.
@@ -37,12 +39,48 @@ const privateMediaIds = new Set(
     .map((item) => item.id)
 );
 
+const privateMediaManifest = photos
+  .filter((item) => item?.private === true && typeof item?.id === 'string')
+  .map((item) => ({
+    id: item.id,
+    alt: item.alt || '',
+    caption: item.caption || '',
+    year: item.year || '',
+    type: item.type === 'video' ? 'video' : 'image',
+    thumbOffsetY: typeof item.thumbOffsetY === 'number' ? item.thumbOffsetY : 0,
+  }));
+
+const canAccessPrivateMedia = async (request, env) => {
+  const email = await resolveAuthenticatedEmail(request, env);
+  return Boolean(email);
+};
+
 
 
 export default {
   // eslint-disable-next-line complexity -- Central worker entrypoint intentionally handles all route branches.
   async fetch(request, env, executionCtx) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/api/private/photos') {
+      if (request.method !== 'GET') {
+        return methodNotAllowed();
+      }
+
+      const email = await resolveAuthenticatedEmail(request, env);
+      if (!email) {
+        return unauthorized();
+      }
+
+      return jsonResponse(
+        { photos: privateMediaManifest },
+        {
+          headers: {
+            'cache-control': 'private, no-store',
+          },
+        }
+      );
+    }
 
     if (url.pathname.startsWith('/api/videos/')) {
       if (!env.PHOTOS_BUCKET) {
@@ -55,7 +93,10 @@ export default {
       }
 
       if (privateMediaIds.has(segment)) {
-        return new Response('Video not found', { status: 404 });
+        const isAuthenticated = await canAccessPrivateMedia(request, env);
+        if (!isAuthenticated) {
+          return new Response('Video not found', { status: 404 });
+        }
       }
 
       const key = `videos/${segment}`;
@@ -104,7 +145,10 @@ export default {
       }
 
       if (privateMediaIds.has(segment)) {
-        return new Response('Photo not found', { status: 404 });
+        const isAuthenticated = await canAccessPrivateMedia(request, env);
+        if (!isAuthenticated) {
+          return new Response('Photo not found', { status: 404 });
+        }
       }
 
       const w = url.searchParams.get('w');

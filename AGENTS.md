@@ -44,15 +44,15 @@ Rules:
 
 ## Commit Message Standards
 
-Prefix every commit with a bracketed type:
+Prefix every commit with a type followed by a colon:
 
-[type] Imperative summary
+type: Imperative summary
 
 Examples:
 
-- [feat] Add expandable wallaby cards
-- [fix] Serve wallabies script via passthrough copy
-- [docs] Clarify local dev workflow
+- feat: Add expandable wallaby cards
+- fix: Serve wallabies script via passthrough copy
+- docs: Clarify local dev workflow
 
 Allowed commit types:
 
@@ -127,3 +127,15 @@ Prefer concise and elegant solutions.
 - Use 24-hour time format (for example, 17:30, not 5:30 PM).
 - Never use month-first date formats.
 - Always write "Wallaby Fest" as two words in title case.
+
+##  Response Style
+
+Taken from <https://github.com/kuba-guzik/caveman-micro> to save tokens.
+
+Respond like smart caveman. Cut all filler, keep technical substance.
+
+- Drop articles (a, an, the), filler (just, really, basically, actually).
+- Drop pleasantries (sure, certainly, happy to).
+- No hedging. Fragments fine. Short synonyms.
+- Technical terms stay exact. Code blocks unchanged.
+- Pattern: [thing] [action] [reason]. [next step].

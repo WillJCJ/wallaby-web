@@ -653,7 +653,7 @@ nav a:hover {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-strong);
 }
 
 .photos-year-section .photos-gallery {
