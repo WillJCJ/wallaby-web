@@ -34,6 +34,24 @@ export const resolveAuthenticatedEmail = async (request, env = {}) => {
     return headerEmail;
   }
 
+  // Test auth bypass: lets Playwright tests identify a user without a real Cloudflare
+  // Access login. Cloudflare Access strips CF-Access-Authenticated-User-Email, so service
+  // token headers alone only bypass the edge challenge — the worker still sees no identity.
+  // Gated on TEST_AUTH_SECRET so it is inert in production where the var is unset.
+  if (env.TEST_AUTH_SECRET) {
+    const secret = request.headers.get('X-Test-Auth-Secret');
+    const email = request.headers.get('X-Test-Auth-Email');
+    if (secret && email) {
+      const secretValid = await crypto.subtle.timingSafeEqual(
+        new TextEncoder().encode(secret),
+        new TextEncoder().encode(env.TEST_AUTH_SECRET),
+      );
+      if (secretValid) {
+        return normalizeAuthenticatedEmail(email);
+      }
+    }
+  }
+
   if (isDevAuthRequestAllowed(request, env)) {
     const devAuthEmail = getDevAuthEmailFromCookie(request);
     if (devAuthEmail) {

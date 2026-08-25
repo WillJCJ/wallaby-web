@@ -95,6 +95,58 @@ describe('resolveAuthenticatedEmail', () => {
     });
     expect(resolved).toBeNull();
   });
+
+  it('authenticates via X-Test-Auth-Email when TEST_AUTH_SECRET matches', async () => {
+    const req = new Request('https://wallaby-web-preview.willjcjohnson.workers.dev/api/private/details', {
+      headers: {
+        'X-Test-Auth-Email': 'test@example.com',
+        'X-Test-Auth-Secret': 'secret123',
+      },
+    });
+    const resolved = await resolveAuthenticatedEmail(req, { TEST_AUTH_SECRET: 'secret123' });
+    expect(resolved).toBe('test@example.com');
+  });
+
+  it('normalises email from X-Test-Auth-Email', async () => {
+    const req = new Request('https://wallaby-web-preview.willjcjohnson.workers.dev/api/private/details', {
+      headers: {
+        'X-Test-Auth-Email': '  Test@Example.COM  ',
+        'X-Test-Auth-Secret': 'secret123',
+      },
+    });
+    const resolved = await resolveAuthenticatedEmail(req, { TEST_AUTH_SECRET: 'secret123' });
+    expect(resolved).toBe('test@example.com');
+  });
+
+  it('ignores X-Test-Auth-Email when TEST_AUTH_SECRET is not set', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 })
+    ));
+
+    const req = new Request('https://wallaby-web-preview.willjcjohnson.workers.dev/api/private/details', {
+      headers: {
+        'X-Test-Auth-Email': 'test@example.com',
+        'X-Test-Auth-Secret': 'secret123',
+      },
+    });
+    const resolved = await resolveAuthenticatedEmail(req, {});
+    expect(resolved).toBeNull();
+  });
+
+  it('ignores X-Test-Auth-Email when X-Test-Auth-Secret does not match', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({}), { status: 200 })
+    ));
+
+    const req = new Request('https://wallaby-web-preview.willjcjohnson.workers.dev/api/private/details', {
+      headers: {
+        'X-Test-Auth-Email': 'test@example.com',
+        'X-Test-Auth-Secret': 'wrong-secret',
+      },
+    });
+    const resolved = await resolveAuthenticatedEmail(req, { TEST_AUTH_SECRET: 'secret123' });
+    expect(resolved).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
