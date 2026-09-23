@@ -3,6 +3,17 @@ import { getDevAuthEmailFromCookie, isDevAuthRequestAllowed } from './dev-auth.j
 
 export const getAuthenticatedEmail = (request) => request.headers.get('CF-Access-Authenticated-User-Email');
 
+const getCookieValue = (cookieHeader, name) => {
+  if (!cookieHeader) { return null; }
+  for (const pair of cookieHeader.split(';')) {
+    const [key, ...rest] = pair.split('=');
+    if (key?.trim() === name) {
+      return decodeURIComponent(rest.join('=').trim());
+    }
+  }
+  return null;
+};
+
 // eslint-disable-next-line complexity -- Identity fetch parses multiple response formats and handles network, JSON, and auth errors.
 export const fetchAccessIdentityEmail = async (request) => {
   try {
@@ -28,6 +39,7 @@ export const fetchAccessIdentityEmail = async (request) => {
   }
 };
 
+// eslint-disable-next-line complexity -- Auth chain checks multiple fallback paths: CF header, test auth, dev-auth, identity endpoint.
 export const resolveAuthenticatedEmail = async (request, env = {}) => {
   const headerEmail = getAuthenticatedEmail(request);
   if (headerEmail) {
@@ -35,12 +47,16 @@ export const resolveAuthenticatedEmail = async (request, env = {}) => {
   }
 
   // Test auth bypass: lets Playwright tests identify a user without a real Cloudflare
-  // Access login. Cloudflare Access strips CF-Access-Authenticated-User-Email, so service
-  // token headers alone only bypass the edge challenge — the worker still sees no identity.
+  // Access login. Cloudflare Access strips custom headers (including X-Test-Auth-*),
+  // so service token headers alone only bypass the edge challenge — the worker still
+  // sees no identity. Cookies ARE passed through by Access, so the test auth secret
+  // and email are read from cookies rather than headers.
   // Gated on TEST_AUTH_SECRET so it is inert in production where the var is unset.
   if (env.TEST_AUTH_SECRET) {
-    const secret = request.headers.get('X-Test-Auth-Secret');
-    const email = request.headers.get('X-Test-Auth-Email');
+    const secret = request.headers.get('X-Test-Auth-Secret')
+      || getCookieValue(request.headers.get('cookie'), 'test_auth_secret');
+    const email = request.headers.get('X-Test-Auth-Email')
+      || getCookieValue(request.headers.get('cookie'), 'test_auth_email');
     if (secret && email) {
       const secretValid = await crypto.subtle.timingSafeEqual(
         new TextEncoder().encode(secret),

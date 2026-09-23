@@ -19,17 +19,16 @@ export const getAccessTestConfig = () => {
   };
 };
 
-// Returns the full set of auth headers for a given email.
+// Returns auth headers for a given email.
 //
-// On external (preview/production) hosts, service token headers are included so the
-// request bypasses the Cloudflare Access edge challenge. The X-Test-Auth-* headers
-// let the worker identify the user — Cloudflare Access strips CF-Access-Authenticated-User-Email
-// so service tokens alone bypass the wall but leave the worker with no identity.
+// On external hosts, service token headers bypass the Cloudflare Access edge challenge.
+// The CF-Access-Authenticated-User-Email header works locally (no Access) but is
+// stripped by Access on external hosts, so the test auth cookies handle identity there.
 export const getAuthHeaders = (
   email = 'playwright-user@example.com',
   config = getAccessTestConfig(),
 ) => {
-  const { usesExternalBaseUrl, accessClientId, accessClientSecret, testAuthSecret } = config;
+  const { usesExternalBaseUrl, accessClientId, accessClientSecret } = config;
   return {
     'CF-Access-Authenticated-User-Email': email,
     ...(usesExternalBaseUrl
@@ -38,19 +37,34 @@ export const getAuthHeaders = (
         'CF-Access-Client-Secret': accessClientSecret,
       }
       : {}),
-    ...(testAuthSecret
-      ? {
-        'X-Test-Auth-Email': email,
-        'X-Test-Auth-Secret': testAuthSecret,
-      }
-      : {}),
   };
 };
 
+// Sets test auth cookies so the worker can identify the user. Cloudflare Access
+// strips custom headers like X-Test-Auth-Email, but cookies pass through unchanged.
 export const setAuthenticatedUser = async (
   page,
   email = 'playwright-user@example.com',
   config = getAccessTestConfig(),
 ) => {
+  const { usesExternalBaseUrl, configuredBaseHost, testAuthSecret } = config;
+
   await page.context().setExtraHTTPHeaders(getAuthHeaders(email, config));
+
+  if (usesExternalBaseUrl && testAuthSecret) {
+    await page.context().addCookies([
+      {
+        name: 'test_auth_email',
+        value: email,
+        domain: configuredBaseHost,
+        path: '/',
+      },
+      {
+        name: 'test_auth_secret',
+        value: testAuthSecret,
+        domain: configuredBaseHost,
+        path: '/',
+      },
+    ]);
+  }
 };
