@@ -9,9 +9,7 @@ title: Photos - Wallaby Fest
 </div>
 
 {% assign years = photos | map: 'year' | uniq | sort | reverse %} {% assign
-publicPhotos = photos | where_exp: 'item', 'item.private != true' %} {% assign
-years = publicPhotos | map: 'year' | uniq | sort | reverse %} {% assign
-totalItems = publicPhotos | size %} {% assign cumulativeCount = 0 %}
+totalItems = photos | size %} {% assign cumulativeCount = 0 %}
 
 <p
   class="sr-only"
@@ -20,8 +18,8 @@ totalItems = publicPhotos | size %} {% assign cumulativeCount = 0 %}
   aria-atomic="true"
 ></p>
 <section class="photos-by-year" id="photos-top">
-  {% for year in years %} {% assign yearItems = publicPhotos | where: 'year',
-  year %} {% assign yearSize = yearItems | size %} {% assign cumulativeStart =
+  {% for year in years %} {% assign yearItems = photos | where: 'year', year %}
+  {% assign yearSize = yearItems | size %} {% assign cumulativeStart =
   cumulativeCount %} {% if yearSize > 0 %}
   <section class="photos-year-section" aria-label="Photos from {{ year }}">
     <h3 class="photos-year-heading">{{ year }}</h3>
@@ -33,6 +31,13 @@ totalItems = publicPhotos | size %} {% assign cumulativeCount = 0 %}
       <article
         id="{{ mediaSlug }}"
         class="photo-item{% if isVideo %} photo-item--video{% endif %}"
+        {%
+        if
+        item.private
+        %}data-private-media="true"
+        hidden{%
+        endif
+        %}
         data-index="{{ photoIndex }}"
         style="--thumb-offset-y: {{ item.thumbOffsetY | default: 0 }}%;{% unless isVideo %} --lqip: url('/api/photos/{{ item.id }}?w=40&q=5');{% endunless %}"
       >

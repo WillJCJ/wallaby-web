@@ -62,7 +62,7 @@ Useful commands:
 
 Unit tests cover every module in `worker/` using [Vitest](https://vitest.dev/).
 
-Run the full suite locally:
+Run the unit tests locally:
 
 ```bash
 npm test
@@ -72,6 +72,16 @@ Test files live in `worker/tests/` and mirror the module they cover
 (for example, `worker/tests/auth.test.js` tests `worker/auth.js`).
 
 Tests run automatically on every push and on pull requests via the CI workflow in `.github/workflows/ci.yml`.
+
+### Playwright
+
+Integration tests using Playwright. More info at [docs/testing/playwright.md](docs/testing/playwright.md).
+These run on pull requests and can be run locally.
+
+Useful commands:
+
+- `npm run test:playwright`
+- `npm run test:playwright:preview -- https://<preview-url>`
 
 ## Cloudflare Setup
 

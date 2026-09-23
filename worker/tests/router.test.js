@@ -125,6 +125,42 @@ describe('router /api/private/details', () => {
 });
 
 // ---------------------------------------------------------------------------
+// /api/private/photos
+// ---------------------------------------------------------------------------
+
+describe('router /api/private/photos', () => {
+  it('returns 401 when unauthenticated', async () => {
+    const req = makeRequest('https://example.com/api/private/photos');
+    const res = await router.fetch(req, makeEnv());
+    expect(res.status).toBe(401);
+  });
+
+  it('returns private media manifest for authenticated users', async () => {
+    const req = makeRequest('https://example.com/api/private/photos', {
+      headers: { 'CF-Access-Authenticated-User-Email': 'user@example.com' },
+    });
+
+    const res = await router.fetch(req, makeEnv());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body.photos)).toBe(true);
+    expect(body.photos.length).toBeGreaterThan(0);
+    expect(body.photos.some((item) => item.id === '2026/sleepy_kids.jpg')).toBe(true);
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+  });
+
+  it('returns 405 for non-GET methods', async () => {
+    const req = makeRequest('https://example.com/api/private/photos', {
+      method: 'POST',
+      headers: { 'CF-Access-Authenticated-User-Email': 'user@example.com' },
+    });
+
+    const res = await router.fetch(req, makeEnv());
+    expect(res.status).toBe(405);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // /api/dev-auth/*
 // ---------------------------------------------------------------------------
 
@@ -255,7 +291,7 @@ describe('router /api/photos/*', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns 404 for private photos without hitting R2', async () => {
+  it('returns 404 for private photos without hitting R2 when unauthenticated', async () => {
     const mockGet = vi.fn();
     const req = makeRequest('https://example.com/api/photos/2026/sleepy_kids.jpg');
     const env = makeEnv({
@@ -267,6 +303,24 @@ describe('router /api/photos/*', () => {
     const res = await router.fetch(req, env);
     expect(res.status).toBe(404);
     expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('returns private photos for authenticated requests', async () => {
+    const privateBytes = 'private-photo-bytes';
+    const mockGet = vi.fn().mockResolvedValue({
+      body: privateBytes,
+      httpMetadata: { contentType: 'image/jpeg' },
+      httpEtag: '"private-photo-etag"',
+    });
+    const req = makeRequest('https://example.com/api/photos/2026/sleepy_kids.jpg', {
+      headers: { 'CF-Access-Authenticated-User-Email': 'viewer@example.com' },
+    });
+    const env = makeEnv({ PHOTOS_BUCKET: { get: mockGet } });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe(privateBytes);
+    expect(mockGet).toHaveBeenCalledWith('photos/2026/sleepy_kids.jpg');
   });
 
   it('returns photo content and metadata from R2', async () => {
@@ -308,7 +362,7 @@ describe('router /api/videos/*', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns 404 for private media ids on the videos endpoint without hitting R2', async () => {
+  it('returns 404 for private media ids on the videos endpoint without hitting R2 when unauthenticated', async () => {
     const mockGet = vi.fn();
     const req = makeRequest('https://example.com/api/videos/2026/sleepy_kids.jpg');
     const env = makeEnv({ PHOTOS_BUCKET: { get: mockGet } });
@@ -316,6 +370,24 @@ describe('router /api/videos/*', () => {
     const res = await router.fetch(req, env);
     expect(res.status).toBe(404);
     expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('returns private media ids on the videos endpoint for authenticated requests', async () => {
+    const mockGet = vi.fn().mockResolvedValue({
+      body: 'private-video-bytes',
+      httpMetadata: { contentType: 'video/mp4' },
+      httpEtag: '"private-video-etag"',
+      size: 1234,
+    });
+    const req = makeRequest('https://example.com/api/videos/2026/sleepy_kids.jpg', {
+      headers: { 'CF-Access-Authenticated-User-Email': 'viewer@example.com' },
+    });
+    const env = makeEnv({ PHOTOS_BUCKET: { get: mockGet } });
+
+    const res = await router.fetch(req, env);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('private-video-bytes');
+    expect(mockGet).toHaveBeenCalledWith('videos/2026/sleepy_kids.jpg', {});
   });
 
   it('returns video content with correct headers', async () => {

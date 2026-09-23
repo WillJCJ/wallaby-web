@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./config/vitest-crypto-polyfill.js'],
     include: ['site/tests/**/*.test.js', 'worker/tests/**/*.test.js'],
     coverage: {
       provider: 'v8',

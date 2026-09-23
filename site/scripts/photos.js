@@ -2,6 +2,20 @@
 (() => {
   let lightboxTrigger = null;
 
+  const revealPrivateMediaForSignedInUser = async () => {
+    const auth = window.WallabyAuth || null;
+    const isSignedIn = await auth?.fetchSignedIn?.();
+    if (!isSignedIn) {
+      return;
+    }
+
+    document.querySelectorAll('[data-private-media="true"]').forEach((item) => {
+      item.hidden = false;
+    });
+
+    handleHashChange();
+  };
+
   // ── Mark already-loaded thumbnails ──
   // Handles images already in cache when the script runs (complete before load fires).
   const markLoaded = (img) => img.classList.add('loaded');
@@ -9,7 +23,7 @@
     if (img.complete) { markLoaded(img); }
     else { img.addEventListener('load', () => markLoaded(img), { once: true }); }
   });
-  const getItems = () => Array.from(document.querySelectorAll('.photo-item[id]'));
+  const getItems = () => Array.from(document.querySelectorAll('.photo-item[id]')).filter((item) => !item.hidden);
   const getOpenItem = () => {
     const hash = location.hash;
     if (!hash || hash === '#photos-top') { return null; }
@@ -220,5 +234,9 @@
   }, { passive: true });
 
   handleHashChange();
+
+  revealPrivateMediaForSignedInUser().catch(() => {
+    // Keep gallery usable even if auth-status check fails.
+  });
 
 })();

@@ -1,7 +1,18 @@
 {
-  "ignores": ["node_modules/**", ".agents/**", "dist/**", "coverage/**"],
+  "ignores": [
+    "node_modules/**",
+    ".agents/**",
+    "dist/**",
+    "coverage/**",
+    "test-results/**"
+  ],
   "config": {
     // Line length: 120 chars, prose only — code blocks and tables are exempt
-    "MD013": { "line_length": 120, "code_blocks": false, "tables": false, "headings": false }
+    "MD013": {
+      "line_length": 120,
+      "code_blocks": false,
+      "tables": false,
+      "headings": false
+    }
   }
 }
