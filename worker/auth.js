@@ -57,11 +57,15 @@ export const resolveAuthenticatedEmail = async (request, env = {}) => {
       || getCookieValue(request.headers.get('cookie'), 'test_auth_secret');
     const email = request.headers.get('X-Test-Auth-Email')
       || getCookieValue(request.headers.get('cookie'), 'test_auth_email');
+
     if (secret && email) {
-      const secretValid = await crypto.subtle.timingSafeEqual(
-        new TextEncoder().encode(secret),
-        new TextEncoder().encode(env.TEST_AUTH_SECRET),
-      );
+      // timingSafeEqual throws on length mismatch, so compare lengths first.
+      const secretValid = secret.length === env.TEST_AUTH_SECRET.length
+        && await crypto.subtle.timingSafeEqual(
+          new TextEncoder().encode(secret),
+          new TextEncoder().encode(env.TEST_AUTH_SECRET),
+        );
+
       if (secretValid) {
         return normalizeAuthenticatedEmail(email);
       }
