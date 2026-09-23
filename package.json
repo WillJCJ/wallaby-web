@@ -59,6 +59,7 @@
     "test:watch": "vitest --config config/vitest.config.js",
     "test:coverage": "c8 --config config/c8.json npm run test",
     "test:playwright": "node ./node_modules/playwright/cli.js test --config config/playwright.config.js",
+    "test:playwright:preview": "PLAYWRIGHT_BASE_URL=https://wallaby-web-preview.willjcjohnson.workers.dev/ node --env-file=.env ./node_modules/playwright/cli.js test --config config/playwright.config.js",
     "lint:check-deps": "depcheck --config=config/depcheck.json"
   },
   "allowScripts": {

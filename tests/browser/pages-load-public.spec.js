@@ -8,7 +8,8 @@ test.describe.configure({ mode: 'parallel' });
 
 const siteDir = path.resolve('site');
 
-const excludedPageNames = new Set(['admin.html', 'profile.html']);
+// login.html is not tested directly; authenticated pages use the test auth cookie instead.
+const excludedPageNames = new Set(['admin.html', 'login.html', 'profile.html']);
 
 const pagePaths = fs
   .readdirSync(siteDir, { withFileTypes: true })

@@ -1,4 +1,7 @@
 import process from 'node:process';
+import { test } from '@playwright/test';
+
+const DEFAULT_TEST_EMAIL = 'playwright-user@example.com';
 
 export const getAccessTestConfig = () => {
   const configuredBaseUrl = process.env.PLAYWRIGHT_BASE_URL || '';
@@ -19,37 +22,47 @@ export const getAccessTestConfig = () => {
   };
 };
 
-// Returns auth headers for a given email.
-//
-// On external hosts, service token headers bypass the Cloudflare Access edge challenge.
-// The CF-Access-Authenticated-User-Email header works locally (no Access) but is
-// stripped by Access on external hosts, so the test auth cookies handle identity there.
-export const getAuthHeaders = (
-  email = 'playwright-user@example.com',
-  config = getAccessTestConfig(),
-) => {
-  const { usesExternalBaseUrl, accessClientId, accessClientSecret } = config;
-  return {
-    'CF-Access-Authenticated-User-Email': email,
-    ...(usesExternalBaseUrl
-      ? {
-        'CF-Access-Client-Id': accessClientId,
-        'CF-Access-Client-Secret': accessClientSecret,
-      }
-      : {}),
-  };
+// Skips the current test when external smoke checks lack Access service token credentials.
+export const skipWithoutAccessCredentials = (config = getAccessTestConfig()) => {
+  test.skip(
+    config.usesExternalBaseUrl && (!config.accessClientId || !config.accessClientSecret),
+    'Authenticated external smoke checks require CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.'
+  );
 };
 
-// Sets test auth cookies so the worker can identify the user. Cloudflare Access
-// strips custom headers like X-Test-Auth-Email, but cookies pass through unchanged.
+// Service token headers authenticate the service, not a user; they bypass the Cloudflare
+// Access edge challenge alone, without granting any user identity.
+const getServiceTokenHeaders = ({ usesExternalBaseUrl, accessClientId, accessClientSecret }) => (
+  usesExternalBaseUrl
+    ? {
+      'CF-Access-Client-Id': accessClientId,
+      'CF-Access-Client-Secret': accessClientSecret,
+    }
+    : {}
+);
+
+// Lets requests past the Access edge challenge without asserting any user identity. Use for
+// "signed out" checks against Access-protected paths (e.g. /profile/, /admin/), where the page
+// shell itself is gated and would otherwise redirect to the Access login page before ever
+// reaching the worker.
+export const bypassAccessChallenge = async (page, config = getAccessTestConfig()) => {
+  await page.context().setExtraHTTPHeaders(getServiceTokenHeaders(config));
+};
+
+// Sets headers and cookies so the worker identifies the given user. CF-Access-Authenticated-
+// User-Email works locally (no Access in front) but is stripped by Access on external hosts,
+// where the test auth cookie carries identity instead.
 export const setAuthenticatedUser = async (
   page,
-  email = 'playwright-user@example.com',
+  email = DEFAULT_TEST_EMAIL,
   config = getAccessTestConfig(),
 ) => {
   const { usesExternalBaseUrl, configuredBaseHost, testAuthSecret } = config;
 
-  await page.context().setExtraHTTPHeaders(getAuthHeaders(email, config));
+  await page.context().setExtraHTTPHeaders({
+    'CF-Access-Authenticated-User-Email': email,
+    ...getServiceTokenHeaders(config),
+  });
 
   if (usesExternalBaseUrl && testAuthSecret) {
     await page.context().addCookies([

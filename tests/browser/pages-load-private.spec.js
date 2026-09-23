@@ -1,21 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { getAccessTestConfig, setAuthenticatedUser } from './access-test-helpers.js';
-
-const {
-  usesExternalBaseUrl,
-  accessClientId,
-  accessClientSecret,
-} = getAccessTestConfig();
+import { setAuthenticatedUser, skipWithoutAccessCredentials } from './access-test-helpers.js';
 
 const privatePagePaths = ['/admin/', '/profile/'];
 
 for (const pagePath of privatePagePaths) {
   test(`loads ${pagePath} while authenticated`, async ({ page }) => {
-    test.skip(
-      usesExternalBaseUrl && (!accessClientId || !accessClientSecret),
-      'Authenticated external smoke checks require CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.'
-    );
+    skipWithoutAccessCredentials();
 
     await setAuthenticatedUser(page);
 
