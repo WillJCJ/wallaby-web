@@ -34,7 +34,7 @@ test.describe('profile self-service editing', () => {
 
   test('updates additional guests', async ({ page }) => {
     const currentValue = Number.parseInt(await page.locator('#guest-additional-guests').innerText(), 10) || 0;
-    const value = currentValue + 1;
+    const value = currentValue >= 5 ? 0 : currentValue + 1;
     const savePromise = page.waitForResponse((response) => (
       response.url().includes('/api/private/guests/me') && response.request().method() === 'PUT'
     ));
@@ -49,6 +49,18 @@ test.describe('profile self-service editing', () => {
 
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.locator('#guest-additional-guests')).toHaveText(String(value));
+  });
+
+  test('rejects more than five additional guests', async ({ page }) => {
+    const editor = page.locator('#guest-additional-guests-editor');
+
+    await page.locator('[data-action="additionalGuests"]').click();
+    await editor.fill('6');
+    await editor.blur();
+
+    expect(await editor.evaluate((element) => element.validity.valid)).toBe(false);
+    await expect(page.locator('#guest-additional-guests-field-status'))
+      .toHaveText('Enter 0 to 5 additional guests.');
   });
 
   test('updates dietary requirements', async ({ page }) => {

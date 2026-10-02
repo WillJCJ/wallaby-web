@@ -161,7 +161,7 @@ describe('validateGuestPayload', () => {
   });
 
   it('treats missing optional fields as empty strings', () => {
-     
+
     const { dietaryRequirements: _dietaryRequirements, rsvpMessage: _rsvpMessage, ...minimal } = valid;
     const result = validateGuestPayload(minimal);
     expect(result.value.dietaryRequirements).toBe('');
@@ -211,7 +211,12 @@ describe('validateGuestSelfPayload', () => {
 
   it('returns an error for negative additionalGuests', () => {
     const result = validateGuestSelfPayload({ additionalGuests: -1 }, existingGuest);
-    expect(result.error).toBe('additionalGuests must be 0 or greater');
+    expect(result.error).toBe('additionalGuests must be between 0 and 5');
+  });
+
+  it('returns an error when additionalGuests exceeds 5', () => {
+    const result = validateGuestSelfPayload({ additionalGuests: 6 }, existingGuest);
+    expect(result.error).toBe('additionalGuests must be between 0 and 5');
   });
 
   it('trims dietaryRequirements and rsvpMessage', () => {
@@ -296,7 +301,7 @@ describe('validateAccessRequestPayload', () => {
   });
 
   it('returns an error when email is too long', () => {
-    const result = validateAccessRequestPayload({ name: 'Alice', email: `${'a'.repeat(315)  }@x.com` });
+    const result = validateAccessRequestPayload({ name: 'Alice', email: `${'a'.repeat(315)}@x.com` });
     expect(result.error).toMatch(/too long/i);
   });
 

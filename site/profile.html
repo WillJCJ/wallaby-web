@@ -34,32 +34,17 @@ title: Your Profile - Wallaby Fest
     <div class="private-item">
       <dt class="profile-field-heading">
         <span>RSVP</span>
-        <span
-          class="profile-field-status"
-          id="guest-rsvp-field-status"
-          aria-live="polite"
-          hidden
-        ></span>
+        <span class="profile-field-status" id="guest-rsvp-field-status" aria-live="polite" hidden></span>
       </dt>
       <dd>
         <div class="profile-field" data-field="rsvp">
           <span class="profile-field-value" id="guest-rsvp"></span>
-          <select
-            id="guest-rsvp-editor"
-            class="profile-field-editor"
-            hidden
-            aria-label="Edit RSVP"
-          >
+          <select id="guest-rsvp-editor" class="profile-field-editor" hidden aria-label="Edit RSVP">
             <option value="pending">Pending</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
           </select>
-          <button
-            type="button"
-            class="profile-field-action"
-            data-action="rsvp"
-            aria-label="Edit RSVP"
-          >
+          <button type="button" class="profile-field-action" data-action="rsvp" aria-label="Edit RSVP">
             &#9998;
           </button>
         </div>
@@ -68,31 +53,15 @@ title: Your Profile - Wallaby Fest
     <div class="private-item">
       <dt class="profile-field-heading">
         <span>Additional guests</span>
-        <span
-          class="profile-field-status"
-          id="guest-additional-guests-field-status"
-          aria-live="polite"
-          hidden
-        ></span>
+        <span class="profile-field-status" id="guest-additional-guests-field-status" aria-live="polite" hidden></span>
       </dt>
       <dd>
         <div class="profile-field" data-field="additionalGuests">
           <span class="profile-field-value" id="guest-additional-guests"></span>
-          <input
-            id="guest-additional-guests-editor"
-            class="profile-field-editor"
-            type="number"
-            min="0"
-            step="1"
-            hidden
-            aria-label="Edit additional guests"
-          />
-          <button
-            type="button"
-            class="profile-field-action"
-            data-action="additionalGuests"
-            aria-label="Edit additional guests"
-          >
+          <input id="guest-additional-guests-editor" class="profile-field-editor" type="number" min="0" max="5" step="1"
+            hidden aria-label="Edit additional guests" />
+          <button type="button" class="profile-field-action" data-action="additionalGuests"
+            aria-label="Edit additional guests">
             &#9998;
           </button>
         </div>
@@ -101,34 +70,16 @@ title: Your Profile - Wallaby Fest
     <div class="private-item">
       <dt class="profile-field-heading">
         <span>Dietary requirements</span>
-        <span
-          class="profile-field-status"
-          id="guest-dietary-requirements-field-status"
-          aria-live="polite"
-          hidden
-        ></span>
+        <span class="profile-field-status" id="guest-dietary-requirements-field-status" aria-live="polite"
+          hidden></span>
       </dt>
       <dd>
         <div class="profile-field" data-field="dietaryRequirements">
-          <span
-            class="profile-field-value"
-            id="guest-dietary-requirements"
-          ></span>
-          <textarea
-            id="guest-dietary-requirements-editor"
-            class="profile-field-editor"
-            rows="3"
-            maxlength="600"
-            spellcheck="true"
-            hidden
-            aria-label="Edit dietary requirements"
-          ></textarea>
-          <button
-            type="button"
-            class="profile-field-action"
-            data-action="dietaryRequirements"
-            aria-label="Edit dietary requirements"
-          >
+          <span class="profile-field-value" id="guest-dietary-requirements"></span>
+          <textarea id="guest-dietary-requirements-editor" class="profile-field-editor" rows="3" maxlength="600"
+            spellcheck="true" hidden aria-label="Edit dietary requirements"></textarea>
+          <button type="button" class="profile-field-action" data-action="dietaryRequirements"
+            aria-label="Edit dietary requirements">
             &#9998;
           </button>
         </div>
@@ -137,31 +88,14 @@ title: Your Profile - Wallaby Fest
     <div class="private-item">
       <dt class="profile-field-heading">
         <span>RSVP message</span>
-        <span
-          class="profile-field-status"
-          id="guest-rsvp-message-field-status"
-          aria-live="polite"
-          hidden
-        ></span>
+        <span class="profile-field-status" id="guest-rsvp-message-field-status" aria-live="polite" hidden></span>
       </dt>
       <dd>
         <div class="profile-field" data-field="rsvpMessage">
           <span class="profile-field-value" id="guest-rsvp-message"></span>
-          <textarea
-            id="guest-rsvp-message-editor"
-            class="profile-field-editor"
-            rows="4"
-            maxlength="1000"
-            spellcheck="true"
-            hidden
-            aria-label="Edit RSVP message"
-          ></textarea>
-          <button
-            type="button"
-            class="profile-field-action"
-            data-action="rsvpMessage"
-            aria-label="Edit RSVP message"
-          >
+          <textarea id="guest-rsvp-message-editor" class="profile-field-editor" rows="4" maxlength="1000"
+            spellcheck="true" hidden aria-label="Edit RSVP message"></textarea>
+          <button type="button" class="profile-field-action" data-action="rsvpMessage" aria-label="Edit RSVP message">
             &#9998;
           </button>
         </div>

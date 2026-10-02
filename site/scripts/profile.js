@@ -368,6 +368,11 @@ import { createStatusSetter } from './utils/status.js';
 
     clearSaveTimer(field);
 
+    if (!config.editorEl.checkValidity()) {
+      setFieldStatus(field, 'Enter 0 to 5 additional guests.', 'failure', { keepVisible: true });
+      return;
+    }
+
     if (!hasFieldChanged(field)) {
       return;
     }
