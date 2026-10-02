@@ -42,7 +42,7 @@ import { createSparkSystem } from './utils/sparks.js';
   const JUMP_VELOCITY = -720;
   const START_SPEED = 320;
   const MAX_SPEED = 1200;
-  const SPEED_GROWTH = 50;
+  const SPEED_GROWTH = 8;
   const DAY_NIGHT_SCORE_CYCLE = 1000;
   const HALF_DAY_NIGHT_CYCLE = DAY_NIGHT_SCORE_CYCLE / 2;
   const MOON_PHASES = [
@@ -216,6 +216,7 @@ import { createSparkSystem } from './utils/sparks.js';
   let activeColours = buildActiveColours(0);
   let wallabySparkTimer = 0;
   let speedometerSparkTimer = 0;
+  let speedometerDisplayRatio = 0;
 
   const state = {
     status: 'ready', // ready | running | over
@@ -355,7 +356,7 @@ import { createSparkSystem } from './utils/sparks.js';
     }
 
     const speedRatio = Math.max(0, Math.min(1, (state.speed - START_SPEED) / (MAX_SPEED - START_SPEED)));
-    if (speedRatio >= 1) {
+    if (speedRatio >= 1 && w.grounded) {
       wallabySparkTimer += dt;
       while (wallabySparkTimer >= 0.12) {
         wallabySparkTimer -= 0.12;
@@ -369,6 +370,7 @@ import { createSparkSystem } from './utils/sparks.js';
           maxSize: 2.2,
           upwardBias: 25,
           followWorld: true,
+          worldSpeedScale: 0.3,
         });
         sparks.spawn(w.x + 10, w.y - 2, {
           count: 3,
@@ -380,6 +382,7 @@ import { createSparkSystem } from './utils/sparks.js';
           maxSize: 2.2,
           upwardBias: 25,
           followWorld: true,
+          worldSpeedScale: 0.3,
         });
       }
     } else {
@@ -1014,7 +1017,13 @@ import { createSparkSystem } from './utils/sparks.js';
     const radius = 20;
     const startAngle = Math.PI * 0.75;
     const sweepAngle = Math.PI * 1.5;
-    const speedRatio = Math.max(0, Math.min(1, (state.speed - START_SPEED) / (MAX_SPEED - START_SPEED)));
+    const currentSpeedRatio = Math.max(0, Math.min(1, (state.speed - START_SPEED) / (MAX_SPEED - START_SPEED)));
+    if (state.status === 'over') {
+      speedometerDisplayRatio *= Math.exp(-14 * deltaSeconds);
+    } else {
+      speedometerDisplayRatio = currentSpeedRatio;
+    }
+    const speedRatio = speedometerDisplayRatio;
     const needleBaseAngle = startAngle + sweepAngle * speedRatio;
     const needleShake = speedRatio >= 1
       ? Math.sin(performance.now() / 24) * 0.035
@@ -1059,7 +1068,7 @@ import { createSparkSystem } from './utils/sparks.js';
     ctx.fill();
     ctx.restore();
 
-    if (speedRatio >= 1) {
+    if (state.status === 'running' && speedRatio >= 1) {
       speedometerSparkTimer += deltaSeconds;
       while (speedometerSparkTimer >= 0.14) {
         speedometerSparkTimer -= 0.14;

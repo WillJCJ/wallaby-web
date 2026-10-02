@@ -206,7 +206,7 @@ describe('validateGuestSelfPayload', () => {
 
   it('returns an error for a non-integer additionalGuests value', () => {
     const result = validateGuestSelfPayload({ additionalGuests: 'abc' }, existingGuest);
-    expect(result.error).toBe('additionalGuests must be 0 or greater');
+    expect(result.error).toBe('additionalGuests must be between 0 and 5');
   });
 
   it('returns an error for negative additionalGuests', () => {

@@ -13,6 +13,7 @@ export const createSparkSystem = (context) => {
     maxSize = 3.5,
     upwardBias = 90,
     followWorld = false,
+    worldSpeedScale = 1,
   } = {}) => {
     for (let index = 0; index < count; index += 1) {
       const angle = Math.random() * Math.PI * 2;
@@ -27,6 +28,7 @@ export const createSparkSystem = (context) => {
         size: minSize + Math.random() * (maxSize - minSize),
         color: SPARK_COLOURS[Math.floor(Math.random() * SPARK_COLOURS.length)],
         followWorld,
+        worldSpeedScale,
       });
     }
   };
@@ -36,7 +38,7 @@ export const createSparkSystem = (context) => {
     sparks = sparks.filter((spark) => spark.life > 0);
     sparks.forEach((spark) => {
       spark.vy += 900 * delta;
-      spark.x += (spark.vx - (spark.followWorld ? worldSpeed : 0)) * delta;
+      spark.x += (spark.vx - (spark.followWorld ? worldSpeed * spark.worldSpeedScale : 0)) * delta;
       spark.y += spark.vy * delta;
       spark.life -= delta / spark.lifetime;
 
