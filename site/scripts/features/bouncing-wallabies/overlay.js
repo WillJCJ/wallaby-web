@@ -1,3 +1,5 @@
+import { createSparkSystem } from '../../utils/sparks.js';
+
 /**
  * Create canvas overlay and spark/indicator rendering helpers.
  * @param {number} size - Wallaby sprite size
@@ -6,7 +8,7 @@
  *   context: CanvasRenderingContext2D,
  *   clear: () => void,
  *   spawnSparksAtPage: (pageX: number, pageY: number) => void,
- *   drawSparks: () => void,
+ *   drawSparks: (deltaSeconds?: number) => void,
  *   drawAlbinoIndicators: (states: Array<object>) => void,
  * }} Overlay helpers
  */
@@ -25,47 +27,22 @@ export const createOverlaySystem = (size) => {
   resizeSparkCanvas();
   window.addEventListener('resize', resizeSparkCanvas);
 
-  const SPARK_COLORS = ['#ffd700', '#ffc200', '#ffaa00', '#fff4a0'];
-  const SPARK_GRAVITY = 0.25;
-  const SPARK_COUNT = 20;
-  let sparks = [];
-
-  const spawnSparks = (clientX, clientY) => {
-    for (let i = 0; i < SPARK_COUNT; i += 1) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 4.5;
-      sparks.push({
-        x: clientX,
-        y: clientY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1.5,
-        life: 1,
-        decay: 0.018 + Math.random() * 0.018,
-        size: 1.5 + Math.random() * 2,
-        color: SPARK_COLORS[Math.floor(Math.random() * SPARK_COLORS.length)],
-      });
-    }
-  };
+  const sparkSystem = createSparkSystem(sparkCtx);
 
   const spawnSparksAtPage = (pageX, pageY) => {
-    spawnSparks(pageX - window.scrollX, pageY - window.scrollY);
+    sparkSystem.spawn(pageX - window.scrollX, pageY - window.scrollY, {
+      count: 20,
+      minSpeed: 90,
+      maxSpeed: 360,
+      minLifetime: 0.46,
+      maxLifetime: 0.93,
+      minSize: 1.5,
+      maxSize: 3.5,
+      upwardBias: 90,
+    });
   };
 
-  const drawSparks = () => {
-    sparks = sparks.filter((p) => p.life > 0);
-    sparks.forEach((p) => {
-      p.vy += SPARK_GRAVITY;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= p.decay;
-      sparkCtx.globalAlpha = Math.max(0, p.life);
-      sparkCtx.fillStyle = p.color;
-      sparkCtx.beginPath();
-      sparkCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      sparkCtx.fill();
-    });
-    sparkCtx.globalAlpha = 1;
-  };
+  const drawSparks = (deltaSeconds) => sparkSystem.draw(deltaSeconds);
 
   const drawAlbinoIndicators = (states) => {
     const W = sparkCanvas.width;
@@ -74,19 +51,19 @@ export const createOverlaySystem = (size) => {
     const midY = H / 2;
 
     states.forEach((s) => {
-      if (!s.isAlbino) {return;}
+      if (!s.isAlbino) { return; }
 
       const clientX = s.x + size / 2 - window.scrollX;
       const clientY = s.y + size / 2 - window.scrollY;
-      if (clientX >= 0 && clientX <= W && clientY >= 0 && clientY <= H) {return;}
+      if (clientX >= 0 && clientX <= W && clientY >= 0 && clientY <= H) { return; }
 
       const dx = clientX - midX;
       const dy = clientY - midY;
       let t = Infinity;
-      if (dx > 0) {t = Math.min(t, (W - midX) / dx);}
-      if (dx < 0) {t = Math.min(t, -midX / dx);}
-      if (dy > 0) {t = Math.min(t, (H - midY) / dy);}
-      if (dy < 0) {t = Math.min(t, -midY / dy);}
+      if (dx > 0) { t = Math.min(t, (W - midX) / dx); }
+      if (dx < 0) { t = Math.min(t, -midX / dx); }
+      if (dy > 0) { t = Math.min(t, (H - midY) / dy); }
+      if (dy < 0) { t = Math.min(t, -midY / dy); }
 
       const edgeX = midX + dx * t;
       const edgeY = midY + dy * t;

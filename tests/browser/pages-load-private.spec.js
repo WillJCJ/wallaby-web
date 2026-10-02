@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { setAuthenticatedUser, skipWithoutAccessCredentials } from './access-test-helpers.js';
+import { setAuthenticatedUser, skipWithoutTestAuthSecret } from './access-test-helpers.js';
 
 const privatePagePaths = ['/admin/', '/profile/'];
 
 for (const pagePath of privatePagePaths) {
   test(`loads ${pagePath} while authenticated`, async ({ page }) => {
-    skipWithoutAccessCredentials();
+    skipWithoutTestAuthSecret();
 
     await setAuthenticatedUser(page);
 

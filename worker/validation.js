@@ -76,8 +76,8 @@ export const validateGuestSelfPayload = (payload, existingGuest) => {
   if (hasAdditionalGuests) {
     const parsed = Number.parseInt(payload.additionalGuests, 10);
 
-    if (!Number.isInteger(parsed) || parsed < 0) {
-      return { error: 'additionalGuests must be 0 or greater' };
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 5) {
+      return { error: 'additionalGuests must be between 0 and 5' };
     }
 
     additionalGuests = parsed;

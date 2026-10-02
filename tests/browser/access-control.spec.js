@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { bypassAccessChallenge, setAuthenticatedUser, skipWithoutAccessCredentials } from './access-test-helpers.js';
+import { bypassAccessChallenge, setAuthenticatedUser, skipWithoutAccessCredentials, skipWithoutTestAuthSecret } from './access-test-helpers.js';
 
 const privatePhotoAltText = 'Sleepy kids';
 const privatePhotoPath = '/api/photos/2026/sleepy_kids.jpg';
@@ -23,6 +23,7 @@ test.describe('authentication and private content', () => {
     expect(signedOutResponse.status()).toBe(401);
     await expect(page.locator('#guest-profile-status')).toContainText('Authentication required');
 
+    skipWithoutTestAuthSecret();
     await setAuthenticatedUser(page);
 
     const signedInResponsePromise = page.waitForResponse((response) => (
@@ -52,6 +53,7 @@ test.describe('authentication and private content', () => {
     expect(signedOutResponse.status()).toBe(401);
     await expect(page.locator('#guest-admin-status')).toContainText('Authentication required');
 
+    skipWithoutTestAuthSecret();
     await setAuthenticatedUser(page);
 
     const signedInResponsePromise = page.waitForResponse((response) => (
@@ -86,7 +88,7 @@ test.describe('authentication and private content', () => {
   });
 
   test('map private details are shown when signed in', async ({ page }) => {
-    skipWithoutAccessCredentials();
+    skipWithoutTestAuthSecret();
 
     await setAuthenticatedUser(page);
 
@@ -109,7 +111,7 @@ test.describe('authentication and private content', () => {
   });
 
   test('private photos are shown when signed in', async ({ page }) => {
-    skipWithoutAccessCredentials();
+    skipWithoutTestAuthSecret();
 
     await setAuthenticatedUser(page);
 

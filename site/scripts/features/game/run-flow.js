@@ -11,13 +11,15 @@ export const createRunFlow = ({
   bestEl,
   bestKey,
   online,
+  onReset = () => { },
 }) => {
   let runCounter = 0;
   let activeRun = null;
 
   const resetRun = () => {
+    onReset();
     state.time = 0;
-    state.speed = startSpeed;
+    state.speed = typeof startSpeed === 'function' ? startSpeed() : startSpeed;
     state.score = 0;
     state.lastRunWasHighScore = false;
     state.obstacles.length = 0;
@@ -41,7 +43,7 @@ export const createRunFlow = ({
   };
 
   const jump = () => {
-    if (!state.wallaby.grounded) {return;}
+    if (!state.wallaby.grounded) { return; }
     state.wallaby.vy = jumpVelocity;
     state.wallaby.grounded = false;
   };
