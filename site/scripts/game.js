@@ -3,6 +3,7 @@ import { createSpawnHelpers } from './features/game/spawn.js';
 import { setupGameInput } from './features/game/input.js';
 import { createRunFlow } from './features/game/run-flow.js';
 import { getAuth } from './shared/auth-state.js';
+import { createSparkSystem } from './utils/sparks.js';
 
 (() => {
   const canvas = document.getElementById('wallaby-game-canvas');
@@ -28,6 +29,7 @@ import { getAuth } from './shared/auth-state.js';
   }
 
   const ctx = canvas.getContext('2d');
+  const sparks = createSparkSystem(ctx);
   const BEST_KEY = 'wallabyfest-game-best-v2'; // bump version to reset local best scores if needed
   const HIGH_SCORES_ENDPOINT = '/api/game/high-scores';
   const START_RUN_ENDPOINT = '/api/private/game/runs/start';
@@ -40,7 +42,7 @@ import { getAuth } from './shared/auth-state.js';
   const JUMP_VELOCITY = -720;
   const START_SPEED = 320;
   const MAX_SPEED = 1200;
-  const SPEED_GROWTH = 5;
+  const SPEED_GROWTH = 50;
   const DAY_NIGHT_SCORE_CYCLE = 1000;
   const HALF_DAY_NIGHT_CYCLE = DAY_NIGHT_SCORE_CYCLE / 2;
   const MOON_PHASES = [
@@ -212,6 +214,8 @@ import { getAuth } from './shared/auth-state.js';
   };
 
   let activeColours = buildActiveColours(0);
+  let wallabySparkTimer = 0;
+  let speedometerSparkTimer = 0;
 
   const state = {
     status: 'ready', // ready | running | over
@@ -348,6 +352,38 @@ import { getAuth } from './shared/auth-state.js';
     }
     if (w.grounded) {
       w.legPhase = (w.legPhase + dt * state.speed * 0.04) % (Math.PI * 2);
+    }
+
+    const speedRatio = Math.max(0, Math.min(1, (state.speed - START_SPEED) / (MAX_SPEED - START_SPEED)));
+    if (speedRatio >= 1) {
+      wallabySparkTimer += dt;
+      while (wallabySparkTimer >= 0.12) {
+        wallabySparkTimer -= 0.12;
+        sparks.spawn(w.x - 4, w.y - 2, {
+          count: 3,
+          minSpeed: 20,
+          maxSpeed: 80,
+          minLifetime: 0.16,
+          maxLifetime: 0.3,
+          minSize: 1,
+          maxSize: 2.2,
+          upwardBias: 25,
+          followWorld: true,
+        });
+        sparks.spawn(w.x + 10, w.y - 2, {
+          count: 3,
+          minSpeed: 20,
+          maxSpeed: 80,
+          minLifetime: 0.16,
+          maxLifetime: 0.3,
+          minSize: 1,
+          maxSize: 2.2,
+          upwardBias: 25,
+          followWorld: true,
+        });
+      }
+    } else {
+      wallabySparkTimer = 0;
     }
 
     // Ground scroll
@@ -972,13 +1008,13 @@ import { getAuth } from './shared/auth-state.js';
     }
   };
 
-  const drawSpeedometer = () => {
+  const drawSpeedometer = (deltaSeconds) => {
     const centerX = 36;
     const centerY = 38;
     const radius = 20;
     const startAngle = Math.PI * 0.75;
     const sweepAngle = Math.PI * 1.5;
-    const speedRatio = Math.max(0, Math.min(1, state.speed / MAX_SPEED));
+    const speedRatio = Math.max(0, Math.min(1, (state.speed - START_SPEED) / (MAX_SPEED - START_SPEED)));
     const needleBaseAngle = startAngle + sweepAngle * speedRatio;
     const needleShake = speedRatio >= 1
       ? Math.sin(performance.now() / 24) * 0.035
@@ -1022,9 +1058,32 @@ import { getAuth } from './shared/auth-state.js';
     ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    if (speedRatio >= 1) {
+      speedometerSparkTimer += deltaSeconds;
+      while (speedometerSparkTimer >= 0.14) {
+        speedometerSparkTimer -= 0.14;
+        sparks.spawn(
+          centerX + Math.cos(needleBaseAngle) * radius,
+          centerY + Math.sin(needleBaseAngle) * radius,
+          {
+            count: 2,
+            minSpeed: 20,
+            maxSpeed: 70,
+            minLifetime: 0.16,
+            maxLifetime: 0.3,
+            minSize: 1,
+            maxSize: 2.2,
+            upwardBias: 20,
+          }
+        );
+      }
+    } else {
+      speedometerSparkTimer = 0;
+    }
   };
 
-  const render = () => {
+  const render = (deltaSeconds) => {
     activeColours = buildActiveColours(state.nightBlend);
     const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
     ctx.fillStyle = activeColours.sky;
@@ -1038,7 +1097,8 @@ import { getAuth } from './shared/auth-state.js';
     state.obstacles.forEach(drawObstacle);
     drawWallaby();
     drawOverlay();
-    drawSpeedometer();
+    sparks.draw(deltaSeconds, state.speed);
+    drawSpeedometer(deltaSeconds);
   };
 
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
@@ -1053,7 +1113,7 @@ import { getAuth } from './shared/auth-state.js';
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
     update(dt);
-    render();
+    render(dt);
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
