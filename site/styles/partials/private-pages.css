@@ -111,6 +111,31 @@ a.login-button.login-button--accent:active {
   margin-bottom: 0.35rem;
 }
 
+.profile-field-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.profile-field-status {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.profile-field-status--warning {
+  color: var(--caution);
+}
+
+.profile-field-status--success {
+  color: var(--success);
+}
+
+.profile-field-status--failure {
+  color: var(--failure);
+}
+
 .private-item dd {
   margin: 0;
   color: var(--text-strong);

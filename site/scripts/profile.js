@@ -16,6 +16,10 @@ import { createStatusSetter } from './utils/status.js';
   const additionalGuestsEditor = document.getElementById('guest-additional-guests-editor');
   const dietaryRequirementsEditor = document.getElementById('guest-dietary-requirements-editor');
   const rsvpMessageEditor = document.getElementById('guest-rsvp-message-editor');
+  const rsvpFieldStatus = document.getElementById('guest-rsvp-field-status');
+  const additionalGuestsFieldStatus = document.getElementById('guest-additional-guests-field-status');
+  const dietaryRequirementsFieldStatus = document.getElementById('guest-dietary-requirements-field-status');
+  const rsvpMessageFieldStatus = document.getElementById('guest-rsvp-message-field-status');
   const actionButtons = Array.from(document.querySelectorAll('.profile-field-action'));
 
   let currentGuest = null;
@@ -23,7 +27,15 @@ import { createStatusSetter } from './utils/status.js';
   let editingField = null;
   let queuedSaveField = null;
   const AUTO_SAVE_DELAY_MS = 600;
+  const FIELD_STATUS_CLEAR_DELAY_MS = 2500;
+  const FIELD_STATUS_TONE_CLASSES = {
+    success: 'profile-field-status--success',
+    warning: 'profile-field-status--warning',
+    failure: 'profile-field-status--failure',
+  };
+  const fieldStatusToneClasses = Object.values(FIELD_STATUS_TONE_CLASSES);
   const saveTimers = new Map();
+  const fieldStatusTimers = new Map();
 
   const fieldConfig = {
     rsvp: {
@@ -32,6 +44,7 @@ import { createStatusSetter } from './utils/status.js';
       editorType: 'select',
       emptyLabel: 'Pending',
       label: 'RSVP',
+      statusEl: rsvpFieldStatus,
     },
     additionalGuests: {
       valueEl: additionalGuests,
@@ -39,6 +52,7 @@ import { createStatusSetter } from './utils/status.js';
       editorType: 'number',
       emptyLabel: '0',
       label: 'Additional guests',
+      statusEl: additionalGuestsFieldStatus,
     },
     dietaryRequirements: {
       valueEl: dietaryRequirements,
@@ -46,6 +60,7 @@ import { createStatusSetter } from './utils/status.js';
       editorType: 'text',
       emptyLabel: 'None',
       label: 'Dietary requirements',
+      statusEl: dietaryRequirementsFieldStatus,
     },
     rsvpMessage: {
       valueEl: rsvpMessage,
@@ -53,6 +68,7 @@ import { createStatusSetter } from './utils/status.js';
       editorType: 'text',
       emptyLabel: 'None',
       label: 'RSVP message',
+      statusEl: rsvpMessageFieldStatus,
     },
   };
 
@@ -97,9 +113,9 @@ import { createStatusSetter } from './utils/status.js';
       if (isSavingCurrentField) {
         button.setAttribute('aria-label', `Saving ${fieldLabel}`);
       } else if (isCurrentField) {
-        button.setAttribute('aria-label', `Editing ${fieldLabel}. Changes save automatically.`);
+        button.setAttribute('aria-label', `Editing ${fieldLabel}`);
       } else {
-        button.setAttribute('aria-label', `Edit ${fieldLabel} (saves automatically)`);
+        button.setAttribute('aria-label', `Edit ${fieldLabel}`);
       }
     });
   };
@@ -160,6 +176,59 @@ import { createStatusSetter } from './utils/status.js';
   const clearAllSaveTimers = () => {
     saveTimers.forEach((timeoutId) => window.clearTimeout(timeoutId));
     saveTimers.clear();
+  };
+
+  const clearFieldStatusTimer = (field) => {
+    const timeoutId = fieldStatusTimers.get(field);
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+      fieldStatusTimers.delete(field);
+    }
+  };
+
+  const getFieldStatusToneClass = (tone) => {
+    if (tone === 'success') { return FIELD_STATUS_TONE_CLASSES.success; }
+    if (tone === 'warning') { return FIELD_STATUS_TONE_CLASSES.warning; }
+    if (tone === 'failure') { return FIELD_STATUS_TONE_CLASSES.failure; }
+    return null;
+  };
+
+  const setFieldStatus = (field, message, tone = null, options = {}) => {
+    const config = getFieldConfig(field);
+    const statusEl = config?.statusEl;
+    if (!statusEl) {
+      return;
+    }
+
+    clearFieldStatusTimer(field);
+    statusEl.classList.remove(...fieldStatusToneClasses);
+
+    if (!message) {
+      statusEl.textContent = '';
+      statusEl.hidden = true;
+      return;
+    }
+
+    const toneClass = getFieldStatusToneClass(tone);
+    if (toneClass) {
+      statusEl.classList.add(toneClass);
+    }
+
+    statusEl.textContent = message;
+    statusEl.hidden = false;
+
+    if (options.keepVisible === true) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      statusEl.textContent = '';
+      statusEl.hidden = true;
+      statusEl.classList.remove(...fieldStatusToneClasses);
+      fieldStatusTimers.delete(field);
+    }, FIELD_STATUS_CLEAR_DELAY_MS);
+
+    fieldStatusTimers.set(field, timeoutId);
   };
 
   const setSavingField = (field) => {
@@ -305,7 +374,7 @@ import { createStatusSetter } from './utils/status.js';
 
     const payload = buildUpdatePayload(field);
 
-    setStatus(`Saving ${config.label.toLowerCase()}...`, 'warning');
+    setFieldStatus(field, 'Saving…', 'warning', { keepVisible: true });
     setSavingField(field);
 
     try {
@@ -313,8 +382,10 @@ import { createStatusSetter } from './utils/status.js';
       currentGuest = guest;
       renderGuest(guest);
       setEditingField(null);
-      setStatus(`${config.label} updated.`, 'success');
+      setFieldStatus(field, 'Saved', 'success');
+      setStatus('');
     } catch (error) {
+      setFieldStatus(field, 'Save failed', 'failure');
       setStatus(error.message, 'failure');
     } finally {
       setSavingField(null);
@@ -354,7 +425,6 @@ import { createStatusSetter } from './utils/status.js';
     clearSaveTimer(field);
     syncEditorValues(currentGuest);
     setEditingField(null);
-    setStatus(`${getFieldConfig(field)?.label || 'Field'} unchanged.`, 'warning');
   };
 
   actionButtons.forEach((button) => {
@@ -373,7 +443,6 @@ import { createStatusSetter } from './utils/status.js';
       if (editingField !== field) {
         clearAllSaveTimers();
         setEditingField(field);
-        setStatus(`${config.label} will save automatically.`, 'warning');
         return;
       }
 
