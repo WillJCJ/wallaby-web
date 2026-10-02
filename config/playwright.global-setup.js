@@ -40,8 +40,8 @@ const killStaleListeners = (port) => {
 
 const isServerUp = async (url) => {
   try {
-    await fetch(url, { redirect: 'manual' });
-    return true;
+    const response = await fetch(url, { redirect: 'manual' });
+    return response.ok;
   } catch {
     return false;
   }

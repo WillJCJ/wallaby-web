@@ -7,7 +7,7 @@ export const getAccessTestConfig = () => {
   const configuredBaseUrl = process.env.PLAYWRIGHT_BASE_URL || '';
   const configuredBaseHost = configuredBaseUrl ? new URL(configuredBaseUrl).hostname : '';
   const usesExternalBaseUrl = Boolean(configuredBaseHost)
-        && !['127.0.0.1', 'localhost', '::1'].includes(configuredBaseHost);
+    && !['127.0.0.1', 'localhost', '::1'].includes(configuredBaseHost);
   const accessClientId = process.env.CLOUDFLARE_ACCESS_CLIENT_ID || '';
   const accessClientSecret = process.env.CLOUDFLARE_ACCESS_CLIENT_SECRET || '';
   const testAuthSecret = process.env.TEST_AUTH_SECRET || '';
@@ -27,6 +27,14 @@ export const skipWithoutAccessCredentials = (config = getAccessTestConfig()) => 
   test.skip(
     config.usesExternalBaseUrl && (!config.accessClientId || !config.accessClientSecret),
     'Authenticated external smoke checks require CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.'
+  );
+};
+
+export const skipWithoutTestAuthSecret = (config = getAccessTestConfig()) => {
+  skipWithoutAccessCredentials(config);
+  test.skip(
+    config.usesExternalBaseUrl && !config.testAuthSecret,
+    'Authenticated external smoke checks require TEST_AUTH_SECRET to match the preview Worker secret.'
   );
 };
 
@@ -58,6 +66,10 @@ export const setAuthenticatedUser = async (
   config = getAccessTestConfig(),
 ) => {
   const { usesExternalBaseUrl, configuredBaseHost, testAuthSecret } = config;
+
+  if (usesExternalBaseUrl && !testAuthSecret) {
+    throw new Error('TEST_AUTH_SECRET is required to authenticate against an external preview host.');
+  }
 
   await page.context().setExtraHTTPHeaders({
     'CF-Access-Authenticated-User-Email': email,
