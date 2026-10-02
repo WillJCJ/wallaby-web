@@ -39,8 +39,8 @@ import { getAuth } from './shared/auth-state.js';
   const GRAVITY = 2200;
   const JUMP_VELOCITY = -720;
   const START_SPEED = 320;
-  const MAX_SPEED = 720;
-  const SPEED_GROWTH = 8;
+  const MAX_SPEED = 1200;
+  const SPEED_GROWTH = 5;
   const DAY_NIGHT_SCORE_CYCLE = 1000;
   const HALF_DAY_NIGHT_CYCLE = DAY_NIGHT_SCORE_CYCLE / 2;
   const MOON_PHASES = [
@@ -63,6 +63,7 @@ import { getAuth } from './shared/auth-state.js';
     wallabyBelly: '#d1ac7b',
     wallabyEar: '#8f5a25',
     wallabyEye: '#1f2937',
+    goatEye: '#1f2937',
     goatBody: '#f1f3f5',
     goatBelly: '#ffffff',
     goatHoof: '#4b5563',
@@ -113,7 +114,8 @@ import { getAuth } from './shared/auth-state.js';
     wallabyBody: '#8f5f2d',
     wallabyBelly: '#b39268',
     wallabyEar: '#714820',
-    wallabyEye: '#dbe7ff',
+    wallabyEye: '#17202e',
+    goatEye: '#dbe7ff',
     goatBody: '#d4dce8',
     goatBelly: '#edf2fa',
     goatHoof: '#344054',
@@ -315,10 +317,10 @@ import { getAuth } from './shared/auth-state.js';
       // Drift scenery gently on the title/game-over screen.
       state.clouds.forEach((c) => { c.x -= c.speed * 0.3 * dt; });
       state.clouds = state.clouds.filter((c) => c.x + 60 > 0);
-      while (state.clouds.length < 3) {spawnCloud();}
+      while (state.clouds.length < 3) { spawnCloud(); }
       state.trees.forEach((t) => { t.x -= t.speed * 0.3 * dt; });
       state.trees = state.trees.filter((t) => t.x + 60 > 0);
-      while (state.trees.length < 4) {spawnTree();}
+      while (state.trees.length < 4) { spawnTree(); }
       state.camps.forEach((c) => { c.x -= c.speed * 0.3 * dt; c.flicker += dt * 6; });
       state.camps = state.camps.filter((c) => c.x + 80 > 0);
       state.quails.forEach((q) => { q.x -= q.speed * 0.3 * dt; q.bobPhase += dt * 8; });
@@ -341,7 +343,7 @@ import { getAuth } from './shared/auth-state.js';
       w.grounded = true;
       if (inputState.held) {
         runFlow.jump();
-        if (jumpBtn) {jumpBtn.classList.add('is-pressed');}
+        if (jumpBtn) { jumpBtn.classList.add('is-pressed'); }
       }
     }
     if (w.grounded) {
@@ -349,7 +351,7 @@ import { getAuth } from './shared/auth-state.js';
     }
 
     // Ground scroll
-    state.groundOffset = (state.groundOffset + state.speed * dt) % 40;
+    state.groundOffset += state.speed * dt;
 
     // Clouds
     state.clouds.forEach((c) => { c.x -= c.speed * dt; });
@@ -752,21 +754,40 @@ import { getAuth } from './shared/auth-state.js';
     ctx.lineTo(WIDTH, GROUND_Y + 0.5);
     ctx.stroke();
 
-    // Scrolling grass tufts
+    // Grass variation is seeded by world cell so it stays fixed as it scrolls.
     ctx.strokeStyle = activeColours.grassBlade;
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
-    for (let x = -state.groundOffset; x < WIDTH; x += 20) {
-      const baseY = GROUND_Y + 10 + ((x * 7) % 6);
-      ctx.beginPath();
+    ctx.beginPath();
+    const cellWidth = 14;
+    const firstCell = Math.floor(state.groundOffset / cellWidth) - 1;
+    const lastCell = Math.ceil((state.groundOffset + WIDTH) / cellWidth);
+    for (let cell = firstCell; cell <= lastCell; cell += 1) {
+      let seed = (cell ^ 0x9e3779b9) >>> 0;
+      seed = Math.imul(seed ^ (seed >>> 16), 0x21f0aaad);
+      seed = Math.imul(seed ^ (seed >>> 15), 0x735a2d97);
+      const variation = (seed ^ (seed >>> 15)) >>> 0;
+      const random = variation / 4294967296;
+
+      if (random < 0.24) {
+        continue;
+      }
+
+      const x = Math.round(cell * cellWidth - state.groundOffset);
+      const baseY = GROUND_Y + 8 + Math.floor(random * 6);
+      const heightOne = 4 + Math.floor(random * 5);
+      const heightTwo = 5 + Math.floor(((variation >>> 8) / 16777216) * 5);
+
       ctx.moveTo(x, baseY);
-      ctx.lineTo(x + 2, baseY - 6);
-      ctx.moveTo(x + 4, baseY);
-      ctx.lineTo(x + 4, baseY - 8);
-      ctx.moveTo(x + 8, baseY);
-      ctx.lineTo(x + 10, baseY - 5);
-      ctx.stroke();
+      ctx.lineTo(x + 2, baseY - heightOne);
+      ctx.moveTo(x + 3, baseY);
+      ctx.lineTo(x + 5, baseY - heightTwo);
+      if ((variation & 1) === 0) {
+        ctx.moveTo(x + 6, baseY);
+        ctx.lineTo(x + 9, baseY - 4 - (variation % 4));
+      }
     }
+    ctx.stroke();
     ctx.lineCap = 'butt';
   };
 
@@ -819,7 +840,7 @@ import { getAuth } from './shared/auth-state.js';
     ctx.fill();
 
     // Eye
-    ctx.fillStyle = activeColours.wallabyEye;
+    ctx.fillStyle = activeColours.goatEye;
     ctx.beginPath();
     ctx.arc(o.width * 0.48, -o.height * 0.76, 1.6 * s, 0, Math.PI * 2);
     ctx.fill();
@@ -932,7 +953,7 @@ import { getAuth } from './shared/auth-state.js';
   };
 
   const drawOverlay = () => {
-    if (state.status === 'running') {return;}
+    if (state.status === 'running') { return; }
     ctx.fillStyle = activeColours.overlay;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = activeColours.text;
@@ -951,6 +972,58 @@ import { getAuth } from './shared/auth-state.js';
     }
   };
 
+  const drawSpeedometer = () => {
+    const centerX = 36;
+    const centerY = 38;
+    const radius = 20;
+    const startAngle = Math.PI * 0.75;
+    const sweepAngle = Math.PI * 1.5;
+    const speedRatio = Math.max(0, Math.min(1, state.speed / MAX_SPEED));
+    const needleBaseAngle = startAngle + sweepAngle * speedRatio;
+    const needleShake = speedRatio >= 1
+      ? Math.sin(performance.now() / 24) * 0.035
+      : 0;
+    const needleAngle = needleBaseAngle + needleShake;
+    const arcColour = speedRatio <= 0.5
+      ? interpolateColour('#39a853', '#facc15', speedRatio * 2)
+      : interpolateColour('#facc15', '#ef4444', (speedRatio - 0.5) * 2);
+    const needleColour = '#facc15';
+
+    ctx.save();
+    ctx.fillStyle = activeColours.overlay;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius + 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = activeColours.shadowLight;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sweepAngle);
+    ctx.stroke();
+
+    ctx.strokeStyle = arcColour;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, startAngle, needleAngle);
+    ctx.stroke();
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = needleColour;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+      centerX + Math.cos(needleAngle) * (radius - 6),
+      centerY + Math.sin(needleAngle) * (radius - 6)
+    );
+    ctx.stroke();
+
+    ctx.fillStyle = needleColour;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+
   const render = () => {
     activeColours = buildActiveColours(state.nightBlend);
     const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
@@ -965,6 +1038,7 @@ import { getAuth } from './shared/auth-state.js';
     state.obstacles.forEach(drawObstacle);
     drawWallaby();
     drawOverlay();
+    drawSpeedometer();
   };
 
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
