@@ -218,6 +218,39 @@
   outline-offset: 3px;
 }
 
+.wallaby-game__hard-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  color: var(--tone-ink);
+  cursor: pointer;
+}
+
+.wallaby-game__hard-mode input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.wallaby-game__hard-mode input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.wallaby-game__hard-mode:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.wallaby-game__hard-mode-hint {
+  margin: -0.5rem 0 0;
+  color: var(--tone-ink);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 @media (width <= 640px) {
   .wallaby-game {
     margin-left: -1rem;

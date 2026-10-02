@@ -2,6 +2,10 @@ import { createOnlineHelpers } from './features/game/online.js';
 import { createSpawnHelpers } from './features/game/spawn.js';
 import { setupGameInput } from './features/game/input.js';
 import { createRunFlow } from './features/game/run-flow.js';
+import { createVeterinarianEncounter } from './features/game/veterinarian-encounter.js';
+import { createDartProjectile } from './features/game/dart-projectile.js';
+import { createDartSleepTransition } from './features/game/dart-sleep-transition.js';
+import { getSpeechBubbleFrame, getSpeechDuration } from './features/game/typewriter-speech.js';
 import { getAuth } from './shared/auth-state.js';
 import { createSparkSystem } from './utils/sparks.js';
 
@@ -10,6 +14,7 @@ import { createSparkSystem } from './utils/sparks.js';
   const scoreEl = document.getElementById('wallaby-game-score');
   const bestEl = document.getElementById('wallaby-game-best');
   const jumpBtn = document.getElementById('wallaby-game-jump-btn');
+  const hardModeToggle = document.getElementById('wallaby-game-hard-mode');
   const onlineStatusEl = document.getElementById('wallaby-game-online-status');
   const topScoresEl = document.getElementById('wallaby-game-top-scores');
   const signInWarningEl = document.getElementById('wallaby-game-signin-warning');
@@ -43,6 +48,34 @@ import { createSparkSystem } from './utils/sparks.js';
   const START_SPEED = 320;
   const MAX_SPEED = 1200;
   const SPEED_GROWTH = 8;
+  const START_SPEED_HARD_MODE = MAX_SPEED * 0.5;
+  const VETERINARIAN_TRIGGER_SPEED_RATIO = 0.2; // Change this to 0.3 or so later
+  const VETERINARIAN_TRUCK_WIDTH = 166;
+  const VETERINARIAN_DEPTH_OFFSET = 12;
+  const VETERINARIAN_APPROACH_SPEED = 300;
+  const VETERINARIAN_DRIVE_SPEED = 340;
+  //
+  const encounterSentences = ['You\'ve been making too many joeys.', 'It\'s got to stop.', 'I\'m here for your balls!'];
+  const VETERINARIAN_SPEECH_CHARACTER_SECONDS = 0.05;
+  const VETERINARIAN_SPEECH_DISPLAY_SECONDS = 1.5;
+  const VETERINARIAN_HOLD_SECONDS = getSpeechDuration(
+    encounterSentences,
+    VETERINARIAN_SPEECH_CHARACTER_SECONDS,
+    VETERINARIAN_SPEECH_DISPLAY_SECONDS
+  );
+  const VETERINARIAN_DART_ARC_HEIGHT = 36;
+  const VETERINARIAN_DART_LANDING_OFFSET = 16;
+  const VETERINARIAN_DART_INITIAL_COUNT = 5;
+  const VETERINARIAN_DART_COUNT_INCREMENT = 2;
+  const VETERINARIAN_DART_INTERVAL_MIN_SECONDS = 0.5;
+  const VETERINARIAN_DART_INTERVAL_MAX_SECONDS = 3;
+  const VETERINARIAN_RETURN_INTERVAL_SECONDS = 30; // Shortened for testing purposes
+  const VETERINARIAN_RETURN_INTERVAL_SECONDS_HARD_MODE = 5;
+  const VETERINARIAN_DART_CLEAR_SECONDS = 0.3;
+  const VETERINARIAN_DART_POST_GAP_SECONDS = 1.1;
+  const VETERINARIAN_DART_COLLISION_WIDTH = 22;
+  const VETERINARIAN_DART_COLLISION_HEIGHT = 10;
+  const VETERINARIAN_MUZZLE_FLASH_SECONDS = 0.12;
   const DAY_NIGHT_SCORE_CYCLE = 1000;
   const HALF_DAY_NIGHT_CYCLE = DAY_NIGHT_SCORE_CYCLE / 2;
   const MOON_PHASES = [
@@ -55,15 +88,18 @@ import { createSparkSystem } from './utils/sparks.js';
     { kind: 'waning', shadowOffsetRatio: 0.55 }, // waning crescent
   ];
 
+  let runIsHardMode = false;
+  let runStartSpeed = START_SPEED;
+
   const COLOURS_DAY = {
     sky: '#79c8ff',
     groundLine: '#4a8c42',
     grass: '#6fbe4e',
     grassDark: '#4a8c42',
     grassBlade: '#88cf64',
-    wallabyBody: '#b87630',
-    wallabyBelly: '#d1ac7b',
-    wallabyEar: '#8f5a25',
+    wallabyBody: '#858078',
+    wallabyBelly: '#c4bdae',
+    wallabyEar: '#665f55',
     wallabyEye: '#1f2937',
     goatEye: '#1f2937',
     goatBody: '#f1f3f5',
@@ -113,9 +149,9 @@ import { createSparkSystem } from './utils/sparks.js';
     grass: '#2f6036',
     grassDark: '#22482a',
     grassBlade: '#3e7a45',
-    wallabyBody: '#8f5f2d',
-    wallabyBelly: '#b39268',
-    wallabyEar: '#714820',
+    wallabyBody: '#5d5a55',
+    wallabyBelly: '#969084',
+    wallabyEar: '#46433e',
     wallabyEye: '#17202e',
     goatEye: '#dbe7ff',
     goatBody: '#d4dce8',
@@ -246,6 +282,48 @@ import { createSparkSystem } from './utils/sparks.js';
     lastRunWasHighScore: false,
   };
 
+  const veterinarianEncounter = createVeterinarianEncounter({
+    screenWidth: WIDTH,
+    truckWidth: VETERINARIAN_TRUCK_WIDTH,
+    triggerSpeedRatio: VETERINARIAN_TRIGGER_SPEED_RATIO,
+    midpointX: WIDTH / 2 - VETERINARIAN_TRUCK_WIDTH / 2,
+    approachSpeed: VETERINARIAN_APPROACH_SPEED,
+    driveSpeed: VETERINARIAN_DRIVE_SPEED,
+    holdDuration: VETERINARIAN_HOLD_SECONDS,
+    returnIntervalSeconds: () => (runIsHardMode
+      ? VETERINARIAN_RETURN_INTERVAL_SECONDS_HARD_MODE
+      : VETERINARIAN_RETURN_INTERVAL_SECONDS),
+    initialDartCount: VETERINARIAN_DART_INITIAL_COUNT,
+    dartCountIncrement: VETERINARIAN_DART_COUNT_INCREMENT,
+  });
+  let veterinarianDarts = [];
+  let veterinarianDartsFired = 0;
+  let veterinarianDartVolleyStarted = false;
+  let veterinarianDartClearElapsed = 0;
+  let veterinarianDartNextShotIn = 0;
+  let veterinarianDartPostGap = 0;
+  let veterinarianDartPostGapStarted = false;
+  let veterinarianMuzzleFlash = null;
+  let dartSleepTransition = null;
+  let wallabySleepAngle = 0;
+  let sleepBlackoutAlpha = 0;
+  const resetVeterinarianEncounter = () => {
+    runIsHardMode = Boolean(hardModeToggle?.checked);
+    runStartSpeed = runIsHardMode ? START_SPEED_HARD_MODE : START_SPEED;
+    veterinarianEncounter.reset();
+    veterinarianDarts = [];
+    veterinarianDartsFired = 0;
+    veterinarianDartVolleyStarted = false;
+    veterinarianDartClearElapsed = 0;
+    veterinarianDartNextShotIn = 0;
+    veterinarianDartPostGap = 0;
+    veterinarianDartPostGapStarted = false;
+    veterinarianMuzzleFlash = null;
+    dartSleepTransition = null;
+    wallabySleepAngle = 0;
+    sleepBlackoutAlpha = 0;
+  };
+
   try {
     const stored = Number.parseInt(localStorage.getItem(BEST_KEY) || '0', 10);
     if (Number.isFinite(stored) && stored > 0) {
@@ -281,7 +359,7 @@ import { createSparkSystem } from './utils/sparks.js';
   });
   const runFlow = createRunFlow({
     state,
-    startSpeed: START_SPEED,
+    startSpeed: () => runStartSpeed,
     groundY: GROUND_Y,
     jumpVelocity: JUMP_VELOCITY,
     width: WIDTH,
@@ -292,6 +370,7 @@ import { createSparkSystem } from './utils/sparks.js';
     bestEl,
     bestKey: BEST_KEY,
     online,
+    onReset: resetVeterinarianEncounter,
   });
 
   const inputState = setupGameInput({
@@ -307,6 +386,17 @@ import { createSparkSystem } from './utils/sparks.js';
 
   // eslint-disable-next-line complexity -- Core game loop intentionally coordinates physics, spawning, scoring, and collisions.
   const update = (dt) => {
+    if (dartSleepTransition) {
+      const frame = dartSleepTransition.update(dt);
+      wallabySleepAngle = frame.fallAngle;
+      sleepBlackoutAlpha = frame.blackoutAlpha;
+      if (frame.complete) {
+        dartSleepTransition = null;
+        runFlow.endGame();
+      }
+      return;
+    }
+
     const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
     const isNight = scorePhase > HALF_DAY_NIGHT_CYCLE;
     if (isNight && !state.wasNight) {
@@ -334,9 +424,16 @@ import { createSparkSystem } from './utils/sparks.js';
     }
 
     state.time += dt;
-    state.speed = Math.min(MAX_SPEED, START_SPEED + state.time * SPEED_GROWTH);
+    state.speed = Math.min(MAX_SPEED, runStartSpeed + state.time * SPEED_GROWTH);
     state.score += dt * 10 + state.speed * dt * 0.02;
     scoreEl.textContent = Math.floor(state.score);
+
+    if (veterinarianMuzzleFlash) {
+      veterinarianMuzzleFlash.remaining -= dt;
+      if (veterinarianMuzzleFlash.remaining <= 0) {
+        veterinarianMuzzleFlash = null;
+      }
+    }
 
     // Wallaby physics
     const w = state.wallaby;
@@ -356,6 +453,77 @@ import { createSparkSystem } from './utils/sparks.js';
     }
 
     const speedRatio = Math.max(0, Math.min(1, (state.speed - START_SPEED) / (MAX_SPEED - START_SPEED)));
+    const veterinarianPhaseBeforeUpdate = veterinarianEncounter.state.phase;
+    veterinarianEncounter.update(dt, speedRatio);
+    if (veterinarianPhaseBeforeUpdate === 'cooldown' && veterinarianEncounter.state.phase === 'waiting') {
+      veterinarianDarts = [];
+      veterinarianDartsFired = 0;
+      veterinarianDartVolleyStarted = false;
+      veterinarianDartClearElapsed = 0;
+      veterinarianDartNextShotIn = 0;
+      veterinarianDartPostGap = 0;
+      veterinarianDartPostGapStarted = false;
+    }
+    veterinarianDartPostGap = Math.max(0, veterinarianDartPostGap - dt);
+
+    const veterinarianPhase = veterinarianEncounter.state.phase;
+    if (veterinarianPhase === 'stationed' && !veterinarianDartVolleyStarted) {
+      if (state.obstacles.length === 0) {
+        veterinarianDartClearElapsed += dt;
+      } else {
+        veterinarianDartClearElapsed = 0;
+      }
+
+      if (veterinarianDartClearElapsed >= VETERINARIAN_DART_CLEAR_SECONDS) {
+        veterinarianDartVolleyStarted = true;
+        veterinarianDartClearElapsed = 0;
+      }
+    } else if (veterinarianPhase !== 'stationed') {
+      veterinarianDartClearElapsed = 0;
+    }
+
+    if (veterinarianPhase === 'stationed'
+      && veterinarianDartVolleyStarted
+      && veterinarianDartsFired < veterinarianEncounter.getDartCount()) {
+      veterinarianDartNextShotIn = Math.max(0, veterinarianDartNextShotIn - dt);
+      if (veterinarianDartNextShotIn === 0) {
+        const truckX = veterinarianEncounter.state.x;
+        const truckGroundY = GROUND_Y + VETERINARIAN_DEPTH_OFFSET;
+        const gunX = truckX + 45;
+        const gunY = truckGroundY - 67;
+        const targetX = state.wallaby.x;
+        const targetY = state.wallaby.y - state.wallaby.height * 0.7;
+        const aimAngle = Math.atan2(targetY - gunY, targetX - gunX);
+        const muzzleDistance = 37;
+        const muzzleX = gunX + Math.cos(aimAngle) * muzzleDistance;
+        const muzzleY = gunY + Math.sin(aimAngle) * muzzleDistance;
+        veterinarianDarts.push(createDartProjectile({
+          startX: muzzleX,
+          startY: muzzleY,
+          targetX,
+          targetY: GROUND_Y - VETERINARIAN_DART_LANDING_OFFSET,
+          arcHeight: VETERINARIAN_DART_ARC_HEIGHT,
+        }));
+        veterinarianMuzzleFlash = {
+          x: muzzleX,
+          y: muzzleY,
+          angle: aimAngle,
+          remaining: VETERINARIAN_MUZZLE_FLASH_SECONDS,
+        };
+        veterinarianDartsFired += 1;
+        veterinarianDartNextShotIn = randomBetween(
+          VETERINARIAN_DART_INTERVAL_MIN_SECONDS,
+          VETERINARIAN_DART_INTERVAL_MAX_SECONDS
+        );
+
+        if (veterinarianDartsFired === veterinarianEncounter.getDartCount()) {
+          veterinarianEncounter.driveOff();
+        }
+      }
+    }
+
+    veterinarianDarts.forEach((dart) => dart.update(dt, state.speed));
+
     if (speedRatio >= 1 && w.grounded) {
       wallabySparkTimer += dt;
       while (wallabySparkTimer >= 0.12) {
@@ -421,9 +589,16 @@ import { createSparkSystem } from './utils/sparks.js';
     }
 
     // Obstacles
-    state.nextObstacleIn -= dt;
-    if (state.nextObstacleIn <= 0) {
-      spawnObstacle();
+    const veterinarianDartSafetyActive = veterinarianEncounter.state.phase === 'driving-right'
+      || veterinarianEncounter.state.phase === 'stationed'
+      || veterinarianEncounter.state.phase === 'driving-off'
+      || veterinarianDarts.length > 0
+      || veterinarianDartPostGap > 0;
+    if (!veterinarianDartSafetyActive) {
+      state.nextObstacleIn -= dt;
+      if (state.nextObstacleIn <= 0) {
+        spawnObstacle();
+      }
     }
     state.obstacles.forEach((o) => {
       o.x -= state.speed * dt;
@@ -448,6 +623,48 @@ import { createSparkSystem } from './utils/sparks.js';
         runFlow.endGame();
         break;
       }
+    }
+
+    if (state.status === 'running' && veterinarianDarts.length > 0) {
+      for (const projectile of veterinarianDarts) {
+        const dart = projectile.state;
+        const dartLeft = dart.x - VETERINARIAN_DART_COLLISION_WIDTH / 2;
+        const dartTop = dart.y - VETERINARIAN_DART_COLLISION_HEIGHT / 2;
+        if (rectsOverlap(
+          wx,
+          wy,
+          ww,
+          wh,
+          dartLeft,
+          dartTop,
+          VETERINARIAN_DART_COLLISION_WIDTH,
+          VETERINARIAN_DART_COLLISION_HEIGHT
+        )) {
+          dartSleepTransition = createDartSleepTransition();
+          veterinarianDarts = [];
+          veterinarianMuzzleFlash = null;
+          break;
+        }
+      }
+
+      if (state.status === 'running') {
+        const activeDarts = veterinarianDarts.filter((projectile) => (
+          projectile.state.x + VETERINARIAN_DART_COLLISION_WIDTH > 0
+        ));
+        if (activeDarts.length === 0
+          && veterinarianDartsFired === veterinarianEncounter.getDartCount()
+          && !veterinarianDartPostGapStarted) {
+          veterinarianDartPostGap = VETERINARIAN_DART_POST_GAP_SECONDS;
+          veterinarianDartPostGapStarted = true;
+          state.nextObstacleIn = Math.max(state.nextObstacleIn, VETERINARIAN_DART_POST_GAP_SECONDS);
+        }
+        veterinarianDarts = activeDarts;
+      }
+    }
+
+    if (state.status !== 'running') {
+      veterinarianDarts = [];
+      veterinarianMuzzleFlash = null;
     }
   };
 
@@ -910,6 +1127,134 @@ import { createSparkSystem } from './utils/sparks.js';
     ctx.restore();
   };
 
+  const drawVeterinarianTruck = () => {
+    const { phase, x } = veterinarianEncounter.state;
+    if (phase === 'waiting') { return; }
+
+    const targetX = state.wallaby.x - (x + 45);
+    const truckGroundY = GROUND_Y + VETERINARIAN_DEPTH_OFFSET;
+    const targetY = state.wallaby.y - state.wallaby.height * 0.7 - (truckGroundY - 67);
+    const aimAngle = phase === 'approaching' || phase === 'approaching-pass'
+      ? 0
+      : Math.atan2(targetY, targetX);
+    const aimX = Math.cos(aimAngle);
+    const aimY = Math.sin(aimAngle);
+
+    ctx.save();
+    ctx.translate(x, truckGroundY);
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.ellipse(82, 2, 84, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    [32, 132].forEach((wheelX) => {
+      ctx.fillStyle = '#202a28';
+      ctx.beginPath();
+      ctx.arc(wheelX, -14, 15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#a7aaa2';
+      ctx.beginPath();
+      ctx.arc(wheelX, -14, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#555f59';
+      ctx.beginPath();
+      ctx.arc(wheelX, -14, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.fillStyle = '#303d36';
+    ctx.fillRect(8, -40, 151, 14);
+    ctx.fillStyle = '#536b4d';
+    ctx.fillRect(4, -58, 159, 22);
+    ctx.fillRect(5, -67, 60, 10);
+    ctx.fillRect(6, -71, 58, 5);
+    ctx.fillStyle = '#354b37';
+    ctx.fillRect(11, -64, 48, 8);
+
+    ctx.fillStyle = '#627b58';
+    ctx.fillRect(65, -91, 67, 39);
+    ctx.fillRect(63, -101, 70, 12);
+    ctx.fillStyle = '#a9d5dc';
+    ctx.fillRect(72, -88, 23, 26);
+    ctx.fillRect(101, -88, 24, 26);
+    ctx.fillStyle = '#465d45';
+    ctx.fillRect(97, -91, 4, 35);
+    ctx.fillRect(70, -59, 63, 7);
+
+    ctx.fillStyle = '#647a55';
+    ctx.fillRect(128, -55, 33, 18);
+    ctx.fillStyle = '#293630';
+    ctx.fillRect(157, -48, 8, 14);
+    ctx.fillStyle = '#f2d27c';
+    ctx.fillRect(158, -54, 5, 6);
+    ctx.fillStyle = '#9aa39a';
+    ctx.fillRect(0, -37, 10, 5);
+
+    // Vet stands in the pickup bed in a white coat with a medical cross.
+    ctx.fillStyle = '#e8e5dc';
+    ctx.beginPath();
+    ctx.moveTo(25, -75);
+    ctx.lineTo(47, -75);
+    ctx.lineTo(52, -57);
+    ctx.lineTo(21, -57);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#2f6b55';
+    ctx.fillRect(33, -69, 3, 9);
+    ctx.fillRect(30, -66, 9, 3);
+    ctx.fillStyle = '#d9a47b';
+    ctx.beginPath();
+    ctx.arc(37, -87, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#51443a';
+    ctx.beginPath();
+    ctx.arc(37, -90, 7, Math.PI, Math.PI * 2);
+    ctx.fill();
+
+    const shoulderX = 45;
+    const shoulderY = -67;
+    const gripX = shoulderX + aimX * 12;
+    const gripY = shoulderY + aimY * 12;
+    const muzzleX = shoulderX + aimX * 32;
+    const muzzleY = shoulderY + aimY * 32;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#e8e5dc';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(43, -65);
+    ctx.lineTo(gripX, gripY);
+    ctx.stroke();
+    ctx.strokeStyle = '#39434a';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(gripX, gripY);
+    ctx.lineTo(muzzleX, muzzleY);
+    ctx.stroke();
+    ctx.strokeStyle = '#f5c842';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(muzzleX, muzzleY);
+    ctx.lineTo(muzzleX + aimX * 5, muzzleY + aimY * 5);
+    ctx.stroke();
+
+    // Boxy pickup details and rear-mounted spare wheel.
+    ctx.strokeStyle = '#354b37';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(4, -58, 61, 22);
+    ctx.strokeRect(65, -91, 67, 39);
+    ctx.fillStyle = '#202a28';
+    ctx.beginPath();
+    ctx.arc(13, -47, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#9aa39a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(13, -47, 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  };
+
   const drawWallaby = () => {
     const w = state.wallaby;
     const cx = w.x;
@@ -917,6 +1262,7 @@ import { createSparkSystem } from './utils/sparks.js';
 
     ctx.save();
     ctx.translate(cx, footY);
+    ctx.rotate(wallabySleepAngle);
 
     // Tail
     ctx.fillStyle = activeColours.wallabyBody;
@@ -983,12 +1329,123 @@ import { createSparkSystem } from './utils/sparks.js';
 
     ctx.restore();
 
-    // Subtle shadow under wallaby
-    const shadowScale = Math.max(0.3, 1 - (GROUND_Y - footY) / 180);
-    ctx.fillStyle = activeColours.shadow;
+    if (wallabySleepAngle < Math.PI / 2) {
+      // Keep ground shadow while upright; remove it once the wallaby lies down.
+      const shadowScale = Math.max(0.3, 1 - (GROUND_Y - footY) / 180);
+      ctx.fillStyle = activeColours.shadow;
+      ctx.beginPath();
+      ctx.ellipse(cx, GROUND_Y + 2, 20 * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
+  const drawVeterinarianDart = (projectile) => {
+    const { x, y, angle } = projectile.state;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(1.3, 1.3);
+    ctx.fillStyle = '#56636b';
+    ctx.fillRect(-10, -2, 18, 4);
+    ctx.fillStyle = '#ff1744';
+    ctx.fillRect(-11, -2.5, 4, 5);
     ctx.beginPath();
-    ctx.ellipse(cx, GROUND_Y + 2, 20 * shadowScale, 4 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.moveTo(-8, -1.5);
+    ctx.lineTo(-18, -7);
+    ctx.lineTo(-14, 0);
+    ctx.closePath();
     ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-8, 1.5);
+    ctx.lineTo(-18, 7);
+    ctx.lineTo(-14, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f5c842';
+    ctx.beginPath();
+    ctx.moveTo(8, -2.5);
+    ctx.lineTo(15, 0);
+    ctx.lineTo(8, 2.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  };
+
+  const drawVeterinarianMuzzleFlash = () => {
+    if (!veterinarianMuzzleFlash) { return; }
+
+    const { x, y, angle, remaining } = veterinarianMuzzleFlash;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.globalAlpha = Math.max(0, remaining / VETERINARIAN_MUZZLE_FLASH_SECONDS);
+    ctx.fillStyle = '#fff3a3';
+    ctx.beginPath();
+    ctx.moveTo(-2, -4);
+    ctx.lineTo(9, -3);
+    ctx.lineTo(20, 0);
+    ctx.lineTo(9, 3);
+    ctx.lineTo(-2, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ff9f1c';
+    ctx.beginPath();
+    ctx.arc(1, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+
+  const drawVeterinarianSpeechBubble = () => {
+    const encounterState = veterinarianEncounter.state;
+    if (encounterState.phase !== 'alongside') { return; }
+
+    const speechFrame = getSpeechBubbleFrame(
+      encounterSentences,
+      encounterState.elapsed,
+      VETERINARIAN_SPEECH_CHARACTER_SECONDS,
+      VETERINARIAN_SPEECH_DISPLAY_SECONDS
+    );
+    if (!speechFrame) { return; }
+
+    ctx.save();
+    ctx.font = '18px monospace';
+    const padding = 10;
+    const bubbleWidth = Math.ceil(ctx.measureText(speechFrame.fullText).width) + padding * 2;
+    const bubbleHeight = 38;
+    const bubbleX = Math.max(8, Math.min(
+      WIDTH - bubbleWidth - 8,
+      encounterState.x + 20
+    ));
+    const bubbleY = Math.max(8, GROUND_Y + VETERINARIAN_DEPTH_OFFSET - 147);
+    const bubbleBottom = bubbleY + bubbleHeight;
+    const vetX = encounterState.x + 37;
+    const tailX = Math.max(bubbleX + 18, Math.min(bubbleX + bubbleWidth - 18, vetX));
+
+    ctx.beginPath();
+    ctx.moveTo(bubbleX + 7, bubbleY);
+    ctx.lineTo(bubbleX + bubbleWidth - 7, bubbleY);
+    ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY, bubbleX + bubbleWidth, bubbleY + 7);
+    ctx.lineTo(bubbleX + bubbleWidth, bubbleBottom - 7);
+    ctx.quadraticCurveTo(bubbleX + bubbleWidth, bubbleBottom, bubbleX + bubbleWidth - 7, bubbleBottom);
+    ctx.lineTo(tailX + 7, bubbleBottom);
+    ctx.lineTo(tailX, bubbleBottom + 13);
+    ctx.lineTo(tailX - 7, bubbleBottom);
+    ctx.lineTo(bubbleX + 7, bubbleBottom);
+    ctx.quadraticCurveTo(bubbleX, bubbleBottom, bubbleX, bubbleBottom - 7);
+    ctx.lineTo(bubbleX, bubbleY + 7);
+    ctx.quadraticCurveTo(bubbleX, bubbleY, bubbleX + 7, bubbleY);
+    ctx.closePath();
+    ctx.fillStyle = '#fffef5';
+    ctx.strokeStyle = '#303b40';
+    ctx.lineWidth = 1.5;
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#202a28';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(speechFrame.text, bubbleX + padding, bubbleY + bubbleHeight / 2);
+    ctx.restore();
   };
 
   const drawOverlay = () => {
@@ -1004,11 +1461,23 @@ import { createSparkSystem } from './utils/sparks.js';
       ctx.fillStyle = activeColours.accent;
       ctx.fillText('Tap, click, or press space to start', WIDTH / 2, HEIGHT / 2 + 20);
     } else if (state.status === 'over') {
+      ctx.fillStyle = sleepBlackoutAlpha >= 1 ? '#000' : activeColours.overlay;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
       ctx.fillText(state.lastRunWasHighScore ? 'New high score!' : 'Ouch!', WIDTH / 2, HEIGHT / 2 - 18);
       ctx.font = '16px system-ui, -apple-system, sans-serif';
       ctx.fillStyle = activeColours.text;
       ctx.fillText(`Score: ${Math.floor(state.score)}   Best: ${state.best}`, WIDTH / 2, HEIGHT / 2 + 8);
     }
+  };
+
+  const drawSleepBlackout = () => {
+    if (sleepBlackoutAlpha <= 0) { return; }
+
+    ctx.save();
+    ctx.globalAlpha = sleepBlackoutAlpha;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.restore();
   };
 
   const drawSpeedometer = (deltaSeconds) => {
@@ -1093,6 +1562,9 @@ import { createSparkSystem } from './utils/sparks.js';
   };
 
   const render = (deltaSeconds) => {
+    if (hardModeToggle) {
+      hardModeToggle.disabled = state.status === 'running' || Boolean(dartSleepTransition);
+    }
     activeColours = buildActiveColours(state.nightBlend);
     const scorePhase = state.score % DAY_NIGHT_SCORE_CYCLE;
     ctx.fillStyle = activeColours.sky;
@@ -1105,9 +1577,14 @@ import { createSparkSystem } from './utils/sparks.js';
     drawGround();
     state.obstacles.forEach(drawObstacle);
     drawWallaby();
-    drawOverlay();
+    drawVeterinarianTruck();
+    drawVeterinarianSpeechBubble();
+    drawVeterinarianMuzzleFlash();
+    veterinarianDarts.forEach(drawVeterinarianDart);
     sparks.draw(deltaSeconds, state.speed);
     drawSpeedometer(deltaSeconds);
+    drawSleepBlackout();
+    drawOverlay();
   };
 
   // Prime initial state so the ready screen shows a wallaby, trees and clouds.
