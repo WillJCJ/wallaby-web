@@ -76,6 +76,25 @@ ON CONFLICT(email) DO UPDATE SET
 
 INSERT INTO guests (name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, updated_by)
 VALUES (
+  'Playwright User',
+  'playwright-user@example.com',
+  'pending',
+  0,
+  '',
+  '',
+  'local-seed'
+)
+ON CONFLICT(email) DO UPDATE SET
+  name = excluded.name,
+  rsvp = excluded.rsvp,
+  additional_guests = excluded.additional_guests,
+  dietary_requirements = excluded.dietary_requirements,
+  rsvp_message = excluded.rsvp_message,
+  updated_by = excluded.updated_by,
+  updated_at = datetime('now');
+
+INSERT INTO guests (name, email, rsvp, additional_guests, dietary_requirements, rsvp_message, updated_by)
+VALUES (
   'Priya Koala',
   'priya@example.com',
   'yes',
